@@ -1,28 +1,32 @@
 import * as THREE from 'three';
-import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity,triggerCodePulse} from './matrixMaterial.js';
+import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity,triggerCodePulse,setCodePlayerPosition} from './matrixMaterial.js';
 import './style.css';
 import {createForest} from './forest.js';
+import {createDataSky} from './sky.js';
+import {createOpenWorld} from './openWorld.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
 <div id="viewport" aria-label="3D digital world"></div>
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
-<div class="crosshair" aria-hidden="true"><span></span></div>
-<div class="bottomleft"><div class="eyebrow">SECTORS 01–02 / THE SIMULATION · V0.3</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="crosshair" aria-hidden="true"><span></span></div>
+<div class="bottomleft"><div class="eyebrow">SECTORS 01–03 / THE UNBOUND WORLD · V0.4</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The simulation is waking up. Recover three lost signals, activate the Source Node, then follow the glowing trail into the forest. Something is waiting among the trees.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.3.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The simulation is waking up. Recover three lost signals, activate the Source Node, then follow the glowing trail into the forest. Something is waiting among the trees.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.4.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
-const scene=new THREE.Scene();scene.background=new THREE.Color('#010807');scene.fog=new THREE.FogExp2('#010807',.019);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#010807');scene.fog=new THREE.FogExp2('#010807',.012);
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.08,210); camera.position.set(0,1.72,7.8);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.25;
 document.querySelector('#viewport').append(renderer.domElement);
+const sky=createDataSky(scene);
+const openWorld=createOpenWorld(scene);
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
 const interactables=[];
@@ -178,6 +182,19 @@ function interact(){
 }
 
 const forest=createForest(scene);
+let wireframe=false;
+const visionButton=document.querySelector('#vision');
+function setVision(enabled){
+ wireframe=enabled;visionButton.setAttribute('aria-pressed',String(enabled));
+ visionButton.classList.toggle('selected',enabled);
+ visionButton.querySelector('span').textContent=enabled?'RESTORE CODE [ V ]':'CODE VISION [ V ]';
+ scene.traverse(object=>{
+  if(!object.isMesh||object.userData.noWireframe)return;
+  const materials=Array.isArray(object.material)?object.material:[object.material];
+  materials.forEach(material=>{if(material&&'wireframe' in material)material.wireframe=enabled;});
+ });
+}
+visionButton.addEventListener('click',()=>setVision(!wireframe));
 
 const particlesCount=900;
 const positions=new Float32Array(particlesCount*3);
@@ -205,7 +222,7 @@ document.addEventListener('pointerlockchange',()=>{
 document.addEventListener('mousemove',e=>{
  if(!locked)return;yaw-=e.movementX*.0022;pitch=Math.max(-1.48,Math.min(1.48,pitch-e.movementY*.0022));
 });
-window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();});
+window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();if(e.code==='KeyV'&&!e.repeat)setVision(!wireframe);});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>keys.clear());
 function toggleSettings(open){
  settings.classList.toggle('open',open);settings.classList.toggle('hidden',!open);
@@ -256,6 +273,9 @@ let frameCount=0,lastFps=0;
 function tick(){
  requestAnimationFrame(tick);
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
+ sky.update(camera,t,document.querySelector('#reduced').checked?0:Number(document.querySelector('#motion').value)/100);
+ const found=openWorld.update(t,dt,camera.position,!document.querySelector('#reduced').checked);
+ if(found&&active){found.visited=true;announce(found.text,7);triggerCodePulse(new THREE.Vector3(found.x,0,found.z),t);}
  if(messageUntil&&t>messageUntil){messageLabel.classList.remove('visible');messageUntil=0;}
  for(const item of interactables){item.prism.rotation.y+=dt*.8;item.prism.position.y=2.05+Math.sin(t*1.7+item.number)*.22;item.halo.rotation.z+=dt*.28;}
  for(const item of sculptures){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}
@@ -266,6 +286,7 @@ function tick(){
  interactionLabel.classList.toggle('visible',!!(nearby||nearSource||nearHeart));
  forest.animate(t,dt,document.querySelector('#reduced').checked);
  setCodeTime(t);
+ setCodePlayerPosition(camera.position);
  sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
  ring.rotation.z=t*.11;ring2.rotation.x=t*.09;
  particles.rotation.y=t*.0003;
@@ -285,7 +306,8 @@ function tick(){
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
- document.querySelector('#location').textContent=camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING';
+ const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
+ document.querySelector('#location').textContent=localLandmark?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
 }
