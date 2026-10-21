@@ -17,3 +17,12 @@
 @media(max-width:680px){.topbar{padding:20px}.topmeta{font-size:9px}.topmeta #coordinates,.topmeta .separator{display:none}.overlay{padding:28px}.symbol{margin-bottom:28px}h1{font-size:clamp(55px,13vw,83px)}.intro-copy{font-size:15px}.controls{line-height:2;font-size:8px}.controls span{padding:0 5px}.intro-aside{right:22px;bottom:18px}.bottomleft{left:20px;bottom:27px}.location{font-size:18px}.settings{right:16px;top:72px}.bottomright{bottom:25px}}
 @media(max-height:660px){.overlay{overflow-y:auto;align-items:flex-start}.intro-content{padding:22px 0}.symbol{margin-bottom:12px}h1{font-size:clamp(48px,10vh,85px);margin:12px 0}.intro-copy{line-height:1.5}.enter{margin-top:15px}.controls{margin-top:12px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* v0.2 Living Code HUD */
+.objectives{position:absolute;z-index:3;top:88px;left:38px;display:flex;flex-direction:column;gap:7px;color:#c4fdd7;font:10px 'DM Mono',monospace;letter-spacing:.12em;pointer-events:none}
+.objectives-label{color:#5eac83;font-size:9px}.progress-track{width:156px;height:2px;background:#254d35}.progress-track>div{height:100%;width:0%;background:#8dfcc2;box-shadow:0 0 12px #58ff9d;transition:width .5s}
+.interaction{position:absolute;z-index:6;left:50%;bottom:19%;transform:translateX(-50%);min-width:205px;text-align:center;padding:14px 18px;border:1px solid #70ffae77;color:#c4ffe0;background:#052013e8;font:11px 'DM Mono',monospace;letter-spacing:.1em;opacity:0;transition:opacity .2s;pointer-events:none}
+.interaction.visible{opacity:1;pointer-events:auto;cursor:pointer}
+.message{position:absolute;z-index:7;left:50%;top:18%;transform:translateX(-50%);text-align:center;max-width:80vw;padding:13px 20px;background:#041a11e8;border:1px solid #4ddb8b77;color:#aaffc7;font:11px/1.7 'DM Mono',monospace;letter-spacing:.1em;opacity:0;transition:opacity .25s;pointer-events:none}.message.visible{opacity:1}
+.source-hint{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:7;color:#9affcf;font:12px 'DM Mono',monospace;letter-spacing:.25em;text-shadow:0 0 22px #36fc96;text-align:center;opacity:0;transition:opacity 1.5s;pointer-events:none}.source-hint.revealed{opacity:1}
+@media(max-width:680px){.objectives{left:20px;top:77px}.interaction{bottom:18%;font-size:10px;width:70vw}.message{top:21%;font-size:10px}}
