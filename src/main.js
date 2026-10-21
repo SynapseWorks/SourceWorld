@@ -5,17 +5,19 @@ import {createForest} from './forest.js';
 import {createDataSky} from './sky.js';
 import {createOpenWorld} from './openWorld.js';
 import {createReconstruction} from './reconstruction.js';
+import {createGeneratedSectors} from './worldgen.js';
+import {createSimulationWeather} from './weather.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
 <div id="viewport" aria-label="3D digital world"></div>
 <div id="vignette" aria-hidden="true"></div>
-<div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
-<button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="crosshair" aria-hidden="true"><span></span></div>
-<div class="bottomleft"><div class="eyebrow">SECTORS 01–03 / REALITY IN BLOOM · V0.5</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span><span class="system-weather" id="weather-state" aria-live="off">ATMOSPHERE / STABLE</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
+<button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
+<div class="bottomleft"><div class="eyebrow">SIMULATION 001 / A LIVING SYSTEM · V0.6</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
-<div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The world extends beyond the avenues. Wander its winding paths, watch matter unfold into code, and find the Heart of the Grove beneath an impossible sky.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.5.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">Explore an impossible landscape of living information. Follow the signals, cross the wild sectors, and watch the world rewrite itself around you.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.6.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -29,6 +31,8 @@ document.querySelector('#viewport').append(renderer.domElement);
 const sky=createDataSky(scene);
 const openWorld=createOpenWorld(scene);
 const reconstruction=createReconstruction(scene);
+const generatedSectors=createGeneratedSectors(scene,{seed:60421,count:155});
+const simulationWeather=createSimulationWeather(scene,{particleCount:1500});
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
 const interactables=[];
@@ -233,6 +237,7 @@ function toggleSettings(open){
 }
 settingsBtn.addEventListener('click',()=>toggleSettings(!settings.classList.contains('open')));
 document.querySelector('#settings-close').addEventListener('click',()=>toggleSettings(false));
+document.querySelector('#weather-toggle').addEventListener('change',e=>simulationWeather.setEnabled(e.target.checked));
 document.querySelector('#density').addEventListener('input',e=>{const value=Number(e.target.value);setCodeDensity(value/100);document.querySelector('#density-value').textContent=value+'%';});
 document.querySelector('#motion').addEventListener('input',e=>{const value=Number(e.target.value);setCodeMotion(value/100);document.querySelector('#motion-value').textContent=value+'%';});
 document.querySelector('#quality').addEventListener('change',e=>{renderer.setPixelRatio(Math.min(devicePixelRatio,2)*Number(e.target.value));});
@@ -275,7 +280,10 @@ let frameCount=0,lastFps=0;
 function tick(){
  requestAnimationFrame(tick);
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
- sky.update(camera,t,document.querySelector('#reduced').checked?0:Number(document.querySelector('#motion').value)/100);
+ const reduced=document.querySelector('#reduced').checked;
+ sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
+ const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
+ document.querySelector('#weather-state').textContent='ATMOSPHERE / '+atmosphere;
  const found=openWorld.update(t,dt,camera.position,!document.querySelector('#reduced').checked);
  if(reconstruction.update(t,dt,camera.position,!document.querySelector('#reduced').checked)&&active){
   announce('THE MIRROR REASSEMBLES WHEN OBSERVED. IS PERCEPTION PART OF THE CODE?',8);
@@ -283,8 +291,8 @@ function tick(){
  }
  if(found&&active){found.visited=true;announce(found.text,7);triggerCodePulse(new THREE.Vector3(found.x,0,found.z),t);}
  if(messageUntil&&t>messageUntil){messageLabel.classList.remove('visible');messageUntil=0;}
- for(const item of interactables){item.prism.rotation.y+=dt*.8;item.prism.position.y=2.05+Math.sin(t*1.7+item.number)*.22;item.halo.rotation.z+=dt*.28;}
- for(const item of sculptures){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}
+ for(const item of interactables){if(!reduced){item.prism.rotation.y+=dt*.8;item.prism.position.y=2.05+Math.sin(t*1.7+item.number)*.22;item.halo.rotation.z+=dt*.28;}}
+ for(const item of sculptures){if(!reduced){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}}
  let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
@@ -293,9 +301,9 @@ function tick(){
  forest.animate(t,dt,document.querySelector('#reduced').checked);
  setCodeTime(t);
  setCodePlayerPosition(camera.position);
- sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
+ if(!reduced){sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
  ring.rotation.z=t*.11;ring2.rotation.x=t*.09;
- particles.rotation.y=t*.0003;
+ particles.rotation.y=t*.0003;}
  if(active&&(locked||mobile)){
   const forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-touchMoveY;
   const strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+touchMoveX;
@@ -312,6 +320,17 @@ function tick(){
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
+ const nextTarget=interactables.find(item=>!item.done)||(!sourceActivated?{x:0,z:-85,label:'SOURCE NODE'}:!forest.interact.completed?{x:0,z:-217,label:'HEART OF THE GROVE'}:null);
+ const wayfinder=document.querySelector('#objective-direction');
+ const metric=document.querySelector('#objective-distance');
+ if(nextTarget){
+  const dx=nextTarget.x-camera.position.x,dz=nextTarget.z-camera.position.z;
+  const heading=Math.atan2(dx,-dz)-yaw;
+  const ahead=Math.atan2(Math.sin(heading),Math.cos(heading));
+  const arrow=Math.abs(ahead)<.45?'↑':ahead>0?(ahead<2.6?'↗':'↓'):(ahead> -2.6?'↖':'↓');
+  wayfinder.textContent=arrow+' '+(nextTarget.label||'SIGNAL FRAGMENT');
+  metric.textContent=Math.round(Math.hypot(dx,dz))+' M';
+ }else{wayfinder.textContent='◇ SYSTEM AT REST';metric.textContent='COMPLETE';}
  const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
  document.querySelector('#location').textContent=localLandmark?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
