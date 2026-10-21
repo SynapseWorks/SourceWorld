@@ -1,4 +1,4 @@
-# SourceWorld v0.4 — The Unbound World
+# SourceWorld v0.5 — Reality in Bloom
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -32,7 +32,8 @@ npm run preview
 
 - `src/main.js` — scene, interaction, world construction and render loop
 - `src/forest.js` — seeded procedural forest, terrain, luminous trail, and Heart of the Grove
-- `src/openWorld.js` — off-axis plazas, loop paths, additional terrain, discoverable landmarks
+- `src/openWorld.js` — organic clearings, winding spline ribbons, undulating perimeter terrain
+- `src/reconstruction.js` — glyph-particle dissolution and proximity-based reassembly
 - `src/sky.js` — dynamic camera-centered digital sky dome
 - `src/matrixMaterial.js` — procedural tiled digital rain texture material
 - `src/style.css` — UI styling, accessibility, responsive controls
@@ -60,6 +61,14 @@ Technical updates: forest geometry uses shared materials and seeded placement to
 The world opens outward via four off-axis destinations: Mirror Plaza (X -43, Z -34), Fracture Garden (X 46, Z -67), Echo Clearing (X -31, Z -153), and Memory Pool (X 32, Z -190). Each is connected to the central route and each other by wide pathways, allowing lateral exploration rather than a linear corridor. Approach a landmark to receive its environmental memory and a world-space code pulse.
 
 A camera-centered spherical digital sky replaces the flat backdrop; distant data traces and stars remain overhead as you explore. Nearby geometry brightens its glyphs subtly. **V** toggles wireframe inspection of world meshes (a simple development-style geometry view), and a touch-friendly button provides the same action on phones.
+
+## Reality in Bloom (v0.5)
+
+- Previous straight connector roads replaced with wide, continuously curved Catmull-Rom paths and alternative loop routes.
+- Previously circular clearings now have subtle irregular edges; natural rock arrangements and rolling perimeter ridges extend the horizon. The traversable centre stays at the same ground level for compatibility with the current first-person controller.
+- Sky-scale rings, fractured arcs and suspended data beams make the sky feel constructed rather than flat.
+- The Mirror Plaza now contains a monument made from hundreds of animated glyph particles. Its object shell reconstructs as the observer approaches and dissolves as they move away. Approaching triggers an atmospheric discovery line and code pulse.
+- Reduced-motion settings suppress dynamic sky rotation and particle flutter.
 
 ## Future ideas
 
