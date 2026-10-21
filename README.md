@@ -36,6 +36,7 @@ npm run preview
 - `src/reconstruction.js` — glyph-particle dissolution and proximity-based reassembly
 - `src/worldgen.js` — seeded, instanced sector expansion and biomes
 - `src/weather.js` — shader-animated code drizzle, storms, and fault lines
+- `src/artDirection.js` — transition arches, levitating shards, and landmark crowns
 - `src/sky.js` — dynamic camera-centered digital sky dome
 - `src/matrixMaterial.js` — procedural tiled digital rain texture material
 - `src/style.css` — UI styling, accessibility, responsive controls
@@ -79,6 +80,7 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 - HUD overhaul with a consistent typographic scale, restrained green accents, weather indicators, redesigned onboarding, and objective-direction guidance.
 - Reduced-motion support for nearby animated geometry.
 - Code shader supports InstancedMesh transforms, necessary for reliable scalable landscape generation.
+- Landmark crowns, sky arches, hovering code sculptures and distant lighting create larger-scale visual focal points.
 
 ## Future ideas
 
