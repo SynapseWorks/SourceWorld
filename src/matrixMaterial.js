@@ -30,7 +30,7 @@ export function setCodeDensity(value){uniforms.uDensity.value=value;}
 export function setCodePlayerPosition(position){uniforms.uPlayerPos.value.copy(position);}
 export function triggerCodePulse(origin,time){uniforms.uPulseOrigin.value.copy(origin);uniforms.uPulseTime.value=time;}
 
-const vertexShader = `varying vec2 vUv; varying vec3 vWorld; void main(){vUv=uv;vec4 world=modelMatrix*vec4(position,1.);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`;
+const vertexShader = `varying vec2 vUv; varying vec3 vWorld; void main(){vUv=uv;vec4 local=vec4(position,1.);\n#ifdef USE_INSTANCING\nlocal=instanceMatrix*local;\n#endif\nvec4 world=modelMatrix*local;vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`;
 const fragmentShader = `precision highp float;
 uniform sampler2D uAtlas; uniform float uTime; uniform float uMotion; uniform float uDensity;
 uniform vec2 uScale; uniform float uSeed; uniform float uBrightness;
