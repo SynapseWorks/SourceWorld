@@ -16,16 +16,17 @@ app.innerHTML=`
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span><span class="system-weather" id="weather-state" aria-live="off">ATMOSPHERE / STABLE</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
 <button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
 <div class="bottomleft"><div class="eyebrow">SIMULATION 001 / A LIVING SYSTEM · V0.6</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
-<div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
-<div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
+<button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
+<div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
 <div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">Explore an impossible landscape of living information. Follow the signals, cross the wild sectors, and watch the world rewrite itself around you.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.6.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
 const scene=new THREE.Scene();scene.background=new THREE.Color('#010807');scene.fog=new THREE.FogExp2('#010807',.012);
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.08,210); camera.position.set(0,1.72,7.8);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);
+const renderer=new THREE.WebGLRenderer({antialias:!matchMedia('(pointer:coarse)').matches,powerPreference:'high-performance'});
+let qualityScale=matchMedia('(pointer:coarse)').matches?.65:1;
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.25;
 document.querySelector('#viewport').append(renderer.domElement);
@@ -213,12 +214,15 @@ const particles=new THREE.Points(particlesGeo,new THREE.PointsMaterial({color:'#
 const intro=document.querySelector('#intro'),enter=document.querySelector('#enter');
 const settings=document.querySelector('#settings'),settingsBtn=document.querySelector('#settings-btn');
 let active=false,locked=false,mobile=matchMedia('(pointer:coarse)').matches;
+const settingsTrigger=document.querySelector('#settings-btn');
+settings.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();toggleSettings(false);settingsTrigger.focus();}});
 let yaw=0,pitch=0,vy=0,grounded=true;const keys=new Set();
 const clock=new THREE.Clock();
 
 function capture(){
  if(mobile){active=true;intro.classList.add('hidden');return;}
- renderer.domElement.requestPointerLock?.();
+ const request=renderer.domElement.requestPointerLock?.();
+ if(request&&typeof request.catch==='function')request.catch(()=>{intro.classList.remove('hidden');});
 }
 enter.addEventListener('click',capture);
 renderer.domElement.addEventListener('click',()=>{if(active&&!mobile&&!settings.classList.contains('open'))capture();});
@@ -230,19 +234,22 @@ document.addEventListener('pointerlockchange',()=>{
 document.addEventListener('mousemove',e=>{
  if(!locked)return;yaw-=e.movementX*.0022;pitch=Math.max(-1.48,Math.min(1.48,pitch-e.movementY*.0022));
 });
-window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();if(e.code==='KeyV'&&!e.repeat)setVision(!wireframe);});
-window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>keys.clear());
+window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();if(e.code==='KeyV'&&!e.repeat&&document.activeElement?.tagName!=='INPUT')setVision(!wireframe);});
+window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();resetJoystick();});
 function toggleSettings(open){
  settings.classList.toggle('open',open);settings.classList.toggle('hidden',!open);
  settingsBtn.setAttribute('aria-expanded',String(open));
  if(open&&locked)document.exitPointerLock();
+ if(open)document.querySelector('#settings-close').focus();
 }
 settingsBtn.addEventListener('click',()=>toggleSettings(!settings.classList.contains('open')));
 document.querySelector('#settings-close').addEventListener('click',()=>toggleSettings(false));
 document.querySelector('#weather-toggle').addEventListener('change',e=>simulationWeather.setEnabled(e.target.checked));
 document.querySelector('#density').addEventListener('input',e=>{const value=Number(e.target.value);setCodeDensity(value/100);document.querySelector('#density-value').textContent=value+'%';});
 document.querySelector('#motion').addEventListener('input',e=>{const value=Number(e.target.value);setCodeMotion(value/100);document.querySelector('#motion-value').textContent=value+'%';});
-document.querySelector('#quality').addEventListener('change',e=>{renderer.setPixelRatio(Math.min(devicePixelRatio,2)*Number(e.target.value));});
+const qualityInput=document.querySelector('#quality');
+if(matchMedia('(pointer:coarse)').matches)qualityInput.value='.65';
+qualityInput.addEventListener('change',e=>{qualityScale=Number(e.target.value);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);});
 document.querySelector('#reduced').addEventListener('change',e=>{setCodeMotion(e.target.checked?0:Number(document.querySelector('#motion').value)/100);});
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){document.querySelector('#reduced').checked=true;setCodeMotion(0);}
 // Touch input: left virtual joystick, right swipe camera control.
@@ -265,6 +272,7 @@ joystick.addEventListener('pointerup',resetJoystick);joystick.addEventListener('
 function resetJoystick(){joystickId=null;touchMoveX=touchMoveY=0;knob.style.transform='translate(0,0)';}
 renderer.domElement.addEventListener('pointermove',e=>{if(!mobile||e.pointerId!==lookId)return;yaw-=(e.clientX-lastLook.x)*.005;pitch=Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-lastLook.y)*.005));lastLook={x:e.clientX,y:e.clientY};});
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null;});
+renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null;});
 interactionLabel.addEventListener('click',interact);
 document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(grounded){vy=5.1;grounded=false;}});
 function collision(x,z){
@@ -300,8 +308,11 @@ function tick(){
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
  interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- interactionLabel.classList.toggle('visible',!!(nearby||nearSource||nearHeart));
- forest.animate(t,dt,document.querySelector('#reduced').checked);
+ const canInteract=!!(nearby||nearSource||nearHeart);
+ interactionLabel.classList.toggle('visible',canInteract);
+ interactionLabel.disabled=!canInteract;
+ forest.animate(t,dt,reduced);
+ forest.updateVisibility(camera.position);
  setCodeTime(t);
  setCodePlayerPosition(camera.position);
  if(!reduced){sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
@@ -328,7 +339,7 @@ function tick(){
  const metric=document.querySelector('#objective-distance');
  if(nextTarget){
   const dx=nextTarget.x-camera.position.x,dz=nextTarget.z-camera.position.z;
-  const heading=Math.atan2(dx,-dz)-yaw;
+  const heading=Math.atan2(dx,-dz)+yaw;
   const ahead=Math.atan2(Math.sin(heading),Math.cos(heading));
   const arrow=Math.abs(ahead)<.45?'↑':ahead>0?(ahead<2.6?'↗':'↓'):(ahead> -2.6?'↖':'↓');
   wayfinder.textContent=arrow+' '+(nextTarget.label||'SIGNAL FRAGMENT');
@@ -339,5 +350,5 @@ function tick(){
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
 }
-window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);});
 tick();
