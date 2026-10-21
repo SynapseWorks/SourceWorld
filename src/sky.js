@@ -27,5 +27,22 @@ export function createDataSky(scene){
  }));
  sky.frustumCulled=false;sky.renderOrder=-1000;sky.userData.noWireframe=true;
  scene.add(sky);
- return {update(camera,time,speed){sky.position.copy(camera.position);uniforms.time.value=time;uniforms.motion.value=speed;}};
+ // Enormous suspended computational rings and fractured arc segments.
+ const structures=new THREE.Group();structures.userData.noWireframe=true;sky.add(structures);
+ const metal=new THREE.MeshBasicMaterial({color:0x167951,transparent:true,opacity:.36,depthWrite:false,side:THREE.DoubleSide});
+ const bright=new THREE.MeshBasicMaterial({color:0x49cb88,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide});
+ for(let i=0;i<7;i++){
+  const radius=35+i*12;
+  const section=new THREE.Mesh(new THREE.TorusGeometry(radius,.085+i*.01,4,110,Math.PI*(.45+(i%4)*.22)),i%2?metal:bright);
+  section.position.set(Math.sin(i*2.4)*22,45+i*5,-40-i*14);
+  section.rotation.set(.6+i*.23,i*.71,i*.35);
+  section.userData.noWireframe=true;structures.add(section);
+ }
+ const beams=new THREE.Group();structures.add(beams);
+ for(let i=0;i<21;i++){
+  const shape=new THREE.Mesh(new THREE.BoxGeometry(.12,9+(i%6)*5,.12),metal);
+  shape.position.set(Math.sin(i*2.399)*90,25+(i%7)*9,Math.cos(i*2.399)*90);
+  shape.rotation.z=(i%7-3)*.11;shape.userData.noWireframe=true;beams.add(shape);
+ }
+ return {update(camera,time,speed){sky.position.copy(camera.position);uniforms.time.value=time;uniforms.motion.value=speed;structures.rotation.y=time*speed*.003;}};
 }
