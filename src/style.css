@@ -35,3 +35,24 @@
 .vision-btn{position:absolute;z-index:5;right:38px;top:88px;border:1px solid #295f44;border-radius:5px;background:#041c13c9;color:#91eab3;padding:11px 14px;font:10px 'DM Mono',monospace;letter-spacing:.08em;backdrop-filter:blur(10px)}
 .vision-btn:hover,.vision-btn.selected{border-color:#8cffbb;color:#dcffeb;background:#145235db;box-shadow:0 0 18px #48fa8533}
 @media(max-width:680px){.vision-btn{top:80px;right:18px;font-size:9px}}
+
+/* v0.6 visual system — subtle, legible, restrained layers */
+:root{--green:#4ce69b;--mint:#a8ffd0;--panel:rgba(2,15,11,.94)}
+.topbar{padding:19px clamp(19px,3vw,49px);border-bottom:1px solid #79ffac15;background:linear-gradient(180deg,rgba(0,10,7,.94),rgba(0,12,9,.4))}
+.brand{font-weight:600;letter-spacing:.14em}.brandmark{color:#a8ffd0;text-shadow:0 0 22px #4ce69b99}
+.topmeta{letter-spacing:.11em}.system-weather{margin-left:7px;padding-left:15px;border-left:1px solid #56836675;color:#88ffc0}
+.vision-btn{top:85px;border-radius:3px;border-color:#88ffb33d;background:#051b14dc}
+.wayfinder{position:absolute;z-index:4;top:152px;right:38px;width:200px;padding:15px 17px;background:linear-gradient(140deg,#061c16dc,#03110cd6);border:1px solid #83fbb12e;border-left:2px solid #82ffc3;box-shadow:0 10px 40px #0005;pointer-events:none;color:#c8ffe2;font:11px/1.6 'DM Mono',monospace;letter-spacing:.06em}
+.wayfinder-heading{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px;font-size:9px;color:#75b895;letter-spacing:.1em}
+.wayfinder-heading span{color:#acffd0}.eyebrow{letter-spacing:.2em;color:#89ffc4}
+.location{font-size:clamp(19px,2vw,27px);text-shadow:0 2px 15px #000b}
+.bottomleft{left:clamp(20px,3vw,49px);bottom:30px}.bottomright{right:clamp(20px,3vw,49px)}
+.objectives{left:clamp(20px,3vw,49px);top:95px;padding:12px 15px 15px;background:linear-gradient(90deg,#01120ec9,transparent);border-left:2px solid #47ed934d;min-width:195px}
+.progress-track{width:100%}.interaction{background:#06221aea;border-color:#82ffc38e;box-shadow:0 10px 34px #0009;letter-spacing:.09em}
+.overlay{background:radial-gradient(ellipse at 67% 44%,rgba(9,72,38,.24),transparent 45%),linear-gradient(100deg,#010a07fc,#010b08ed 48%,#031d13b8 100%)}
+.intro-index{font-size:10px;letter-spacing:.24em}.intro-copy{color:#b6d4c2;max-width:510px}
+.intro-divider{display:flex;gap:20px;flex-wrap:wrap;padding-top:17px;margin-top:22px;border-top:1px solid #8df9b52b;font:10px 'DM Mono',monospace;color:#75c69c;letter-spacing:.1em}
+.enter{margin-top:27px;min-width:285px;border-radius:3px;background:#a7ffd0;box-shadow:0 16px 62px #30c77e24}
+.settings{border-color:#90ffb347;border-radius:5px}
+@media(max-width:760px){.system-weather{display:none}.wayfinder{right:18px;top:131px;width:174px;padding:10px;font-size:9px}.vision-btn{top:80px}.objectives{top:82px;padding:9px;min-width:138px;max-width:150px;font-size:9px}.objectives-label{font-size:8px}.intro-divider{gap:10px;font-size:8px}}
+@media(max-width:430px){.topmeta{font-size:8px}.topbar{gap:9px}.brand{font-size:12px}.brandmark{font-size:22px}.wayfinder{top:151px}.location{font-size:17px}.bottomright{font-size:8px}}
