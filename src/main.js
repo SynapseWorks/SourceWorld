@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity,triggerCodePulse} from './matrixMaterial.js';
 import './style.css';
+import {createForest} from './forest.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
@@ -8,10 +9,10 @@ app.innerHTML=`
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
 <div class="crosshair" aria-hidden="true"><span></span></div>
-<div class="bottomleft"><div class="eyebrow">SECTOR 01 / THE LIVING CODE · V0.2</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
-<div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
+<div class="bottomleft"><div class="eyebrow">SECTORS 01–02 / THE SIMULATION · V0.3</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The simulation is waking up. Recover three scattered signal fragments, then approach the Source Node to uncover what lies beneath the code.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.1.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The simulation is waking up. Recover three lost signals, activate the Source Node, then follow the glowing trail into the forest. Something is waiting among the trees.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.3.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -157,10 +158,26 @@ function interact(){
   core.material=matrixMaterial(30,30,3.6);
   beacon.color.set('#a4ffe0');beacon.intensity=48;
   announce('SOURCE UNLOCKED · THE WORLD IS ONLY THE FIRST LAYER.',12);
-  finalHint.textContent='SIMULATION LAYER 01 COMPLETE  ◈';
+  document.querySelector('#objective-label').textContent='FOLLOW THE FOREST TRAIL';
+  document.querySelector('#progress').textContent='FIND THE HEART OF THE GROVE';
+  document.querySelector('#progress-bar').style.width='0%';
+  finalHint.textContent='SECTOR 02 UNLOCKED · BEYOND THE SOURCE  ◈';
+  finalHint.classList.add('revealed');
+  return;
+ }
+ if(sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x-forest.interact.x,camera.position.z-forest.interact.z)<4.5){
+  forest.activate();
+  triggerCodePulse(new THREE.Vector3(0,0,-217),clock.elapsedTime);
+  announce('THE HEART REMEMBERS · THE FOREST IS LISTENING.',12);
+  document.querySelector('#objective-label').textContent='SECTOR 02 COMPLETE';
+  document.querySelector('#progress').textContent='HEART OF THE GROVE RESTORED';
+  document.querySelector('#progress-bar').style.width='100%';
+  finalHint.textContent='SIMULATION LAYER 02 COMPLETE  ◈';
   finalHint.classList.add('revealed');
  }
 }
+
+const forest=createForest(scene);
 
 const particlesCount=900;
 const positions=new Float32Array(particlesCount*3);
@@ -173,7 +190,7 @@ const settings=document.querySelector('#settings'),settingsBtn=document.querySel
 let active=false,locked=false,mobile=matchMedia('(pointer:coarse)').matches;
 let yaw=0,pitch=0,vy=0,grounded=true;const keys=new Set();
 const clock=new THREE.Clock();
-const velocity=new THREE.Vector3();
+
 function capture(){
  if(mobile){active=true;intro.classList.add('hidden');return;}
  renderer.domElement.requestPointerLock?.();
@@ -208,8 +225,7 @@ let touchMoveX=0,touchMoveY=0,joystickId=null,lookId=null,lastLook={x:0,y:0};
 if(mobile){document.querySelector('#touch-controls').classList.add('visible');}
 renderer.domElement.addEventListener('pointerdown',e=>{
  if(!mobile||!active)return;
- if(e.clientX<innerWidth*.43){joystickId=e.pointerId;joystick.setPointerCapture?.(e.pointerId);updateJoystick(e);}
- else {lookId=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId);}
+ if(e.clientX>=innerWidth*.35){lookId=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId);}
 });
 function updateJoystick(e){
  const rect=joystick.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
@@ -226,9 +242,14 @@ renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)loo
 interactionLabel.addEventListener('click',interact);
 document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(grounded){vy=5.1;grounded=false;}});
 function collision(x,z){
- // Walls are solid, but floors/ceilings are non-blocking for walking.
- for(const b of solidity){if(camera.position.y>b.y+b.h/2+.6||camera.position.y<b.y-b.h/2-1)return false;
- if(Math.abs(x-b.x)<b.w/2+.34&&Math.abs(z-b.z)<b.d/2+.34)return true;}
+ // Check each obstacle independently; an unrelated box must never end the test.
+ for(const b of solidity){
+  if(camera.position.y>b.y+b.h/2+.6||camera.position.y<b.y-b.h/2-1)continue;
+  if(Math.abs(x-b.x)<b.w/2+.34&&Math.abs(z-b.z)<b.d/2+.34)return true;
+ }
+ for(const tree of forest.obstacles){
+  if(Math.hypot(x-tree.x,z-tree.z)<tree.r+.3)return true;
+ }
  return false;
 }
 let frameCount=0,lastFps=0;
@@ -240,8 +261,10 @@ function tick(){
  for(const item of sculptures){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}
  let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
- interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- interactionLabel.classList.toggle('visible',!!(nearby||nearSource));
+ const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
+ interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ interactionLabel.classList.toggle('visible',!!(nearby||nearSource||nearHeart));
+ forest.animate(t,dt,document.querySelector('#reduced').checked);
  setCodeTime(t);
  sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
  ring.rotation.z=t*.11;ring2.rotation.x=t*.09;
@@ -262,7 +285,7 @@ function tick(){
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
- document.querySelector('#location').textContent=camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING';
+ document.querySelector('#location').textContent=camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING';
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
 }
