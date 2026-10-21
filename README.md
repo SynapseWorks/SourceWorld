@@ -1,4 +1,4 @@
-# SourceWorld v0.6 — A Living System
+# SourceWorld v0.6.1 — Visual QA & Stability
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -9,12 +9,16 @@ npm install
 npm run dev
 ```
 
-## Build
+## Build and smoke tests
 
 ```bash
 npm run build
 npm run preview
+npx playwright install chromium
+npm test
 ```
+
+GitHub Actions verifies JavaScript syntax, creates a production build, and runs Chromium desktop/mobile smoke tests. Traces are preserved for failures.
 
 ## Controls
 
@@ -81,6 +85,16 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 - Reduced-motion support for nearby animated geometry.
 - Code shader supports InstancedMesh transforms, necessary for reliable scalable landscape generation.
 - Landmark crowns, sky arches, hovering code sculptures and distant lighting create larger-scale visual focal points.
+
+## QA pass (v0.6.1)
+
+- Corrected heading guidance when rotating the camera.
+- Replaced click-only prompt with an accessible, focusable interaction button.
+- Optimized starting pixel ratio and antialiasing for touch hardware, with updated quality presets.
+- Added forest-distance group culling and early exit for dispersed monument particles.
+- Improved Escape behavior in the settings panel, pointer-cancellation handling, and joystick reset on focus loss.
+- Added responsive layout fixes to prevent mission/navigation widgets colliding on narrow screens.
+- Added desktop/mobile browser smoke tests and CI execution.
 
 ## Future ideas
 
