@@ -23,17 +23,18 @@ function makeAtlas() {
   return texture;
 }
 const atlas = makeAtlas();
-const uniforms = {uTime:{value:0},uAtlas:{value:atlas},uMotion:{value:1},uDensity:{value:1},uPulseTime:{value:-100},uPulseOrigin:{value:new THREE.Vector3(0,0,0)}};
+const uniforms = {uTime:{value:0},uAtlas:{value:atlas},uMotion:{value:1},uDensity:{value:1},uPulseTime:{value:-100},uPulseOrigin:{value:new THREE.Vector3(0,0,0)},uPlayerPos:{value:new THREE.Vector3()}};
 export function setCodeTime(t){uniforms.uTime.value=t;}
 export function setCodeMotion(value){uniforms.uMotion.value=value;}
 export function setCodeDensity(value){uniforms.uDensity.value=value;}
+export function setCodePlayerPosition(position){uniforms.uPlayerPos.value.copy(position);}
 export function triggerCodePulse(origin,time){uniforms.uPulseOrigin.value.copy(origin);uniforms.uPulseTime.value=time;}
 
 const vertexShader = `varying vec2 vUv; varying vec3 vWorld; void main(){vUv=uv;vec4 world=modelMatrix*vec4(position,1.);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`;
 const fragmentShader = `precision highp float;
 uniform sampler2D uAtlas; uniform float uTime; uniform float uMotion; uniform float uDensity;
 uniform vec2 uScale; uniform float uSeed; uniform float uBrightness;
-uniform float uPulseTime; uniform vec3 uPulseOrigin;
+uniform float uPulseTime; uniform vec3 uPulseOrigin;uniform vec3 uPlayerPos;
 varying vec2 vUv; varying vec3 vWorld;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
 void main(){
@@ -60,7 +61,8 @@ void main(){
   float pulseAge=(uTime-uPulseTime);
   float pulseRadius=pulseAge*18.;
   float pulse=exp(-pow((distance(vWorld.xz,uPulseOrigin.xz)-pulseRadius)/2.8,2.))*step(0.,pulseAge)*step(pulseAge,9.);
-  intensity+=pulse*1.8;
+  float proximity=1.-smoothstep(2.,11.,distance(vWorld,uPlayerPos));
+  intensity+=pulse*1.8+proximity*.19;
   green=mix(green,vec3(.72,1.,.9),clamp(pulse*.9,0.,1.));
   float line=.04*(1.-abs(local.x-.5)*2.);
   vec3 base=vec3(.004,.018,.015)+vec3(.006,.033,.018)*trail;
@@ -72,5 +74,5 @@ void main(){
   #include <colorspace_fragment>
 }`;
 export function matrixMaterial(x=12,y=12,brightness=1,seed=Math.random()*1000){
- return new THREE.ShaderMaterial({uniforms:{uTime:uniforms.uTime,uAtlas:uniforms.uAtlas,uMotion:uniforms.uMotion,uDensity:uniforms.uDensity,uPulseTime:uniforms.uPulseTime,uPulseOrigin:uniforms.uPulseOrigin,uScale:{value:new THREE.Vector2(x,y)},uSeed:{value:seed},uBrightness:{value:brightness}},vertexShader,fragmentShader,side:THREE.DoubleSide});
+ return new THREE.ShaderMaterial({uniforms:{uTime:uniforms.uTime,uAtlas:uniforms.uAtlas,uMotion:uniforms.uMotion,uDensity:uniforms.uDensity,uPulseTime:uniforms.uPulseTime,uPulseOrigin:uniforms.uPulseOrigin,uPlayerPos:uniforms.uPlayerPos,uScale:{value:new THREE.Vector2(x,y)},uSeed:{value:seed},uBrightness:{value:brightness}},vertexShader,fragmentShader,side:THREE.DoubleSide});
 }
