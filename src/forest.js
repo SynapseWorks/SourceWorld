@@ -119,6 +119,7 @@ export function createForest(scene){
   const interact={x:0,z:-217,completed:false};
   return {
     interact,obstacles,
+    updateVisibility(position){for(const tree of animated){const dx=tree.group.position.x-position.x,dz=tree.group.position.z-position.z;tree.group.visible=dx*dx+dz*dz<115*115;}},
     animate(time,delta,reduceMotion=false){
       if(!reduceMotion){
         seed.rotation.y+=delta*.55;seed.position.y=2.3+Math.sin(time*1.3)*.2;
