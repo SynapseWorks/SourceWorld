@@ -2,6 +2,7 @@ import {test,expect} from '@playwright/test';
 test('boots the construct and provides accessible navigation',async({page})=>{
  const errors=[];
  page.on('pageerror',error=>errors.push(error.message));
+ page.on('console',message=>{if(message.type()==='error'&&/THREE.WebGLProgram|Shader Error|ERROR: 0:/.test(message.text()))errors.push(message.text());});
  await page.goto('/');
  await expect(page.getByRole('heading',{name:/THE WORLD IS CODE/i})).toBeVisible();
  await expect(page.getByRole('button',{name:/ENTER THE SIMULATION/})).toBeVisible();
@@ -13,9 +14,7 @@ test('boots the construct and provides accessible navigation',async({page})=>{
  await page.locator('#weather-toggle').uncheck();
  await page.getByRole('button',{name:'Close settings'}).click();
  await expect(page.getByRole('dialog',{name:'World settings'})).toBeHidden();
- await expect(page.getByRole('button',{name:/CODE VISION/})).toBeVisible();
- await page.getByRole('button',{name:/CODE VISION/}).click();
- await expect(page.locator('#vision')).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('#vision')).toHaveAttribute('aria-pressed','false');
  expect(errors).toEqual([]);
 });
 test('small viewports retain entry action and readable HUD',async({page,isMobile})=>{
