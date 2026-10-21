@@ -4,6 +4,7 @@ import './style.css';
 import {createForest} from './forest.js';
 import {createDataSky} from './sky.js';
 import {createOpenWorld} from './openWorld.js';
+import {createReconstruction} from './reconstruction.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
@@ -11,10 +12,10 @@ app.innerHTML=`
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
 <button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="crosshair" aria-hidden="true"><span></span></div>
-<div class="bottomleft"><div class="eyebrow">SECTORS 01–03 / THE UNBOUND WORLD · V0.4</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<div class="bottomleft"><div class="eyebrow">SECTORS 01–03 / REALITY IN BLOOM · V0.5</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The simulation is waking up. Recover three lost signals, activate the Source Node, then follow the glowing trail into the forest. Something is waiting among the trees.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.4.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The world extends beyond the avenues. Wander its winding paths, watch matter unfold into code, and find the Heart of the Grove beneath an impossible sky.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.5.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -27,6 +28,7 @@ renderer.toneMappingExposure=1.25;
 document.querySelector('#viewport').append(renderer.domElement);
 const sky=createDataSky(scene);
 const openWorld=createOpenWorld(scene);
+const reconstruction=createReconstruction(scene);
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
 const interactables=[];
@@ -275,6 +277,10 @@ function tick(){
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
  sky.update(camera,t,document.querySelector('#reduced').checked?0:Number(document.querySelector('#motion').value)/100);
  const found=openWorld.update(t,dt,camera.position,!document.querySelector('#reduced').checked);
+ if(reconstruction.update(t,dt,camera.position,!document.querySelector('#reduced').checked)&&active){
+  announce('THE MIRROR REASSEMBLES WHEN OBSERVED. IS PERCEPTION PART OF THE CODE?',8);
+  triggerCodePulse(new THREE.Vector3(-43,0,-34),t);
+ }
  if(found&&active){found.visited=true;announce(found.text,7);triggerCodePulse(new THREE.Vector3(found.x,0,found.z),t);}
  if(messageUntil&&t>messageUntil){messageLabel.classList.remove('visible');messageUntil=0;}
  for(const item of interactables){item.prism.rotation.y+=dt*.8;item.prism.position.y=2.05+Math.sin(t*1.7+item.number)*.22;item.halo.rotation.z+=dt*.28;}
