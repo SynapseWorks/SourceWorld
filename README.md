@@ -1,4 +1,4 @@
-# SourceWorld v0.3 — The Simulation Forest
+# SourceWorld v0.4 — The Unbound World
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -24,6 +24,7 @@ npm run preview
 - **Shift** — sprint
 - **Space** — jump
 - **Escape** — release pointer
+- **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
 - **Settings** — adjust code density, visual quality and motion
 
@@ -31,6 +32,8 @@ npm run preview
 
 - `src/main.js` — scene, interaction, world construction and render loop
 - `src/forest.js` — seeded procedural forest, terrain, luminous trail, and Heart of the Grove
+- `src/openWorld.js` — off-axis plazas, loop paths, additional terrain, discoverable landmarks
+- `src/sky.js` — dynamic camera-centered digital sky dome
 - `src/matrixMaterial.js` — procedural tiled digital rain texture material
 - `src/style.css` — UI styling, accessibility, responsive controls
 
@@ -51,6 +54,12 @@ Explore the open avenue to find three floating signal prisms. Walk up to each an
 Once you recover the three code fragments and activate the Source Node at Z ≈ -85, keep walking **past the Source** toward negative Z coordinates. A luminous path leads into the grove (Z ≈ -115 to -250), with coded trees, branches, rocks, lantern-mushrooms, and an enormous Heart Tree. Approach its glowing floating seed near Z ≈ -217 and press **E** to restore it.
 
 Technical updates: forest geometry uses shared materials and seeded placement to avoid per-frame creation. World-distance fading now follows the camera, and collision checks correctly continue past irrelevant structures. Touch movement controls were isolated from the look surface.
+
+## The Unbound World (v0.4)
+
+The world opens outward via four off-axis destinations: Mirror Plaza (X -43, Z -34), Fracture Garden (X 46, Z -67), Echo Clearing (X -31, Z -153), and Memory Pool (X 32, Z -190). Each is connected to the central route and each other by wide pathways, allowing lateral exploration rather than a linear corridor. Approach a landmark to receive its environmental memory and a world-space code pulse.
+
+A camera-centered spherical digital sky replaces the flat backdrop; distant data traces and stars remain overhead as you explore. Nearby geometry brightens its glyphs subtly. **V** toggles wireframe inspection of world meshes (a simple development-style geometry view), and a touch-friendly button provides the same action on phones.
 
 ## Future ideas
 
