@@ -65,7 +65,7 @@ void main(){
   float line=.04*(1.-abs(local.x-.5)*2.);
   vec3 base=vec3(.004,.018,.015)+vec3(.006,.033,.018)*trail;
   vec3 color=base+green*ink*intensity*uBrightness+line*vec3(.012,.04,.018);
-  float distanceFog=clamp((length(vWorld.xz)-26.)/78.,0.,.78);
+  float distanceFog=clamp((distance(vWorld,cameraPosition)-26.)/78.,0.,.78);
   color=mix(color,vec3(.002,.012,.01),distanceFog);
   gl_FragColor=vec4(color,1.);
   #include <tonemapping_fragment>
