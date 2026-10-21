@@ -18,3 +18,16 @@ jobs:
           for file in src/*.js; do node --check "$file"; done
       - name: Build production site
         run: npm run build
+      - name: Install Chromium for browser smoke tests
+        run: npx playwright install --with-deps chromium
+      - name: Run desktop and mobile smoke tests
+        run: npm test
+      - name: Preserve failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
