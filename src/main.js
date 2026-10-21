@@ -7,6 +7,7 @@ import {createOpenWorld} from './openWorld.js';
 import {createReconstruction} from './reconstruction.js';
 import {createGeneratedSectors} from './worldgen.js';
 import {createSimulationWeather} from './weather.js';
+import {createArtDirection} from './artDirection.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
@@ -33,6 +34,7 @@ const openWorld=createOpenWorld(scene);
 const reconstruction=createReconstruction(scene);
 const generatedSectors=createGeneratedSectors(scene,{seed:60421,count:155});
 const simulationWeather=createSimulationWeather(scene,{particleCount:1500});
+const artDirection=createArtDirection(scene);
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
 const interactables=[];
@@ -283,6 +285,7 @@ function tick(){
  const reduced=document.querySelector('#reduced').checked;
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
+ artDirection.update(t,dt,reduced);
  document.querySelector('#weather-state').textContent='ATMOSPHERE / '+atmosphere;
  const found=openWorld.update(t,dt,camera.position,!document.querySelector('#reduced').checked);
  if(reconstruction.update(t,dt,camera.position,!document.querySelector('#reduced').checked)&&active){
