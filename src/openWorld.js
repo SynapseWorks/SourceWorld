@@ -80,6 +80,7 @@ export function createOpenWorld(scene){
   }
   const centerpiece=new THREE.Mesh(new THREE.OctahedronGeometry(2.35,1),matrixMaterial(18,18,1.8,101+index));
   centerpiece.position.set(place.x,3.5,place.z);scene.add(centerpiece);
+  if(index===0)centerpiece.visible=false; // replaced by observer-dependent reconstruction
   const halo=new THREE.Mesh(new THREE.TorusGeometry(3.8,.04,6,64),accent);
   halo.position.copy(centerpiece.position);scene.add(halo);
   landmarks.push({...place,centerpiece,halo,visited:false});
