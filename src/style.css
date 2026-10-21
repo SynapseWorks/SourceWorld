@@ -30,3 +30,8 @@
 /* v0.3 forest journey: leave room for the second phase of the mission. */
 .objectives{max-width:220px;line-height:1.5}
 @media(pointer:coarse){.objectives{max-width:190px}}
+
+/* v0.4: visible mode control and atmospheric HUD accents */
+.vision-btn{position:absolute;z-index:5;right:38px;top:88px;border:1px solid #295f44;border-radius:5px;background:#041c13c9;color:#91eab3;padding:11px 14px;font:10px 'DM Mono',monospace;letter-spacing:.08em;backdrop-filter:blur(10px)}
+.vision-btn:hover,.vision-btn.selected{border-color:#8cffbb;color:#dcffeb;background:#145235db;box-shadow:0 0 18px #48fa8533}
+@media(max-width:680px){.vision-btn{top:80px;right:18px;font-size:9px}}
