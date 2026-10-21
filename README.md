@@ -1,4 +1,4 @@
-# SourceWorld
+# SourceWorld v0.2 — Living Code
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -34,6 +34,16 @@ npm run preview
 - `src/style.css` — UI styling, accessibility, responsive controls
 
 The material uses a shared atlas of tiny neon glyphs and shader UV animation per surface, with randomized column speeds and highlights. Environmental props all reuse one underlying code-driven surface language.
+
+## Living Code mission (v0.2)
+
+Explore the open avenue to find three floating signal prisms. Walk up to each and press **E** (or tap the on-screen interaction prompt) to collect it. Each recovery creates an expanding luminous code pulse. After all three fragments are recovered, reach the giant Source Node at the end of the city and activate it.
+
+- Rotating, floating signal artifacts with animated halos
+- Exploration HUD and fragment progress tracker
+- Procedural gateway structures and suspended digital sculptures
+- World-scale radial shader pulses on recovery
+- Final Source activation with a completion message
 
 ## Future ideas
 
