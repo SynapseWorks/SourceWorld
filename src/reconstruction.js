@@ -39,6 +39,8 @@ export function createReconstruction(scene){
    const rate=motion?dt*.52:1;
    transition=THREE.MathUtils.clamp(transition+(target>transition?rate:-rate),0,1);
    const scatter=smooth(transition);
+   if(distance>75&&transition>.995){shell.visible=false;particles.visible=false;return false;}
+   shell.visible=true;particles.visible=true;
    const array=cloudGeometry.attributes.position.array;
    for(let i=0;i<count;i++){
     const o=i*3;
