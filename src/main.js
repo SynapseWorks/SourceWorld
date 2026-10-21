@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity} from './matrixMaterial.js';
+import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity,triggerCodePulse} from './matrixMaterial.js';
 import './style.css';
 
 const app=document.querySelector('#app');
@@ -8,10 +8,10 @@ app.innerHTML=`
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
 <div class="crosshair" aria-hidden="true"><span></span></div>
-<div class="bottomleft"><div class="eyebrow">SECTOR 01 / THE CONSTRUCT</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
-<div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
+<div class="bottomleft"><div class="eyebrow">SECTOR 01 / THE LIVING CODE · V0.2</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<div id="interaction" class="interaction" role="status" aria-live="polite"></div><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.5">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">Beneath the world you know is another one. No textures. No matter. Only information, cascading into form.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.1.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>REALITY IS<br/><em>WRITTEN.</em></h1><p class="intro-copy">The simulation is waking up. Recover three scattered signal fragments, then approach the Source Node to uncover what lies beneath the code.</p><button id="enter" class="enter">ENTER THE CONSTRUCT <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.1.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -24,6 +24,12 @@ renderer.toneMappingExposure=1.25;
 document.querySelector('#viewport').append(renderer.domElement);
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
+const interactables=[];
+const recovered=new Set();
+const interactionLabel=document.querySelector('#interaction');
+const messageLabel=document.querySelector('#message');
+let messageUntil=0;
+function announce(message,duration=5){messageLabel.textContent=message;messageLabel.classList.add('visible');messageUntil=clock.elapsedTime+duration;}
 function block(x,y,z,w,h,d,opts={}){
  const mesh=new THREE.Mesh(geometries.box,matrixMaterial(opts.tileX||Math.max(4,w*5),opts.tileY||Math.max(4,h*5),opts.glow||1,opts.seed));
  mesh.position.set(x,y,z);mesh.scale.set(w,h,d);scene.add(mesh);
@@ -93,6 +99,69 @@ for(let i=0;i<8;i++){
  const a=i/8*Math.PI*2;
  cylinder(Math.cos(a)*11,4,-85+Math.sin(a)*11,.6,8,.25);
 }
+
+// Distinct neighborhood structures and a recoverable data-fragment trail.
+function beaconArtifact(x,z,number,label){
+ const group=new THREE.Group();group.position.set(x,0,z);scene.add(group);
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.8,.35,8),matrixMaterial(18,5,1.9));
+ base.position.y=.18;group.add(base);
+ const prism=new THREE.Mesh(new THREE.OctahedronGeometry(.85,0),matrixMaterial(18,18,2.8));
+ prism.position.y=2.05;group.add(prism);
+ const halo=new THREE.Mesh(new THREE.TorusGeometry(1.4,.035,6,48),new THREE.MeshBasicMaterial({color:'#9affe0',transparent:true,opacity:.75}));
+ halo.position.y=2.05;halo.rotation.x=Math.PI/2;group.add(halo);
+ const light=new THREE.PointLight('#67ffa4',4,13);light.position.y=2.1;group.add(light);
+ interactables.push({number,label,group,prism,halo,light,x,z,done:false});
+}
+// Recoverable artifacts sit along the open central avenue.
+beaconArtifact(2.5,-19,1,'ARCHIVE ECHO');
+beaconArtifact(-2.5,-45,2,'MEMORY SEED');
+beaconArtifact(2.5,-69,3,'ORIGIN TRACE');
+// Architectural gateways draw the eye deeper toward the Source.
+for(const z of [-29,-57,-78]){
+ for(const x of [-5.8,5.8]){
+  architecture(x,6,z,1.15,12,1.5,{opacity:.42,glow:1.15});
+  block(x,11.5,z,1.5,.18,2,{glow:2.3});
+ }
+ block(0,12,z,12.6,.55,1.2,{glow:1.2});
+ edgeBox(0,12,z,12.8,.7,1.4,.66);
+}
+// Floating data sculptures between towers.
+const sculptures=[];
+for(let i=0;i<9;i++){
+ const side=i%2===0?-1:1;
+ const obj=new THREE.Mesh(new THREE.OctahedronGeometry(1.2+(i%3)*.3,1),matrixMaterial(16,16,1.5));
+ obj.position.set(side*(9+(i%4)*3),7+(i%3)*3,-20-i*9);
+ scene.add(obj);sculptures.push({obj,phase:i*1.8,baseY:obj.position.y});
+}
+const finalHint=document.createElement('div');finalHint.className='source-hint';finalHint.textContent='';document.querySelector('#app').append(finalHint);
+let sourceActivated=false;
+function completeFragment(item){
+ if(item.done)return;
+ item.done=true;recovered.add(item.number);
+ item.prism.material=matrixMaterial(16,16,.22);
+ item.light.intensity=.45;
+ item.halo.material.opacity=.22;
+ triggerCodePulse(new THREE.Vector3(item.x,0,item.z),clock.elapsedTime);
+ document.querySelector('#progress').textContent=recovered.size+' / 3 FRAGMENTS';
+ document.querySelector('#progress-bar').style.width=(recovered.size/3*100)+'%';
+ announce('FRAGMENT '+item.number+' RECOVERED — '+item.label+(recovered.size===3?' · THE SOURCE IS READY':''));
+}
+function interact(){
+ if(!active)return;
+ for(const item of interactables){
+  if(!item.done&&Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<3.4){completeFragment(item);return;}
+ }
+ if(recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13){
+  sourceActivated=true;
+  triggerCodePulse(new THREE.Vector3(0,0,-85),clock.elapsedTime);
+  core.material=matrixMaterial(30,30,3.6);
+  beacon.color.set('#a4ffe0');beacon.intensity=48;
+  announce('SOURCE UNLOCKED · THE WORLD IS ONLY THE FIRST LAYER.',12);
+  finalHint.textContent='SIMULATION LAYER 01 COMPLETE  ◈';
+  finalHint.classList.add('revealed');
+ }
+}
+
 const particlesCount=900;
 const positions=new Float32Array(particlesCount*3);
 for(let i=0;i<particlesCount;i++){positions[i*3]=(Math.random()-.5)*155;positions[i*3+1]=Math.random()*44;positions[i*3+2]=-110+Math.random()*130;}
@@ -119,7 +188,7 @@ document.addEventListener('pointerlockchange',()=>{
 document.addEventListener('mousemove',e=>{
  if(!locked)return;yaw-=e.movementX*.0022;pitch=Math.max(-1.48,Math.min(1.48,pitch-e.movementY*.0022));
 });
-window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);});
+window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>keys.clear());
 function toggleSettings(open){
  settings.classList.toggle('open',open);settings.classList.toggle('hidden',!open);
@@ -154,6 +223,7 @@ joystick.addEventListener('pointerup',resetJoystick);joystick.addEventListener('
 function resetJoystick(){joystickId=null;touchMoveX=touchMoveY=0;knob.style.transform='translate(0,0)';}
 renderer.domElement.addEventListener('pointermove',e=>{if(!mobile||e.pointerId!==lookId)return;yaw-=(e.clientX-lastLook.x)*.005;pitch=Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-lastLook.y)*.005));lastLook={x:e.clientX,y:e.clientY};});
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null;});
+interactionLabel.addEventListener('click',interact);
 document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(grounded){vy=5.1;grounded=false;}});
 function collision(x,z){
  // Walls are solid, but floors/ceilings are non-blocking for walking.
@@ -165,6 +235,13 @@ let frameCount=0,lastFps=0;
 function tick(){
  requestAnimationFrame(tick);
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
+ if(messageUntil&&t>messageUntil){messageLabel.classList.remove('visible');messageUntil=0;}
+ for(const item of interactables){item.prism.rotation.y+=dt*.8;item.prism.position.y=2.05+Math.sin(t*1.7+item.number)*.22;item.halo.rotation.z+=dt*.28;}
+ for(const item of sculptures){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}
+ let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
+ const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
+ interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ interactionLabel.classList.toggle('visible',!!(nearby||nearSource));
  setCodeTime(t);
  sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
  ring.rotation.z=t*.11;ring2.rotation.x=t*.09;
