@@ -26,3 +26,7 @@
 .message{position:absolute;z-index:7;left:50%;top:18%;transform:translateX(-50%);text-align:center;max-width:80vw;padding:13px 20px;background:#041a11e8;border:1px solid #4ddb8b77;color:#aaffc7;font:11px/1.7 'DM Mono',monospace;letter-spacing:.1em;opacity:0;transition:opacity .25s;pointer-events:none}.message.visible{opacity:1}
 .source-hint{position:absolute;left:50%;top:30%;transform:translateX(-50%);z-index:7;color:#9affcf;font:12px 'DM Mono',monospace;letter-spacing:.25em;text-shadow:0 0 22px #36fc96;text-align:center;opacity:0;transition:opacity 1.5s;pointer-events:none}.source-hint.revealed{opacity:1}
 @media(max-width:680px){.objectives{left:20px;top:77px}.interaction{bottom:18%;font-size:10px;width:70vw}.message{top:21%;font-size:10px}}
+
+/* v0.3 forest journey: leave room for the second phase of the mission. */
+.objectives{max-width:220px;line-height:1.5}
+@media(pointer:coarse){.objectives{max-width:190px}}
