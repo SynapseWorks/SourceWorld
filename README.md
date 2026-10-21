@@ -1,4 +1,4 @@
-# SourceWorld v0.5 — Reality in Bloom
+# SourceWorld v0.6 — A Living System
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -34,6 +34,8 @@ npm run preview
 - `src/forest.js` — seeded procedural forest, terrain, luminous trail, and Heart of the Grove
 - `src/openWorld.js` — organic clearings, winding spline ribbons, undulating perimeter terrain
 - `src/reconstruction.js` — glyph-particle dissolution and proximity-based reassembly
+- `src/worldgen.js` — seeded, instanced sector expansion and biomes
+- `src/weather.js` — shader-animated code drizzle, storms, and fault lines
 - `src/sky.js` — dynamic camera-centered digital sky dome
 - `src/matrixMaterial.js` — procedural tiled digital rain texture material
 - `src/style.css` — UI styling, accessibility, responsive controls
@@ -69,6 +71,14 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 - Sky-scale rings, fractured arcs and suspended data beams make the sky feel constructed rather than flat.
 - The Mirror Plaza now contains a monument made from hundreds of animated glyph particles. Its object shell reconstructs as the observer approaches and dissolves as they move away. Approaching triggers an atmospheric discovery line and code pulse.
 - Reduced-motion settings suppress dynamic sky rotation and particle flutter.
+
+## A Living System (v0.6)
+
+- Reusable, deterministic sector generation via `createGeneratedSectors(scene,{seed,count})` for reproducible environment layouts. Instanced meshes reduce per-object draw calls.
+- Periodic digital rainstorms, GPU-animated vertical glyph fragments, and glitching wireframe fault lines during storms; weather can be disabled in Settings and is also disabled under Reduced Motion.
+- HUD overhaul with a consistent typographic scale, restrained green accents, weather indicators, redesigned onboarding, and objective-direction guidance.
+- Reduced-motion support for nearby animated geometry.
+- Code shader supports InstancedMesh transforms, necessary for reliable scalable landscape generation.
 
 ## Future ideas
 
