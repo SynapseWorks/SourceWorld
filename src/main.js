@@ -8,6 +8,7 @@ import {createReconstruction} from './reconstruction.js';
 import {createGeneratedSectors} from './worldgen.js';
 import {createFrontier} from './frontier.js';
 import {createUnderlayer,UNDERLAYER_EYE} from './underlayer.js';
+import {createAerialLife} from './aerialLife.js';
 import {createSimulationWeather} from './weather.js';
 import {createArtDirection} from './artDirection.js';
 import {createLivingWorld} from './livingWorld.js';
@@ -120,6 +121,7 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
  if(event.type==='REGION')announce(event.title,4);
 }});
 const underlayer=createUnderlayer(scene);
+const aerialLife=createAerialLife(scene);
 const frontier=createFrontier(scene,{
  onEvent(event){
   recordJournal(event);
@@ -515,6 +517,7 @@ function setReality(enabled){
  sky.setAnime(enabled);
  animeEnvironment.setEnabled(enabled);
  frontier.setAnime(enabled);
+ aerialLife.setAnime(enabled);
  animeArchitecture.setEnabled(enabled);
  neighborhoods.setAnime(enabled);
  ecosystem.setAnimeMode(enabled,qualityScale);
@@ -710,6 +713,8 @@ function tick(){
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
  underlayer.update(t,dt,{wireframe,reduced});
+ aerialLife.update(dt,camera.position,{paused:menuVisible()||!active,
+  reduced,weather:atmosphere,underground:underlayer.inside});
  document.querySelector('#underlayer-readout').classList.toggle('hidden',!underlayer.inside);
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
