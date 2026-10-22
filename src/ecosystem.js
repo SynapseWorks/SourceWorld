@@ -264,6 +264,19 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    :'THE SIGNAL TRAVELLED OUTWARD. SOMETHING MAY ANSWER LATER.');
   return {responders};
  }
+ function careAt(position){
+  // Small daily gestures have a gentle effect; Resonance Bloom remains the larger ability.
+  const nearest=state.filter(s=>s.kind!=='city').sort((a,b)=>
+   Math.hypot(position.x-a.x,position.z-a.z)-Math.hypot(position.x-b.x,position.z-b.z))[0];
+  if(!nearest)return;
+  nearest.humidity=Math.min(1,nearest.humidity+.018);
+  nearest.growth=Math.min(1,nearest.growth+.012);
+  for(const plant of regionPlants.get(nearest.id)||[]){
+   if(Math.hypot(plant.group.position.x-position.x,plant.group.position.z-position.z)<9){
+    plant.nectar=Math.min(1,plant.nectar+.075);
+   }
+  }
+ }
  function influence(position){
   const nearest=state.filter(s=>s.kind!=='city').sort((a,b)=>Math.hypot(position.x-a.x,position.z-a.z)-Math.hypot(position.x-b.x,position.z-b.z))[0];
   if(!nearest)return false;
@@ -414,5 +427,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   for(const citizen of residents)citizen.avatar.setEnabled(enabled);
   for(const caretaker of neighborhoodVisitors)caretaker.avatar.setEnabled(enabled);
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites,setAnimeMode};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites,setAnimeMode,careAt};
 }
