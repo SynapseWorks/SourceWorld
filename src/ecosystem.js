@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {matrixMaterial} from './matrixMaterial.js';
 import {SITES as RESTORATION_SITES} from './tendingWorld.js';
+import {addAnimeCitizen} from './animeCitizens.js';
 
 // A deterministic, bounded simulation. It updates ecology on a fixed timestep,
 // while animation interpolates smoothly between ecological state changes.
@@ -110,7 +111,8 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   const badge=new THREE.Mesh(new THREE.IcosahedronGeometry(.105,0),
     new THREE.MeshBasicMaterial({color:[0xa9ffd1,0x99c7ff,0xffdea3,0xd8a9ff,0xffa9b9][i%5]}));
   badge.position.set(.19,1.43,.17);person.add(badge);
-  residents.push({person,curve,pace:.008+random()*.008,offset:random(),role:i%5,
+  const avatar=addAnimeCitizen(person,i,{role:i%5});
+  residents.push({person,avatar,curve,pace:.008+random()*.008,offset:random(),role:i%5,
    name:names[i],profession:roles[i%5],halt:0,noticed:false,lastGreetDay:0});
  }
  // Creature groups forage, gather and disperse; density and motion depend on weather.
@@ -145,8 +147,9 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const lantern=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,0),
     new THREE.MeshBasicMaterial({color:0xffdfb5}));
    lantern.position.set(i===0?-.41:.41,1.02,.18);person.add(lantern);
+   const avatar=addAnimeCitizen(person,26+index*2+i,{role:2,caretaker:true});
    person.visible=false;world.add(person);
-   neighborhoodVisitors.push({person,site,index:index*2+i,name:visitorNames[index*2+i],
+   neighborhoodVisitors.push({person,avatar,site,index:index*2+i,name:visitorNames[index*2+i],
     noticedDay:-1});
   }
  }
@@ -329,6 +332,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const proximity=Math.hypot(pos.x-player.x,pos.z-player.z);
    if(proximity<30)cityNearby++;
    p.person.visible=proximity<82&&(daylight>.15||p.role%4===0);
+   if(p.person.visible)p.avatar.animate(simTime,true,reduced);
    const day=currentDay();
    if(proximity<4&&p.lastGreetDay!==day){
     p.lastGreetDay=day;
@@ -344,6 +348,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const distance=Math.hypot(player.x-site.x,player.z-site.z);
    person.visible=visiting&&distance<105;
    if(!visiting)continue;
+   if(person.visible)visitor.avatar.animate(simTime,true,reduced);
    const phase=simTime*.13+visitor.index*2.399;
    const walkRadius=3.5+(visitor.index%2)*1.4;
    person.position.set(site.x+Math.cos(phase)*walkRadius,0,site.z+Math.sin(phase)*walkRadius);
@@ -402,5 +407,9 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   lastWeather=weather;
   return {region,summary:publicState()};
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites};
+ function setAnimeMode(enabled){
+  for(const citizen of residents)citizen.avatar.setEnabled(enabled);
+  for(const caretaker of neighborhoodVisitors)caretaker.avatar.setEnabled(enabled);
+ }
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites,setAnimeMode};
 }
