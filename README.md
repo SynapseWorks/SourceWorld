@@ -1,4 +1,4 @@
-# SourceWorld v0.7.1 — Accessible Simulation Menu
+# SourceWorld v0.8 — The Living World
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -28,6 +28,7 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **Shift** — sprint
 - **Space** — jump
 - **P** — open/close simulation pause menu and settings
+- **J** — open/close Field Notes, showing encounters from the current session
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
@@ -111,6 +112,10 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 - The pause screen provides **Resume Exploring** and **World Parameters** buttons; settings no longer require clicking through a locked cursor.
 - Settings pause player movement and return focus to the menu; resuming intentionally re-enters pointer lock.
 - Touch devices can use the always-visible Menu button. Input is disabled while settings are open.
+
+## The Living World (v0.8)
+
+Three kinds of life drive this milestone: **chosen actions** (interactive Listening Well, Unwritten Seed, and Forgotten Archive); **reactive life** (fourteen roaming signal-creatures and artifacts that brighten when approached); and **autonomous events** (a recurring Memory Bloom near the forest clearing at X 10, Z -155, whether or not the player is nearby). The observation journal records whispers, discoveries, and world events during the session only. No backend, login, persistence, or external telemetry is introduced. Press **J** or select **Field Notes** to inspect it. The narrative encourages optional wandering, not compulsory task collection.
 
 ## Future ideas
 
