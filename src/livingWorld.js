@@ -30,7 +30,28 @@ export function createLivingWorld(scene,{onEvent=()=>{}}={}){
    const a=k*Math.PI*2/7;shard.position.set(Math.cos(a)*2.1,1.2+(k%3)*.35,Math.sin(a)*2.1);
    glyphs.add(shard);
   }
-  objects.push({...e,group,core,ring,glyphs,index:i,activated:false});
+  // Every interaction has a persistent, physically visible consequence.
+  const consequence=new THREE.Group();consequence.visible=false;group.add(consequence);
+  if(i===0){
+   for(let k=0;k<4;k++){
+    const ripple=new THREE.Mesh(new THREE.TorusGeometry(1.7+k*.68,.025,5,62),edgeMaterial.clone());
+    ripple.rotation.x=Math.PI/2;ripple.position.y=.5+k*.19;consequence.add(ripple);
+   }
+  }else if(i===1){
+   const stem=new THREE.Mesh(new THREE.CylinderGeometry(.08,.14,2,6),baseMaterial);stem.position.y=1.5;consequence.add(stem);
+   for(let k=0;k<5;k++){
+    const leaf=new THREE.Mesh(new THREE.IcosahedronGeometry(.65,0),coreMaterial);
+    leaf.position.set(Math.cos(k*2.399)*.62,1.6+(k%3)*.75,Math.sin(k*2.399)*.62);
+    leaf.scale.set(.7,1.2,.55);consequence.add(leaf);
+   }
+  }else{
+   for(let k=0;k<9;k++){
+    const fragment=new THREE.Mesh(new THREE.BoxGeometry(.28,.7,.12),coreMaterial);
+    fragment.position.set(Math.cos(k*2.4)*1.8,2.2+(k%4)*.4,Math.sin(k*2.4)*1.8);
+    consequence.add(fragment);
+   }
+  }
+  objects.push({...e,group,core,ring,glyphs,consequence,index:i,activated:false});
  });
  // Small ambient life with distinctive looping trajectories and locally reactive behavior.
  const creatureGeometry=new THREE.OctahedronGeometry(.38,0);
@@ -75,6 +96,7 @@ export function createLivingWorld(scene,{onEvent=()=>{}}={}){
   if(!item.activated){
    item.activated=true;interacted.add(item.id);
    item.ring.material.color.set(0xffdba1);
+   item.consequence.visible=true;
    record('DISCOVERY',item.title,item.note);
   }else{
    record('RESONANCE',item.title,'THE MEMORY IS STILL HERE. IT REMEMBERS YOU.');
@@ -89,6 +111,7 @@ export function createLivingWorld(scene,{onEvent=()=>{}}={}){
    const awake=clamp(1-(dist-4)/21,0,1);
    o.ring.material.opacity=.28+awake*.66;
    if(motion&&!paused){
+    if(o.activated)o.consequence.rotation.y+=pace*.24;
     o.core.rotation.y+=pace*(.16+awake*.6);
     o.core.position.y=2.05+Math.sin(time*1.1+o.index)*(.08+awake*.19);
     o.glyphs.rotation.y+=pace*(.18+awake*.45);
