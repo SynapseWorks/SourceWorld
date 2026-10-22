@@ -1,7 +1,13 @@
 import {test,expect} from '@playwright/test';
-import {CITY_PARCELS,DISTRICTS,TENDING_SPOTS,findDistrict} from '../src/neighborhoods.js';
 
-test('all procedural city blocks have stable individual identities',()=>{
+test('all procedural city blocks have stable individual identities',async({page})=>{
+ await page.goto('/');
+ const result=await page.evaluate(async()=>{
+  const {CITY_PARCELS}=await import('/src/neighborhoods.js');
+  return CITY_PARCELS.map(p=>({...p}));
+ });
+ expect(result).toHaveLength(16);
+ const CITY_PARCELS=result;
  expect(CITY_PARCELS).toHaveLength(16);
  expect(new Set(CITY_PARCELS.map(p=>p.name)).size).toBe(16);
  expect(new Set(CITY_PARCELS.map(p=>p.kind)).size).toBeGreaterThan(4);
@@ -14,15 +20,23 @@ test('all procedural city blocks have stable individual identities',()=>{
   expect(p.purpose.length).toBeGreaterThan(3);
  }
 });
-test('each neighborhood has a distinct destination and the tending sites belong to it',()=>{
+test('each neighborhood has a distinct destination and the tending sites belong to it',async({page})=>{
+ await page.goto('/');
+ const data=await page.evaluate(async()=>{
+  const {DISTRICTS,TENDING_SPOTS,findDistrict}=await import('/src/neighborhoods.js');
+  return {districts:DISTRICTS,spots:TENDING_SPOTS,
+   matches:[[0,-26],[-24,-65],[27,-68],[88,-207],[-126,-260],[0,7]].map(([x,z])=>findDistrict(x,z)?.id||null)};
+ });
+ const DISTRICTS=data.districts,TENDING_SPOTS=data.spots;
+ const found=data.matches;
  expect(DISTRICTS.length).toBeGreaterThanOrEqual(8);
  expect(new Set(DISTRICTS.map(d=>d.id)).size).toBe(DISTRICTS.length);
- expect(findDistrict(0,-26)?.id).toBe('lantern-lane');
- expect(findDistrict(-24,-65)?.id).toBe('paper-quarter');
- expect(findDistrict(27,-68)?.id).toBe('maker-walk');
- expect(findDistrict(88,-207)?.id).toBe('reedwalk');
- expect(findDistrict(-126,-260)?.id).toBe('story-camp');
- expect(findDistrict(0,7)).toBeNull();
+ expect(found[0]).toBe('lantern-lane');
+ expect(found[1]).toBe('paper-quarter');
+ expect(found[2]).toBe('maker-walk');
+ expect(found[3]).toBe('reedwalk');
+ expect(found[4]).toBe('story-camp');
+ expect(found[5]).toBeNull();
  for(const site of TENDING_SPOTS){
   const district=DISTRICTS.find(d=>d.id===site.district);
   expect(district).toBeDefined();
