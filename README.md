@@ -1,4 +1,4 @@
-# SourceWorld v1.3 — Explore & Tend / Anime Reality
+# SourceWorld v1.4 — The Awakening / Living Neighbourhoods
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -22,7 +22,7 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 
 ## Controls
 
-- **Enter Construct / click canvas** — capture mouse (desktop)
+- **Enter Simulation** — the entry menu disappears into total blackness; **a second click, tap or keypress** begins the green code rain and Big Bang reveal. Desktop requests pointer lock on the second gesture; if the browser declines, select Resume when prompted.
 - **WASD / arrow keys** — move
 - **Mouse** — look around
 - **Shift** — sprint
@@ -37,11 +37,14 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
-- **Settings** — adjust code density, visual quality and motion
+- **Settings** — adjust code density, visual quality and motion. Replay the awakening while keeping progress, or **Reset World & Reawaken** to delete this browser's saved ecosystem/Echoes/restorations and start over.
 
 ## Architecture
 
 - `src/main.js` — scene, interaction, world construction and render loop
+- `src/awakening.js` — two-gesture black void, procedural falling code, radial world-formation animation and reduced-motion timing
+- `src/continuity.js` — versioned local save/load with offline evolution and reset support
+- `src/ecosystem.js` — named placeholder inhabitants, daily movement, restored-place visitors and ecological state
 - `src/forest.js` — seeded procedural forest, terrain, luminous trail, and Heart of the Grove
 - `src/openWorld.js` — organic clearings, winding spline ribbons, undulating perimeter terrain
 - `src/reconstruction.js` — glyph-particle dissolution and proximity-based reassembly
@@ -169,6 +172,34 @@ This is the first ecosystem prototype, not a full agent-based society. Residents
 - Prompts highlight nearby sites and encourage observing city routines, the wetland, forest and wild signals without adding compulsory missions.
 - **Anime Reality** toggles with R or the visible control: a cel-shaded hand-painted material palette replaces matrix glyphs in shared code-surface shaders, with stylized edge bands, a pastel procedural sky and a softer atmosphere. Wireframe and Anime Reality are mutually exclusive, and toggling does not move the player or reset progress.
 - The sky and code shader stay GPU-driven; character assets remain placeholders for a future visual asset pass.
+
+## The Awakening & Living Neighbourhoods (v1.4)
+
+**Sequence**
+
+1. The original Enter button is presented on a completely black background. Nothing from the 3D world is visible behind it.
+2. The first activation makes the screen uniformly black. No progress indicator, simulated movement, sound or on-screen instructions break the silence.
+3. Only the **next real interaction** (click, tap or nonmodifier key) triggers procedural green glyphs falling from the top, followed by a radially expanding Big Bang of code.
+4. The curtain fades to show the same world, its objects already carrying their shader-driven code. Gameplay begins without reloading. If a desktop pointer lock request is blocked, the existing Resume control provides an accessible fallback.
+
+The two-step gate also occurs on every subsequent page load. The animation respects `prefers-reduced-motion` with shorter, less intense motion. No additional database, media download or external libraries are required.
+
+**Continuity and reset**
+
+- `Replay Awakening (Keep Progress)` saves the world and reloads the intro.
+- `Reset World & Reawaken` asks for confirmation, deletes the local SourceWorld continuity save and reloads. Page-hide autosave is explicitly suppressed during reset, so the old progress cannot immediately return.
+- SourceWorld stores browser-local ecosystem state, hidden Echoes, abilities, restored sites and Field Notes. Data is not synchronized across devices.
+
+**Lived-in consequences**
+
+- The 26 placeholder citizens now have stable names, roles and small identifying details. Meeting one creates a once-per-day observation rather than repeated proximity spam.
+- Restoring the Quiet Garden, Fractured Crossing or Wilds Beacon attracts a recurring pair of caretaker visitors on later daytime cycles. The same restoration strengthens the surrounding biome and its plants.
+- Returning after a prolonged absence can describe neighbours visiting restored places in the arrival report.
+- The placeholder geometry remains intentionally lightweight until the dedicated character-art pass.
+
+**Verification**
+
+- GitHub Actions builds the production bundle and runs Playwright desktop/mobile tests covering the black waiting phase, second gesture, reveal, interface access, view switching, and full local-state reset. Live GPU rendering and detailed browser visuals require follow-up visual QA.
 
 ## Future ideas
 
