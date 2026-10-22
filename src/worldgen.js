@@ -11,7 +11,7 @@ export function createGeneratedSectors(scene,{seed=2026,count=180}={}){
  const obstacles=[];
  const stoneGeometry=new THREE.IcosahedronGeometry(1,0);
  const spireGeometry=new THREE.ConeGeometry(1,1,5);
- const material=matrixMaterial(12,16,.68,seed);
+ const material=matrixMaterial(12,16,.68,seed,'stone');
  const stone=new THREE.InstancedMesh(stoneGeometry,material,count);
  const spires=new THREE.InstancedMesh(spireGeometry,material,Math.floor(count*.7));
  const dummy=new THREE.Object3D();
