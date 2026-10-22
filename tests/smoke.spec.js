@@ -51,3 +51,11 @@ test('field notes can be opened without entering pointer lock',async({page})=>{
  await page.locator('#journal-close').click();
  await expect(page.locator('#journal-panel')).toBeHidden();
 });
+
+test('ecosystem interface initializes without introducing startup errors',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ await expect(page.locator('#ecosystem-readout')).toBeVisible();
+ await expect(page.locator('#eco-region')).toContainText('SIMULATION STABLE');
+ expect(errors).toEqual([]);
+});
