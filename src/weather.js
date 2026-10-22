@@ -45,19 +45,24 @@ export function createSimulationWeather(scene,{particleCount=1700}={}){
   const lines=new THREE.LineSegments(geometry,faultMaterial);
   lines.position.set(x,3+(i%6),z);faults.add(lines);
  }
- let intensity=0,enabled=true;
+ let intensity=0,enabled=true,anime=false;
  return {
   setEnabled(value){enabled=value;},
+  setAnime(value){anime=Boolean(value);cloud.visible=!anime;faults.visible=!anime;},
+  getIntensity(){return intensity;},
   update(camera,time,dt,motion=true){
    // Intensity cycles every ~110 seconds, with short atmospheric build-and-fall.
    const cycle=(time%110)/110;
    const storm=cycle>.53&&cycle<.88? Math.sin((cycle-.53)/.35*Math.PI)**2:0;
-   const target=enabled&&motion?storm:0;
+   // Climate intensity is not coupled to a rendering mode or reduced-motion choice.
+   const target=enabled?storm:0;
    intensity=THREE.MathUtils.damp(intensity,target,1.2,dt);
    uniforms.uIntensity.value=intensity;
    uniforms.uTime.value=time;
    uniforms.uMotion.value=motion?1:0;
    cloud.position.set(camera.position.x,0,camera.position.z);
+   cloud.visible=enabled&&!anime&&motion;
+   faults.visible=enabled&&!anime&&motion;
    faultMaterial.opacity=intensity*.4;
    return intensity>.48?'CODE STORM':intensity>.08?'DATA DRIZZLE':'STABLE';
   }
