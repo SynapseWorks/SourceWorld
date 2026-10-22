@@ -20,10 +20,10 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  const restoredSites=new Set();
  const neighborhoodVisitors=[];
  const regionPlants=new Map(regions.map(r=>[r.id,[]]));
- const leafMaterial=matrixMaterial(12,16,1.1,356);
- const flowerMaterial=matrixMaterial(14,19,2,458);
- const rockMaterial=matrixMaterial(12,18,.73,512);
- const residentMaterial=matrixMaterial(15,24,1.4,654);
+ const leafMaterial=matrixMaterial(12,16,1.1,356,'foliage');
+ const flowerMaterial=matrixMaterial(14,19,2,458,'flower');
+ const rockMaterial=matrixMaterial(12,18,.73,512,'ground');
+ const residentMaterial=matrixMaterial(15,24,1.4,654,'skin');
  const stems=new THREE.CylinderGeometry(.075,.16,1,5);
  const crown=new THREE.IcosahedronGeometry(1,0);
  const spire=new THREE.ConeGeometry(1,1,5);
@@ -47,7 +47,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  floor.rotation.x=-Math.PI/2;floor.position.set(0,-.24,-166);world.add(floor);
  regions.slice(2).forEach(marker);
  const trails= new THREE.Group();world.add(trails);
- const trailMaterial=matrixMaterial(13,19,1.15,703);
+ const trailMaterial=matrixMaterial(13,19,1.15,703,'trail');
  function route(points,width=3.7){
   const curve=new THREE.CatmullRomCurve3(points.map(([x,z])=>new THREE.Vector3(x,.075,z)));
   const n=64,verts=[],indices=[],uvs=[];
@@ -121,7 +121,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   wildlife.push({group,biome,angle:random()*6.28,radius:12+random()*biome.r*.63,speed:.04+random()*.13,phase:random()*6,alert:false,energy:.45+random()*.4,target:null,foraging:0});
  }
  const cityLights=[];
- const postMaterial=matrixMaterial(8,18,.65,834);
+ const postMaterial=matrixMaterial(8,18,.65,834,'metal');
  for(let i=0;i<22;i++){
   const x=i%2===0?-9.7:9.7,z=-10-Math.floor(i/2)*7.3;
   const post=new THREE.Mesh(new THREE.CylinderGeometry(.055,.09,3.4,5),postMaterial);
