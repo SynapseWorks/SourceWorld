@@ -89,3 +89,9 @@
 #journal-list small{color:#76c99a;letter-spacing:.13em;font:9px 'DM Mono',monospace}#journal-list strong{font:600 14px 'Space Grotesk',sans-serif;color:#d0ffe2}#journal-list p{margin:0;color:#9cbeaa;line-height:1.55;font:11px 'DM Mono',monospace}
 @media(max-width:760px){.journal-toggle{top:189px;right:18px}.wayfinder{top:252px}.journal-panel{right:12px;top:72px}}
 @media(max-width:430px){.journal-toggle{top:185px;right:12px;padding:8px;font-size:9px}.wayfinder{top:246px}}
+
+/* v0.9 ecological world state, subordinate to the primary navigation HUD */
+.ecosystem-readout{position:absolute;z-index:3;bottom:118px;left:clamp(20px,3vw,49px);display:flex;flex-direction:column;gap:5px;max-width:320px;padding:12px 15px;background:linear-gradient(90deg,#04180fe0,#04180f75);border-left:2px solid #8ae6a569;pointer-events:none}
+.eco-kicker{color:#7ba98c;letter-spacing:.16em;font:9px 'DM Mono',monospace}.ecosystem-readout strong{color:#d0ffe3;font:600 13px 'Space Grotesk',sans-serif;letter-spacing:.06em}.ecosystem-readout span:last-child{color:#88d6ae;font:9px 'DM Mono',monospace;letter-spacing:.05em}
+@media(max-width:680px){.ecosystem-readout{bottom:104px;left:20px;max-width:200px;padding:9px}.ecosystem-readout strong{font-size:11px}}
+@media(pointer:coarse){.ecosystem-readout{bottom:245px;max-width:210px}}
