@@ -63,3 +63,7 @@
 @media(max-width:760px){.wayfinder{top:205px}.objectives{top:81px}.bottomright{bottom:26px}}
 @media(pointer:coarse){.interaction.visible{bottom:29%;min-height:48px;padding:14px 18px}.bottomleft{bottom:166px}.bottomright{bottom:12px}}
 @media(max-width:430px){.wayfinder{top:206px;right:12px;width:165px}.vision-btn{right:12px}.bottomleft{max-width:73vw}}
+
+/* v0.7: glowing boundaries without turning every face into a grid */
+.settings #outline{accent-color:#a0ffca}
+@media(max-height:720px){.settings{max-height:calc(100dvh - 95px);overflow-y:auto;scrollbar-color:#387653 transparent}}
