@@ -1,4 +1,4 @@
-# SourceWorld v0.7 — Inside the Code
+# SourceWorld v0.7.1 — Accessible Simulation Menu
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -27,7 +27,8 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **Mouse** — look around
 - **Shift** — sprint
 - **Space** — jump
-- **Escape** — release pointer
+- **P** — open/close simulation pause menu and settings
+- **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
 - **Settings** — adjust code density, visual quality and motion
@@ -103,6 +104,13 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 - A new **Object outlines** slider adjusts silhouette strength (0–180%), independently of code density and rain speed.
 - Forest crowns now use three distinct procedural families: tall conifers, broad crystalline canopies, and irregular angular forms.
 - Geometries stay opaque to avoid expensive transparency sorting; this is a stylized volume illusion, not ray-marched volumetric transparency.
+
+## Pause and settings fix (v0.7.1)
+
+- A dedicated accessible pause screen opens with **P** or by releasing pointer lock with Escape.
+- The pause screen provides **Resume Exploring** and **World Parameters** buttons; settings no longer require clicking through a locked cursor.
+- Settings pause player movement and return focus to the menu; resuming intentionally re-enters pointer lock.
+- Touch devices can use the always-visible Menu button. Input is disabled while settings are open.
 
 ## Future ideas
 
