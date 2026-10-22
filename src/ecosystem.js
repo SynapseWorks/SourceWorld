@@ -20,6 +20,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  const gatherings=[];
  const restoredSites=new Set();
  const neighborhoodVisitors=[];
+ let animeMode=false,animePerformance=false;
  const regionPlants=new Map(regions.map(r=>[r.id,[]]));
  const leafMaterial=matrixMaterial(12,16,1.1,356,'foliage');
  const flowerMaterial=matrixMaterial(14,19,2,458,'flower');
@@ -331,7 +332,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    p.person.rotation.y=Math.atan2(ahead.x-pos.x,ahead.z-pos.z);
    const proximity=Math.hypot(pos.x-player.x,pos.z-player.z);
    if(proximity<30)cityNearby++;
-   p.person.visible=proximity<82&&(daylight>.15||p.role%4===0);
+   p.person.visible=proximity<(animeMode&&animePerformance?50:82)&&(daylight>.15||p.role%4===0);
    if(p.person.visible)p.avatar.animate(simTime,true,reduced);
    const day=currentDay();
    if(proximity<4&&p.lastGreetDay!==day){
@@ -346,7 +347,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const {site,person}=visitor;
    const visiting=restoredSites.has(site.id)&&daylight>.18;
    const distance=Math.hypot(player.x-site.x,player.z-site.z);
-   person.visible=visiting&&distance<105;
+   person.visible=visiting&&distance<(animeMode&&animePerformance?65:105);
    if(!visiting)continue;
    if(person.visible)visitor.avatar.animate(simTime,true,reduced);
    const phase=simTime*.13+visitor.index*2.399;
@@ -407,7 +408,9 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   lastWeather=weather;
   return {region,summary:publicState()};
  }
- function setAnimeMode(enabled){
+ function setAnimeMode(enabled,quality=1){
+  animeMode=enabled;
+  animePerformance=quality<=.7;
   for(const citizen of residents)citizen.avatar.setEnabled(enabled);
   for(const caretaker of neighborhoodVisitors)caretaker.avatar.setEnabled(enabled);
  }
