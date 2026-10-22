@@ -28,10 +28,11 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
  svg.setAttribute('aria-label','Overhead schematic showing regions, paths, landmarks and the current player position');
  svg.classList.add('map-schematic');
  const create=(tag,attrs,parent=svg)=>{const node=document.createElementNS(svgNS,tag);Object.entries(attrs).forEach(([key,val])=>node.setAttribute(key,String(val)));parent.append(node);return node;};
- create('rect',{x:0,y:0,width:1000,height:1000,fill:'#061811'});
- for(let i=0;i<=10;i++){
-  create('path',{d:`M${i*100} 0 V1000 M0 ${i*100} H1000`,stroke:'#1a5840','stroke-width':1,opacity:.45});
- }
+ create('rect',{x:-12000,y:-12000,width:24000,height:24000,fill:'#061811'});
+ const gridPattern=create('pattern',{id:'source-atlas-grid',width:100,height:100,patternUnits:'userSpaceOnUse'});
+ create('path',{d:'M100 0 H0 V100',stroke:'#1a5840','stroke-width':1,fill:'none',opacity:.55},gridPattern);
+ create('rect',{x:-12000,y:-12000,width:24000,height:24000,fill:'url(#source-atlas-grid)'});
+
  for(const r of regions){
   const radius=r.r/(maxX-minX)*1000;
   create('circle',{cx:px(r.x),cy:py(r.z),r:radius,stroke:r.kind==='city'?'#95e6ac':'#58a989',
@@ -46,14 +47,16 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
  ];
  for(const trail of trails)create('polyline',{points:trail.map(([x,z])=>`${px(x)},${py(z)}`).join(' '),
   fill:'none',stroke:'#59ae83','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.7});
- for(const location of locations){
-  create('circle',{cx:px(location.x),cy:py(location.z),r:location.type==='region'?9:6,
-   fill:location.type==='objective'?'#d9ffab':location.type==='neighbourhood'?'#ffdea9':'#a9ffd1',stroke:'#042015','stroke-width':2});
-  if(location.type==='region'||location.type==='objective') {
-   const node=create('text',{x:px(location.x)+13,y:py(location.z)-12,fill:'#c8f9df','font-size':17,'font-family':'monospace'});
-   node.textContent=location.name.replace('THE ','');
+ function renderPin(location){
+  create('circle',{cx:px(location.x),cy:py(location.z),r:location.type==='region'?9:location.type==='frontier'?11:6,
+   fill:location.type==='objective'?'#d9ffab':location.type==='neighbourhood'?'#ffdea9':location.type==='frontier'?'#d5b9ff':'#a9ffd1',
+   stroke:'#042015','stroke-width':2});
+  if(location.type==='region'||location.type==='objective'||location.type==='frontier'){
+   const label=create('text',{x:px(location.x)+13,y:py(location.z)-12,fill:'#c8f9df','font-size':17,'font-family':'monospace'});
+   label.textContent=location.name.replace('THE ','');
   }
  }
+ for(const location of locations)renderPin(location);
  const me=create('g',{},svg);
  const glow=create('circle',{cx:0,cy:0,r:19,fill:'none',stroke:'#fcffcc','stroke-width':3},me);
  const dot=create('circle',{cx:0,cy:0,r:7,fill:'#fff6be'},me);
@@ -63,13 +66,33 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
  aside.append(instruction);
  const list=document.createElement('div');list.className='map-destinations';aside.append(list);
  let destination=null;
- for(const location of locations){
-  const btn=document.createElement('button');btn.type='button';btn.className='map-destination';
-  btn.textContent=location.name;btn.dataset.name=location.name;
+ let viewTarget=null;
+ function addDestination(location){
+  const found=locations.find(item=>item.id&&item.id===location.id);
+  if(found)return false;
+  locations.push(location);renderPin(location);
+  const btn=document.createElement('button');btn.type='button';
+  btn.className='map-destination';btn.textContent=location.name;btn.dataset.name=location.name;
   if(location.description)btn.title=location.description;
-  btn.addEventListener('click',()=>{destination=location;onNavigate(location);
-   list.querySelectorAll('button').forEach(item=>item.classList.toggle('selected',item===btn));});
-  list.append(btn);
+  btn.addEventListener('click',()=>{
+   destination=location;viewTarget=location;onNavigate(location);
+   list.querySelectorAll('button').forEach(item=>item.classList.toggle('selected',item===btn));
+   refreshView();
+  });
+  list.append(btn);return true;
+ }
+ function refreshView(){
+  const p=getPlayer();const markerX=px(p.x),markerY=py(p.z);
+  me.setAttribute('transform',`translate(${markerX} ${markerY})`);
+  const focus=viewTarget||p;
+  const centerX=px(focus.x),centerY=py(focus.z);
+  const viewX=Math.min(0,Math.max(-9000,centerX-500));
+  const viewY=Math.min(0,Math.max(-9000,centerY-500));
+  svg.setAttribute('viewBox',`${viewX} ${viewY} 1000 1000`);
+ }
+ for(const location of [...locations]){
+  const index=locations.indexOf(location);
+  locations.splice(index,1);addDestination(location);
  }
  const footer=document.createElement('div');footer.className='map-footer';
  footer.textContent='M — MAP · ESC — CLOSE · CLICK A DESTINATION TO FOLLOW';el.append(footer);
@@ -80,7 +103,8 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
   el,close,
   open(){el.classList.remove('hidden');close.focus();this.refresh();},
   close(){el.classList.add('hidden');},
-  refresh(){const p=getPlayer();me.setAttribute('transform',`translate(${px(p.x)} ${py(p.z)})`);},
+  refresh(){if(viewTarget&&Math.hypot(getPlayer().x-viewTarget.x,getPlayer().z-viewTarget.z)<24)viewTarget=null;refreshView();},
+  registerLocation(location){return addDestination(location);},
   getDestination(){return destination;},
   locations
  };
