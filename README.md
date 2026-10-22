@@ -1,4 +1,4 @@
-# SourceWorld v1.5 — Anime Reality 2.0
+# SourceWorld v1.6 — The Neighbourhoods
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -219,6 +219,21 @@ The alternate visual mode now uses **material-aware rendering instead of a gener
 ### Rendering and QA limits
 
 The anime look is still built on stylized geometry and procedural materials, not realistic imported character/architecture art. True screen-space outline detection, HDR bloom and full shadow maps are intentionally not enabled; they would raise mobile WebGL costs. Runtime GPU compatibility and final in-game art direction should be checked with real browser screenshots and device testing.
+
+## The Neighbourhoods (v1.6)
+
+**The goal is to turn procedural blocks into recognizable, lived-in places.** Existing missions, movement, collisions and hidden Echo locations stay in place.
+
+- **16 individually named shops and homes** occupy the existing 16 city parcels. `CITY_PARCELS` in `src/neighborhoods.js` is the shared coordinate source of truth for the new storefronts and the existing city's collision geometry. Stores include Lantern & Leaf (tea room), Folded Worlds (bookbindery), The Clockhouse (timeworks), The Seed Exchange, Story & Stone (print studio), Ribbon House, and the Green Balcony collective homes.
+- **Anime Reality façades** are no longer identical flat blocks: distinct facade palettes, pitched and stepped roofs, small rooftop structures, shop signs, porches, windows, awnings, window gardens, cafe tables, letters and bookshop displays. The buildings remain lightweight, procedural and collision-safe rather than navigable interiors.
+- **Code Reality gets identity too:** individual luminous name signs and purpose-specific roof motifs make the businesses recognizable without needing to enter anime mode.
+- **Eight discoverable districts** include Lantern Lane, the Paper Quarter, Maker's Walk, Moss Market, Reedwalk Lookout, the Old Orchard, Windchime Ridge and the Story Camp. First arrival gets an unobtrusive banner and a Field Notes entry; revisits use the smaller location label. Discovered districts persist in the browser save.
+- **Recognizable civic locations:** the Clockhouse's visible clockwork, elevated paper-lantern strings, a small market with seeded goods, a shaded Memory Pool pergola, the Old Orchard's seating and trees, marsh boardwalk, plateau chimes and the Story Camp's gathering circle give practical reasons to explore beyond the avenue.
+- **Daily tending is available immediately:** the Community Lantern, Public Planter, Orchard Seedbed and Reed Garden can each be cared for once per simulated day with **E** (or the interaction button). Repeat visits increase the visible garden growth and slightly improve local ecological resources. Care history is saved locally. These acts do not require collecting Echoes; Resonance Bloom remains a stronger ability.
+- **People have favorite shops:** the existing placeholder inhabitants have deterministic favorite businesses and stop to visit during recurring daily windows, producing occasional local observations when the player witnesses them.
+- **Navigation and accessibility:** the Source Atlas offers each district as a destination; its map pins do not reveal hidden Echo positions. First-arrival banners honor reduced-motion settings and the location subtitle is visible in either visual mode.
+
+**Technical notes:** all added meshes are procedural, with one shared set of facade coordinates, reusable meshes and local textures. No database, external character art, site tracking or new npm dependency. Interiors, true citizen pathfinding and rich conversations remain future milestones. Verify both Code and Anime facades, movement around the avenue, readable shop signs at varied window sizes, save/reload and the first-entry banner.
 
 ## Future ideas
 
