@@ -6,7 +6,7 @@ export function createDataSky(scene){
  const sky=new THREE.Mesh(new THREE.SphereGeometry(170,48,32),new THREE.ShaderMaterial({
   uniforms,side:THREE.BackSide,depthWrite:false,fog:false,
   vertexShader:`varying vec3 vDir; void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:precision highp float;
+  fragmentShader:`precision highp float;
 uniform float time,motion,anime,dayPhase;
 varying vec3 vDir;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
