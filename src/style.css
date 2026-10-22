@@ -132,3 +132,16 @@
 .resonance-btn:disabled{opacity:.68;cursor:not-allowed}
 @media(max-width:800px){.echo-hud{top:160px;max-width:155px;padding:8px}.resonance-btn{top:294px;right:18px}}
 @media(max-width:430px){.echo-hud{top:160px;left:12px}.resonance-btn{top:291px;right:12px;font-size:9px}}
+
+/* v1.3: Explore & Tend, small prompts and a deliberate alternate reality */
+.reality-btn{position:absolute;z-index:8;right:38px;top:355px;min-height:43px;border:1px solid #c5a6dc98;background:#1d1934e0;color:#f0d8ff;padding:12px 14px;font:10px 'DM Mono',monospace;letter-spacing:.09em;cursor:pointer}
+.reality-btn.selected{background:#f0d5df;color:#37243a;border-color:#fff2dc}
+.tend-compass{position:absolute;z-index:4;left:clamp(20px,3vw,49px);top:296px;display:grid;gap:6px;padding:10px 14px;border-left:2px solid #82ffac81;background:#061b14c9;color:#c0e9cb;font:10px 'DM Mono',monospace;letter-spacing:.1em;pointer-events:none}
+.tend-compass span{color:#8fc9a7;font-size:9px}.tend-actions{position:absolute;z-index:7;right:38px;top:414px;display:grid;gap:8px;max-width:194px}
+.tend-actions button{padding:11px;background:#093323e6;border:1px solid #7acb9e8a;color:#d4ffe6;text-align:left;font:10px 'DM Mono',monospace;letter-spacing:.06em;min-height:40px}
+.tend-actions button:disabled{opacity:.55}.tend-actions button:not(:disabled){cursor:pointer}
+.anime-reality .topbar{background:linear-gradient(180deg,#293b56df,#2b5365b0)}.anime-reality .tend-compass{background:#f7eaf1db;color:#342c45;border-color:#eb8eb9}.anime-reality .tend-compass span{color:#5e4b68}
+.anime-reality .ecosystem-readout,.anime-reality .continuity-readout{background:#efe4e6df;color:#394455;border-color:#eda8ba}
+.anime-reality .ecosystem-readout strong,.anime-reality .continuity-readout span{color:#2f4960}
+@media(max-width:800px){.reality-btn{right:18px;top:353px}.tend-actions{right:18px;top:409px}.tend-compass{top:287px;left:18px;max-width:180px}}
+@media(max-width:430px){.reality-btn{right:12px;top:343px;font-size:9px}.tend-actions{right:12px;top:399px;max-width:135px}.tend-compass{top:283px;max-width:146px;font-size:9px}}
