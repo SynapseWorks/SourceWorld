@@ -67,3 +67,14 @@
 /* v0.7: glowing boundaries without turning every face into a grid */
 .settings #outline{accent-color:#a0ffca}
 @media(max-height:720px){.settings{max-height:calc(100dvh - 95px);overflow-y:auto;scrollbar-color:#387653 transparent}}
+
+/* v0.7.1: a real pause/menu flow that works with pointer lock */
+.pause-btn{position:absolute;z-index:7;right:38px;top:136px;border:1px solid #448e67a6;background:#06251be8;color:#d4ffe6;font:10px 'DM Mono',monospace;letter-spacing:.08em;padding:12px 15px;min-height:42px;cursor:pointer;border-radius:3px}
+.pause-btn:hover,.pause-btn:focus-visible{background:#145837;border-color:#a8ffd0}
+.pause-screen{position:absolute;inset:0;z-index:17;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 50% 48%,#0b3a29df,#010c09ee 62%,#010906fa);backdrop-filter:blur(8px)}
+.pause-screen.hidden{display:none}.pause-panel{width:min(560px,100%);padding:clamp(26px,5vw,58px);border:1px solid #6cda9e69;background:linear-gradient(145deg,#082117ee,#030f0ceb);box-shadow:0 24px 100px #000c,0 0 80px #48ca7520}
+.pause-eyebrow{font:10px 'DM Mono',monospace;letter-spacing:.22em;color:#78e4a6}.pause-panel h2{font-size:clamp(32px,6vw,58px);letter-spacing:-.065em;line-height:1.05;margin:22px 0}.pause-panel h2 em{font-style:normal;color:#a0ffcc}
+.pause-panel p{color:#acc9b6;line-height:1.65}.pause-actions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:30px}.pause-actions button{min-height:53px;padding:15px 20px;font:600 11px 'DM Mono',monospace;letter-spacing:.1em;text-align:left;border-radius:2px}.pause-primary{border:1px solid #a6ffcd;background:#a3ffce;color:#082015;display:flex;justify-content:space-between}.pause-secondary{background:#071d14;color:#d0ffe1;border:1px solid #4b9069}.pause-tip{margin-top:26px;font:10px 'DM Mono',monospace;letter-spacing:.1em;color:#75aa8a}
+.settings{z-index:30!important;max-height:calc(100dvh - 95px);overflow-y:auto}
+@media(max-width:760px){.pause-btn{top:142px;right:18px;font-size:10px}.wayfinder{top:205px}.pause-panel{padding:25px}.pause-tip{line-height:1.8}}
+@media(max-width:430px){.pause-btn{right:12px;top:132px;padding:9px}.wayfinder{top:203px}.pause-btn span{font-size:9px}}
