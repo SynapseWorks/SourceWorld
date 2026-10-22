@@ -47,6 +47,7 @@ export function isAuthoredCore(cx,cz){
 export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
  const chunks=new Map(),discovered=new Set(),attuned=new Set();
  const materials={
+  animeGround:new THREE.MeshToonMaterial({vertexColors:true,side:THREE.DoubleSide}),
   ground:matrixMaterial(19,23,.47,seed+1,'ground'),
   trail:matrixMaterial(14,17,.67,seed+2,'trail'),
   flora:matrixMaterial(14,18,.88,seed+3,'foliage'),
@@ -59,7 +60,7 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
  const rockGeo=new THREE.DodecahedronGeometry(1,0);
  const dummy=new THREE.Object3D();
  const visitedThisSession=new Set();
- let lastChunkX=Infinity,lastChunkZ=Infinity,simTick=0,currentNode=null;
+ let lastChunkX=Infinity,lastChunkZ=Infinity,simTick=0,currentNode=null,renderAnime=false;
  const visibleRadius=2;
  function chunkKey(cx,cz){return cx+':'+cz;}
  function shouldPlace(x,z){
@@ -128,7 +129,22 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
   const floor=new THREE.Mesh(landGeo,materials.ground);
   floor.rotation.x=-Math.PI/2;
   floor.position.set(centerX,-.255,centerZ);
-  group.add(floor);
+  floor.visible=!renderAnime;group.add(floor);
+  // Painted terrain gradients are sampled per vertex from the TWO closest world nodes.
+  // They have no physics or gameplay side effects; Code Reality retains its code field.
+  const animeGeo=new THREE.PlaneGeometry(FRONTIER_TILE+.35,FRONTIER_TILE+.35,6,6);
+  const position=animeGeo.attributes.position,colors=[];
+  for(let i=0;i<position.count;i++){
+   const worldX=centerX+position.getX(i),worldZ=centerZ-position.getY(i);
+   const influence=frontierAt(worldX,worldZ,seed);
+   const tint=new THREE.Color(influence.node.biome.palette);
+   tint.lerp(new THREE.Color(influence.secondary.biome.palette),influence.blend);
+   colors.push(tint.r,tint.g,tint.b);
+  }
+  animeGeo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+  const animeFloor=new THREE.Mesh(animeGeo,materials.animeGround);
+  animeFloor.rotation.x=-Math.PI/2;animeFloor.position.set(centerX,-.244,centerZ);
+  animeFloor.visible=renderAnime;group.add(animeFloor);
   // Floor arcs are navigational hints, not compulsory quest markers.
   for(let i=0;i<3;i++){
    const cx2=centerX+(i-1)*FRONTIER_TILE*.2,cz2=centerZ+(i%2?.18:-.16)*FRONTIER_TILE;
@@ -151,7 +167,7 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
    centerNodes.push(makeNodeStructure(node,group));
   }
   scene.add(group);
-  const chunk={key,cx,cz,group,biome,nodes:centerNodes};
+  const chunk={key,cx,cz,group,biome,nodes:centerNodes,floor,animeFloor};
   chunks.set(key,chunk);
   return chunk;
  }
@@ -190,6 +206,12 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
   }
  }
  function snapshot(){return {discovered:[...discovered].slice(-500),attuned:[...attuned].slice(-500)};}
+ function setAnime(value){
+  renderAnime=Boolean(value);
+  for(const tile of chunks.values()){
+   tile.floor.visible=!renderAnime;tile.animeFloor.visible=renderAnime;
+  }
+ }
  function nearbyNode(pos,radius=5){
   const nx=Math.floor(pos.x/FRONTIER_NODE_SPACING),nz=Math.floor(pos.z/FRONTIER_NODE_SPACING);
   let found=null,nearest=radius;
@@ -250,7 +272,7 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
    return frontierNode(Number(match[1]),Number(match[2]),seed);
   }).filter(Boolean);
  }
- return {update,refresh,interact,nearbyNode,snapshot,restore,dispose,getDiscoveredNodes,
+ return {update,refresh,interact,nearbyNode,snapshot,restore,dispose,getDiscoveredNodes,setAnime,
   getStats:()=>({chunks:chunks.size,discovered:discovered.size,attuned:attuned.size}),
   nodeAt:frontierNode,biomeAt:frontierAt};
 }
