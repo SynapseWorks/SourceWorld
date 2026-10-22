@@ -17,6 +17,8 @@ export function createForest(scene){
   const barkGeometry=new THREE.CylinderGeometry(.32,.56,1,7,1);
   const limbGeometry=new THREE.CylinderGeometry(.12,.2,1,5,1);
   const foliageGeometry=new THREE.ConeGeometry(1,1,7,1);
+  const softCanopy=new THREE.IcosahedronGeometry(1,1);
+  const angledCanopy=new THREE.ConeGeometry(1,1,5,1);
   const rockGeometry=new THREE.DodecahedronGeometry(1,0);
   const hexGeometry=new THREE.CylinderGeometry(1,1,1,6);
   const floor=new THREE.Mesh(new THREE.BoxGeometry(100,1,160),matrixMaterial(80,120,.38,7));
@@ -35,14 +37,35 @@ export function createForest(scene){
   function tree(x,z,size,variant){
     const group=new THREE.Group();group.position.set(x,0,z);scene.add(group);
     const height=(7+rand()*6)*size;
+    group.rotation.y=rand()*Math.PI*2;
     const trunk=new THREE.Mesh(barkGeometry,rootMaterial);
     trunk.scale.set(size,height,size);trunk.position.y=height/2;group.add(trunk);
-    for(let k=0;k<3;k++){
-      const y=height*(.52+k*.17);
-      const crown=new THREE.Mesh(foliageGeometry,foliageMaterial);
-      const width=size*(2.6-k*.55);
-      crown.scale.set(width,height*(.53-k*.08),width);
-      crown.position.y=y+height*.11;group.add(crown);
+    // Alternate three canopy families instead of identical stacked cones.
+    if(variant===0){
+      for(let k=0;k<3;k++){
+        const crown=new THREE.Mesh(foliageGeometry,foliageMaterial);
+        crown.scale.set(size*(2.85-k*.64),height*(.52-k*.07),size*(2.85-k*.64));
+        crown.position.y=height*(.47+k*.18);group.add(crown);
+      }
+    }else if(variant===1){
+      for(let k=0;k<5;k++){
+        const angle=k*2.399;
+        const crown=new THREE.Mesh(softCanopy,foliageMaterial);
+        const radius=height*(k===4?.10:.19);
+        crown.position.set(Math.cos(angle)*radius,height*(.68+(k%3)*.1),Math.sin(angle)*radius);
+        crown.scale.set(size*(1.5+rand()),height*(.16+rand()*.11),size*(1.5+rand()));
+        group.add(crown);
+      }
+    }else{
+      for(let k=0;k<4;k++){
+        const crown=new THREE.Mesh(angledCanopy,foliageMaterial);
+        const scale=size*(2.5-k*.38);
+        crown.scale.set(scale,height*(.45-k*.025),scale);
+        crown.position.y=height*(.42+k*.17);
+        crown.rotation.y=rand()*Math.PI*2;
+        crown.rotation.z=(rand()-.5)*.19;
+        group.add(crown);
+      }
     }
     // Fine branches extend outward from the coded trunk.
     for(let j=0;j<3;j++){
