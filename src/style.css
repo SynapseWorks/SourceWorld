@@ -145,3 +145,17 @@
 .anime-reality .ecosystem-readout strong,.anime-reality .continuity-readout span{color:#2f4960}
 @media(max-width:800px){.reality-btn{right:18px;top:353px}.tend-actions{right:18px;top:409px}.tend-compass{top:287px;left:18px;max-width:180px}}
 @media(max-width:430px){.reality-btn{right:12px;top:343px;font-size:9px}.tend-actions{right:12px;top:399px;max-width:135px}.tend-compass{top:283px;max-width:146px;font-size:9px}}
+
+/* v1.3 professional tools dock — keeps the environment central */
+.explorer-tools{position:absolute;z-index:12;top:86px;right:clamp(14px,2.5vw,38px);width:min(205px,calc(100vw - 28px));display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.explorer-tools #tools-toggle{min-height:44px;background:#071d17ed;border:1px solid #83daa3ad;box-shadow:0 7px 32px #0008;color:#c9ffe0;border-radius:3px;padding:12px 14px;text-align:left;font:11px 'DM Mono',monospace;letter-spacing:.09em;cursor:pointer}
+.tools-content{display:grid;gap:7px;padding:10px;background:#041710ec;border:1px solid #66b98b61;max-height:calc(100dvh - 164px);overflow-y:auto;scrollbar-width:thin}
+.tools-content.hidden{display:none}
+.explorer-tools .tools-content > button,.explorer-tools .tend-actions{position:static!important;right:auto!important;top:auto!important;left:auto!important;bottom:auto!important;width:100%!important;max-width:none!important;transform:none!important}
+.explorer-tools .tools-content > button{min-height:40px;padding:9px 11px;text-align:left;font-size:10px;white-space:normal}
+.explorer-tools .tend-actions{display:grid;gap:7px}.explorer-tools .tend-actions button{width:100%;min-height:40px}
+.wayfinder{top:79px;left:50%;right:auto;transform:translateX(-50%)}
+.anime-reality #tools-toggle{background:#f8e8e7;color:#3f344b;border-color:#b887c5}
+.anime-reality .tools-content{background:#f6e9efed;border-color:#aa91af}
+@media(max-width:800px){.explorer-tools{top:75px;right:12px;width:min(158px,44vw)}.wayfinder{left:16px;right:auto;top:390px;transform:none;width:175px}}
+@media(max-width:430px){.explorer-tools{top:70px;width:140px}.explorer-tools .tools-content > button{font-size:9px}.wayfinder{top:385px;left:12px;width:160px}}
