@@ -4,7 +4,7 @@ import {matrixMaterial} from './matrixMaterial.js';
 // Events use simulation time, not real-time timers, so pause and reduced motion work cleanly.
 // All state is session-local: no account, tracking, or database.
 const encounters=[
- {id:'wishing-well',title:'THE LISTENING WELL',x:-24,z:-25,r:4.5,kind:'object',note:'A THOUGHT LEFT HERE WILL ECHO SOMEWHERE ELSE.'},
+ {id:'wishing-well',title:'THE LISTENING WELL',x:-8,z:-23,r:4.5,kind:'object',note:'A THOUGHT LEFT HERE WILL ECHO SOMEWHERE ELSE.'},
  {id:'seed',title:'THE UNWRITTEN SEED',x:29,z:-94,r:4.7,kind:'object',note:'YOU GAVE AN UNWRITTEN THING PERMISSION TO GROW.'},
  {id:'archive',title:'THE FORGOTTEN ARCHIVE',x:-18,z:-131,r:4.5,kind:'object',note:'IT SAVED THE MOMENT YOU CHOSE TO LOOK.'}
 ];
