@@ -7,7 +7,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
  curtain.className='awakening-stage hidden';
  curtain.setAttribute('role','status');
  curtain.setAttribute('aria-label','A new reality is forming');
- curtain.setAttribute('aria-live','off');
+ curtain.setAttribute('aria-live','polite');
  curtain.tabIndex=-1;
  const canvas=document.createElement('canvas');
  canvas.className='awakening-canvas';
@@ -92,7 +92,28 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
  function advance(now){
   if(phase!=='rain'&&phase!=='bang')return;
   const t=(now-startedAt)/1000,dt=Math.min((now-lastFrame)/1000,.07);lastFrame=now;
-  const rainDuration=reduced()?.48:2.5,bangDuration=reduced()?.4:1.4;
+  if(reduced()){
+   // No rapid rainfall, flash, streaking or strobing for reduced-motion visitors.
+   if(t<.48){
+    ctx.fillStyle='#000';ctx.fillRect(0,0,width,height);
+    ctx.textAlign='center';ctx.textBaseline='top';ctx.font=font+'px monospace';
+    const rows=Math.ceil(height/(font*4));
+    for(let x=0;x<columns.length;x+=3){
+     for(let y=0;y<rows;y++){
+      ctx.fillStyle='rgba(84,226,145,.48)';
+      ctx.fillText(chars[(x*17+y*23)%chars.length],columns[x].x,y*font*4+font);
+     }
+    }
+   }else{
+    if(!revealed){
+     revealed=true;app.classList.remove('world-locked');
+     curtain.classList.add('revealing');
+    }
+    if(t>.78){finish();return;}
+   }
+   frame=requestAnimationFrame(advance);return;
+  }
+  const rainDuration=2.5,bangDuration=1.7;
   if(t<rainDuration){rain(t,dt);}
   else{
    if(phase!=='bang'){
@@ -112,7 +133,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
  function completeInteraction(e){
   if(phase!=='waiting')return;
   // Ignore wheel, mousemove, key repeat and synthetic focus events.
-  if(e.type==='keydown'&&(e.repeat||['Shift','Alt','Control','Meta','Tab'].includes(e.key)))return;
+  if(e.type==='keydown'&&e.repeat)return;
   if(e.type==='pointerdown'&&e.button!==0)return;
   e.preventDefault();
   e.stopPropagation();
@@ -132,6 +153,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
   curtain.dataset.phase='waiting';
   size();
   ctx.fillStyle='#000';ctx.fillRect(0,0,width,height);
+  accessible.textContent='The screen is now dark. Press any key or click or tap to awaken the world.';
   // Registration is deferred so the initial ENTER pointer event cannot be the second gesture.
   requestAnimationFrame(()=>{
    if(phase!=='waiting')return;
