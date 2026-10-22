@@ -86,3 +86,19 @@ test('hidden echoes and ability controls are present',async({page})=>{
  await expect(page.locator('#resonance-btn')).toBeDisabled();
  await expect(page.locator('#ability-status')).toContainText('FIND 4');
 });
+
+test('anime reality is toggled without discarding world controls',async({page})=>{
+ await page.goto('/');
+ const button=page.locator('#reality-btn');
+ await expect(button).toHaveAttribute('aria-pressed','false');
+ await button.click();
+ await expect(button).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('#app')).toHaveClass(/anime-reality/);
+ await button.click();
+ await expect(button).toHaveAttribute('aria-pressed','false');
+});
+test('new tending abilities are gated behind exploration',async({page})=>{
+ await page.goto('/');
+ await expect(page.locator('#call-btn')).toBeDisabled();
+ await expect(page.locator('#rewrite-btn')).toBeDisabled();
+});
