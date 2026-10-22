@@ -435,7 +435,8 @@ function setReality(enabled){
  realityButton.setAttribute('aria-pressed',String(enabled));
  realityButton.textContent=enabled?'✦ RESTORE CODE [ R ]':'✦ ANIME REALITY 2.0 [ R ]';
  realityButton.classList.toggle('selected',enabled);
- simulationWeather.setEnabled(!enabled&&document.querySelector('#weather-toggle').checked);
+ simulationWeather.setAnime(enabled);
+ simulationWeather.setEnabled(document.querySelector('#weather-toggle').checked);
  document.querySelector('#app').classList.toggle('anime-reality',enabled);
 }
 realityButton.addEventListener('click',()=>setReality(!animeReality));
@@ -550,7 +551,7 @@ function toggleSettings(open){
 
 settingsBtn.addEventListener('click',()=>toggleSettings(!settings.classList.contains('open')));
 document.querySelector('#settings-close').addEventListener('click',()=>toggleSettings(false));
-document.querySelector('#weather-toggle').addEventListener('change',e=>simulationWeather.setEnabled(e.target.checked&&!animeReality));
+document.querySelector('#weather-toggle').addEventListener('change',e=>simulationWeather.setEnabled(e.target.checked));
 document.querySelector('#outline').addEventListener('input',e=>{const value=Number(e.target.value);setCodeOutline(value/100);document.querySelector('#outline-value').textContent=value+'%';});
 document.querySelector('#density').addEventListener('input',e=>{const value=Number(e.target.value);setCodeDensity(value/100);document.querySelector('#density-value').textContent=value+'%';});
 document.querySelector('#motion').addEventListener('input',e=>{const value=Number(e.target.value);setCodeMotion(value/100);document.querySelector('#motion-value').textContent=value+'%';});
@@ -623,7 +624,7 @@ function tick(){
  const phase=ecosystem.getPhase();
  sky.setDayPhase(phase);
  setAnimeDayPhase(phase);
- animeEnvironment.update(t,phase,reduced);
+ animeEnvironment.update(t,phase,reduced,atmosphere,camera.position);
  animeArchitecture.update(phase);
  document.querySelector('#world-phase').textContent=phase<.2?'NIGHT':phase<.36?'DAWN':phase<.68?'DAYLIGHT':phase<.84?'DUSK':'NIGHT';
  document.querySelector('#eco-region').textContent=ecosystemState.region||'SIMULATION STABLE';
