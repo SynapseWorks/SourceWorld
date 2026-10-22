@@ -586,6 +586,9 @@ function ecoGuideText(region){
 function tick(){
  requestAnimationFrame(tick);
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
+ // The universe is truly dormant while the entry menu, void and falling code own the screen.
+ // Begin costly 3D updates only when the Big Bang starts revealing it.
+ if(app.classList.contains('world-locked'))return;
  if(active&&!awakening.isBlocking()&&t-lastSavedAt>22){lastSavedAt=t;saveWorld();}
  if(Math.floor(t)%2===0&&Math.floor(t*2)%4===0)updateAbilityHUD();
  const reduced=document.querySelector('#reduced').checked;
