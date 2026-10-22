@@ -26,3 +26,19 @@ test('small viewports retain entry action and readable HUD',async({page,isMobile
  await expect(page.locator('#objective-direction')).toHaveCount(1);
  if(isMobile)await expect(page.locator('#touch-controls')).toHaveClass(/visible/);
 });
+
+test('mobile pause menu keeps world settings reachable without pointer lock',async({page,isMobile})=>{
+ test.skip(!isMobile,'Touch flow');
+ await page.goto('/');
+ await page.locator('#enter').click();
+ await expect(page.locator('#intro')).toHaveClass(/hidden/);
+ await page.getByRole('button',{name:'Pause and open settings'}).click();
+ await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeVisible();
+ await page.getByRole('button',{name:/WORLD PARAMETERS/}).click();
+ await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
+ await page.locator('#outline').fill('150');
+ await expect(page.locator('#outline-value')).toHaveText('150%');
+ await page.getByRole('button',{name:'Close settings'}).click();
+ await page.getByRole('button',{name:/RESUME EXPLORING/}).click();
+ await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeHidden();
+});
