@@ -489,6 +489,9 @@ const awakening=createAwakening({
  onComplete(){
   active=true;everEntered=true;
   keys.clear();resetJoystick();
+  // Carry the screen-space singularity into the actual Three.js material field.
+  // The first code pulse expands outward from the player's arrival point.
+  triggerCodePulse(camera.position,clock.elapsedTime);
   if(!mobile&&!locked)pauseGame(true);
  }
 });
