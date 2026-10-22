@@ -14,11 +14,11 @@ async function awaken(page,isMobile){
  await expect(page.locator('#app')).not.toHaveClass(/world-locked/);
 }
 async function openSettings(page){
- if(await page.locator('#pause-screen').isVisible()){
-  await page.locator('#pause-settings-btn').click();
- }else{
-  await page.locator('#settings-btn').click();
- }
+ // While pointer lock is active, use the keyboard shortcut instead of clicking
+ // something behind the captured pointer.
+ if(!(await page.locator('#pause-screen').isVisible()))await page.keyboard.press('p');
+ await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeVisible();
+ await page.locator('#pause-settings-btn').click();
  await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
 }
 test('first entry opens an absolute black void and nothing advances before another interaction',async({page})=>{
@@ -48,12 +48,7 @@ test('second gesture forms the universe then unlocks controls without a page rel
 });
 test('pause and settings remain accessible after the awakening',async({page,isMobile})=>{
  await awaken(page,isMobile);
- await page.locator('#tools-toggle').click();
- await expect(page.locator('#tools-content')).toBeVisible();
- if(!(await page.locator('#pause-screen').isVisible()))await page.locator('#pause-btn').click();
- await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeVisible();
- await page.locator('#pause-settings-btn').click();
- await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
+ await openSettings(page);
  await page.locator('#outline').fill('150');
  await expect(page.locator('#outline-value')).toHaveText('150%');
  await page.locator('#settings-close').click();
@@ -74,6 +69,7 @@ test('atlas and field notes still work with the new experience flow',async({page
 });
 test('anime and wireframe switches survive the reveal',async({page,isMobile})=>{
  await awaken(page,isMobile);
+ if(await page.locator('#pause-screen').isVisible())await page.locator('#resume-btn').click();
  await page.keyboard.press('r');
  await expect(page.locator('#reality-btn')).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('#app')).toHaveClass(/anime-reality/);
