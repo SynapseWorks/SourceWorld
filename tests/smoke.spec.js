@@ -8,7 +8,8 @@ test('boots the construct and provides accessible navigation',async({page})=>{
  await expect(page.getByRole('button',{name:/ENTER THE SIMULATION/})).toBeVisible();
  await expect(page.locator('#viewport canvas')).toHaveCount(1);
  await expect(page.getByRole('button',{name:'Open settings'})).toBeVisible();
- await expect(page.getByRole('button',{name:'Pause and open settings'})).toBeVisible();
+ await expect(page.locator('#tools-toggle')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Pause and open settings'})).toHaveCount(1);
  await page.getByRole('button',{name:'Open settings'}).click();
  await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
  await expect(page.locator('#density')).toHaveValue('100');
@@ -32,6 +33,7 @@ test('mobile pause menu keeps world settings reachable without pointer lock',asy
  await page.goto('/');
  await page.locator('#enter').click();
  await expect(page.locator('#intro')).toHaveClass(/hidden/);
+ await page.locator('#tools-toggle').click();
  await page.getByRole('button',{name:'Pause and open settings'}).click();
  await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeVisible();
  await page.getByRole('button',{name:/WORLD PARAMETERS/}).click();
@@ -45,7 +47,8 @@ test('mobile pause menu keeps world settings reachable without pointer lock',asy
 
 test('field notes can be opened without entering pointer lock',async({page})=>{
  await page.goto('/');
- await page.locator('#journal-toggle').click();
+ await page.locator('#enter').click();
+ await page.keyboard.press('j');
  await expect(page.locator('#journal-panel')).toBeVisible();
  await expect(page.locator('#journal-list')).toContainText('Nothing recorded yet');
  await page.locator('#journal-close').click();
@@ -91,14 +94,25 @@ test('anime reality is toggled without discarding world controls',async({page})=
  await page.goto('/');
  const button=page.locator('#reality-btn');
  await expect(button).toHaveAttribute('aria-pressed','false');
- await button.click();
+ await page.locator('#enter').click();
+ await page.keyboard.press('r');
  await expect(button).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('#app')).toHaveClass(/anime-reality/);
- await button.click();
+ await page.keyboard.press('r');
  await expect(button).toHaveAttribute('aria-pressed','false');
 });
 test('new tending abilities are gated behind exploration',async({page})=>{
  await page.goto('/');
  await expect(page.locator('#call-btn')).toBeDisabled();
  await expect(page.locator('#rewrite-btn')).toBeDisabled();
+});
+
+test('explorer dock hides extra actions until opened',async({page})=>{
+ await page.goto('/');
+ await expect(page.locator('#tools-content')).toBeHidden();
+ await expect(page.locator('#tools-toggle')).toHaveAttribute('aria-expanded','false');
+ await page.locator('#tools-toggle').click();
+ await expect(page.locator('#tools-content')).toBeVisible();
+ await expect(page.locator('#tools-toggle')).toHaveAttribute('aria-expanded','true');
+ await expect(page.locator('#reality-btn')).toBeVisible();
 });
