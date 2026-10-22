@@ -1,4 +1,4 @@
-# SourceWorld v0.6.1 — Visual QA & Stability
+# SourceWorld v0.7 — Inside the Code
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -95,6 +95,14 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 - Improved Escape behavior in the settings panel, pointer-cancellation handling, and joystick reset on focus loss.
 - Added responsive layout fixes to prevent mission/navigation widgets colliding on narrow screens.
 - Added desktop/mobile browser smoke tests and CI execution.
+
+## Inside the Code (v0.7)
+
+- Digital glyphs are now sampled from world-space positions rather than restarting with each mesh's UV coordinates. This creates a continuous environmental data field whose illumination is shaped by objects rather than painted onto them.
+- Two scrolling glyph layers, with parallax-like displacement, create the impression of illuminated information behind the visible shell. Bright streams are paired with a separate Fresnel-based contour for recognizable shapes.
+- A new **Object outlines** slider adjusts silhouette strength (0–180%), independently of code density and rain speed.
+- Forest crowns now use three distinct procedural families: tall conifers, broad crystalline canopies, and irregular angular forms.
+- Geometries stay opaque to avoid expensive transparency sorting; this is a stylized volume illusion, not ray-marched volumetric transparency.
 
 ## Future ideas
 
