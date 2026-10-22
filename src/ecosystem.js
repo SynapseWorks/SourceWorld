@@ -14,6 +14,7 @@ const regions=[
 export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  const random=seeded(seed),world=new THREE.Group();scene.add(world);
  const plants=[],residents=[],wildlife=[],memories=[];
+ const influences=[];
  const regionPlants=new Map(regions.map(r=>[r.id,[]]));
  const leafMaterial=matrixMaterial(12,16,1.1,356);
  const flowerMaterial=matrixMaterial(14,19,2,458);
@@ -108,13 +109,24 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   const group=new THREE.Group();group.add(new THREE.Mesh(creatureGeo,flowerMaterial));world.add(group);
   wildlife.push({group,biome,angle:random()*6.28,radius:12+random()*biome.r*.63,speed:.04+random()*.13,phase:random()*6,alert:false,energy:.45+random()*.4,target:null,foraging:0});
  }
+ const cityLights=[];
+ const postMaterial=matrixMaterial(8,18,.65,834);
+ for(let i=0;i<22;i++){
+  const x=i%2===0?-9.7:9.7,z=-10-Math.floor(i/2)*7.3;
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.055,.09,3.4,5),postMaterial);
+  post.position.set(x,1.7,z);world.add(post);
+  const lamp=new THREE.Mesh(new THREE.IcosahedronGeometry(.21,0),new THREE.MeshBasicMaterial({color:0xc9ffdb,transparent:true,opacity:.14}));
+  lamp.position.set(x,3.45,z);world.add(lamp);cityLights.push(lamp);
+ }
+ const gathering=[{x:-8,z:-29,r:7},{x:8,z:-58,r:8},{x:0,z:-83,r:7}];
+ const traceMaterial=new THREE.MeshBasicMaterial({color:0x98ffc4,transparent:true,opacity:.46,depthWrite:false,side:THREE.DoubleSide});
  const state=regions.map(r=>({...r,humidity:r.moisture,growth:.3,fauna:0,activity:.5}));
  let accumulation=0,simTime=0,lastCycle=-1,lastWeather='STABLE',lastPlayerRegion='';
  let epoch=0;
  const DAY=720; // 12 real-time minutes per complete simulation day.
  const safe=(v,defaultValue,min=0,max=1)=>Number.isFinite(v)?THREE.MathUtils.clamp(v,min,max):defaultValue;
  function snapshot(){
-  return {simTime,biomes:state.map(s=>({id:s.id,humidity:s.humidity,growth:s.growth,activity:s.activity})),
+  return {simTime,influences:influences.map(i=>({x:i.x,z:i.z,time:i.time})),biomes:state.map(s=>({id:s.id,humidity:s.humidity,growth:s.growth,activity:s.activity})),
    plants:plants.map(p=>({age:p.age,nectar:p.nectar})),
    wildlife:wildlife.map(c=>({energy:c.energy,angle:c.angle}))};
  }
@@ -136,6 +148,9 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    wildlife[i].angle=safe(c.angle,wildlife[i].angle,-1e8,1e8);
   });
   lastCycle=Math.floor(simTime/125);
+  if(Array.isArray(saved.influences))saved.influences.slice(-20).forEach(i=>{
+   if(Number.isFinite(i.x)&&Number.isFinite(i.z))createTrace(i.x,i.z,safe(i.time,simTime,0,1e9));
+  });
   return true;
  }
  function fastForward(seconds){
@@ -167,6 +182,31 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   return state.filter((s,i)=>Math.abs(s.growth-before[i].growth)>.015||Math.abs(s.humidity-before[i].humidity)>.05)
    .map(s=>s.name+' has continued to change').slice(0,4);
  }
+ function createTrace(x,z,time){
+  const group=new THREE.Group();group.position.set(x,.08,z);world.add(group);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(3.2,3.3,48),traceMaterial.clone());
+  ring.rotation.x=-Math.PI/2;group.add(ring);
+  for(let k=0;k<7;k++){
+   const shoot=new THREE.Mesh(new THREE.ConeGeometry(.22,1.1+k%3*.35,5),flowerMaterial);
+   const a=k*2.399;shoot.position.set(Math.cos(a)*(1+k%3*.42),.55,Math.sin(a)*(1+k%3*.42));group.add(shoot);
+  }
+  influences.push({x,z,time,group});
+  if(influences.length>20){const retired=influences.shift();world.remove(retired.group);}
+ }
+ function influence(position){
+  const nearest=state.filter(s=>s.kind!=='city').sort((a,b)=>Math.hypot(position.x-a.x,position.z-a.z)-Math.hypot(position.x-b.x,position.z-b.z))[0];
+  if(!nearest)return false;
+  nearest.humidity=Math.min(1,nearest.humidity+.16);
+  nearest.growth=Math.min(1,nearest.growth+.12);
+  for(const plant of regionPlants.get(nearest.id)||[]){
+   if(Math.hypot(position.x-plant.group.position.x,position.z-plant.group.position.z)<24){
+    plant.age=Math.min(1,plant.age+.23);plant.nectar=Math.min(1,plant.nectar+.45);
+   }
+  }
+  createTrace(position.x,position.z,simTime);
+  notice('WORLD CHANGE','A GARDEN WRITTEN BY YOU',nearest.name+' IS GROWING DIFFERENTLY BECAUSE YOU CHOSE TO CHANGE IT.');
+  return {x:position.x,z:position.z,name:nearest.name};
+ }
  const currentDay=()=>Math.floor(simTime/DAY)+1;
  const dayPhase=()=>simTime%DAY/DAY;
 
@@ -177,6 +217,12 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   if(paused)return {region:lastPlayerRegion,summary:publicState()};
   const step=Math.min(dt,.08);simTime+=step;accumulation+=step;
   const daylight=Math.sin(dayPhase()*Math.PI*2-Math.PI/2)*.5+.5;
+  for(const lamp of cityLights)lamp.material.opacity=.12+(1-daylight)*.85;
+  for(const trace of influences){
+   const scale=.65+Math.min(1,Math.max(0,simTime-trace.time)/450)*.8;
+   trace.group.scale.setScalar(scale);
+   trace.group.visible=Math.hypot(player.x-trace.x,player.z-trace.z)<100;
+  }
   const storm=weather==='CODE STORM'?1:weather==='DATA DRIZZLE'?.43:0;
   if(accumulation>=.45){
    const delta=accumulation;accumulation=0;
@@ -205,6 +251,11 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const amount=((simTime*p.pace+p.offset)%2);
    const direction=amount>1?-1:1;
    const pos=p.curve.getPoint(amount>1?2-amount:amount);
+   const gatheringWindow=(simTime/DAY+i*.061)%1;
+   if(gatheringWindow>.44&&gatheringWindow<.52){
+    const spot=gathering[i%gathering.length],angle=i*2.399;
+    pos.lerp(new THREE.Vector3(spot.x+Math.cos(angle)*spot.r*.54,0,spot.z+Math.sin(angle)*spot.r*.54),.95);
+   }
    p.person.position.copy(pos);
    const ahead=p.curve.getPoint(Math.min(.999,Math.max(.001,(amount>1?2-amount:amount)+direction*.005)));
    p.person.rotation.y=Math.atan2(ahead.x-pos.x,ahead.z-pos.z);
@@ -257,5 +308,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   lastWeather=weather;
   return {region,summary:publicState()};
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence};
 }
