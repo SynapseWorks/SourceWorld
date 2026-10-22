@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity,triggerCodePulse,setCodePlayerPosition,setCodeOutline,setAnimeReality} from './matrixMaterial.js';
+import {matrixMaterial,setCodeTime,setCodeMotion,setCodeDensity,triggerCodePulse,setCodePlayerPosition,setCodeOutline,setAnimeReality,setAnimeDayPhase} from './matrixMaterial.js';
 import './style.css';
 import {createForest} from './forest.js';
 import {createDataSky} from './sky.js';
@@ -14,6 +14,7 @@ import {createWorldMap} from './worldMap.js';
 import {createEchoes,UNLOCK_COUNT} from './echoes.js';
 import {createTendingWorld} from './tendingWorld.js';
 import {createAwakening} from './awakening.js';
+import {createAnimeEnvironment} from './animeEnvironment.js';
 import {readContinuity,writeContinuity,clearContinuity,formatElapsed} from './continuity.js';
 
 const app=document.querySelector('#app');
@@ -68,6 +69,7 @@ const reconstruction=createReconstruction(scene);
 const generatedSectors=createGeneratedSectors(scene,{seed:60421,count:155});
 const simulationWeather=createSimulationWeather(scene,{particleCount:1500});
 const artDirection=createArtDirection(scene);
+const animeEnvironment=createAnimeEnvironment(scene);
 const journalPanel=document.querySelector('#journal-panel');
 const journalButton=document.querySelector('#journal-toggle');
 const journalList=document.querySelector('#journal-list');
@@ -244,12 +246,12 @@ const messageLabel=document.querySelector('#message');
 let messageUntil=0;
 function announce(message,duration=5){messageLabel.textContent=message;messageLabel.classList.add('visible');messageUntil=clock.elapsedTime+duration;}
 function block(x,y,z,w,h,d,opts={}){
- const mesh=new THREE.Mesh(geometries.box,matrixMaterial(opts.tileX||Math.max(4,w*5),opts.tileY||Math.max(4,h*5),opts.glow||1,opts.seed));
+ const mesh=new THREE.Mesh(geometries.box,matrixMaterial(opts.tileX||Math.max(4,w*5),opts.tileY||Math.max(4,h*5),opts.glow||1,opts.seed,opts.surface||'architecture'));
  mesh.position.set(x,y,z);mesh.scale.set(w,h,d);scene.add(mesh);
  if(opts.solid)solidity.push({x,z,w,d,y,h});return mesh;
 }
 function cylinder(x,y,z,r,h,top=r){
- const mesh=new THREE.Mesh(new THREE.CylinderGeometry(top,r,h,12,1),matrixMaterial(15,Math.max(9,h*6),1.2));mesh.position.set(x,y,z);scene.add(mesh);return mesh;
+ const mesh=new THREE.Mesh(new THREE.CylinderGeometry(top,r,h,12,1),matrixMaterial(15,Math.max(9,h*6),1.2,34,'architecture'));mesh.position.set(x,y,z);scene.add(mesh);return mesh;
 }
 const trimMat=new THREE.MeshBasicMaterial({color:'#0a7143'});
 function edgeBox(x,y,z,w,h,d,opacity=.36){
@@ -415,13 +417,18 @@ function setReality(enabled){
  if(enabled&&wireframe)setVision(false);
  animeReality=enabled;
  setAnimeReality(enabled);
+ setAnimeDayPhase(ecosystem.getPhase());
  sky.setAnime(enabled);
- scene.background.set(enabled?'#b6d3df':'#010807');
- scene.fog.color.set(enabled?'#a2cbd1':'#010807');
- scene.fog.density=enabled?.0055:.012;
- renderer.toneMappingExposure=enabled?1.08:1.25;
+ animeEnvironment.setEnabled(enabled);
+ ecosystem.setAnimeMode(enabled);
+ particles.visible=!enabled;
+ scene.background.set(enabled?'#d2e7e4':'#010807');
+ scene.fog.color.set(enabled?'#c4d9d8':'#010807');
+ scene.fog.density=enabled?.0049:.012;
+ renderer.toneMappingExposure=enabled?1.07:1.25;
+ ambient.intensity=enabled?.22:.4;
  realityButton.setAttribute('aria-pressed',String(enabled));
- realityButton.textContent=enabled?'✦ RESTORE CODE [ R ]':'✦ ANIME REALITY [ R ]';
+ realityButton.textContent=enabled?'✦ RESTORE CODE [ R ]':'✦ ANIME REALITY 2.0 [ R ]';
  realityButton.classList.toggle('selected',enabled);
  simulationWeather.setEnabled(!enabled&&document.querySelector('#weather-toggle').checked);
  document.querySelector('#app').classList.toggle('anime-reality',enabled);
@@ -605,6 +612,8 @@ function tick(){
  document.querySelector('#world-day').textContent='DAY '+ecosystem.getDay();
  const phase=ecosystem.getPhase();
  sky.setDayPhase(phase);
+ setAnimeDayPhase(phase);
+ animeEnvironment.update(t,phase,reduced);
  document.querySelector('#world-phase').textContent=phase<.2?'NIGHT':phase<.36?'DAWN':phase<.68?'DAYLIGHT':phase<.84?'DUSK':'NIGHT';
  document.querySelector('#eco-region').textContent=ecosystemState.region||'SIMULATION STABLE';
  const eco=ecosystemState.summary.find(b=>b.name===ecosystemState.region);
