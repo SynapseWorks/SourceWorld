@@ -159,3 +159,21 @@
 .anime-reality .tools-content{background:#f6e9efed;border-color:#aa91af}
 @media(max-width:800px){.explorer-tools{top:75px;right:12px;width:min(158px,44vw)}.wayfinder{left:16px;right:auto;top:390px;transform:none;width:175px}}
 @media(max-width:430px){.explorer-tools{top:70px;width:140px}.explorer-tools .tools-content > button{font-size:9px}.wayfinder{top:385px;left:12px;width:160px}}
+
+/* v1.4 — The Awakening: a genuinely empty void until the second interaction. */
+#app.world-locked{background:#000!important}
+#app.world-locked > :not(#intro):not(#awakening-stage){visibility:hidden!important}
+#app #intro{background:#000!important;z-index:40;transition:opacity .12s linear,visibility .12s linear}
+#app #intro .scanlines{display:none}
+#app #intro .intro-content{isolation:isolate}
+#app #intro .intro-index{color:#79c69a}
+#app #intro .intro-copy{color:#98b4a4}
+#app #intro .enter{box-shadow:0 0 42px #56ff9030}
+.awakening-stage{position:absolute;inset:0;z-index:60;background:#000;width:100%;height:100%;overflow:hidden;isolation:isolate;touch-action:none;opacity:1;transition:opacity .9s ease-out}
+.awakening-stage.hidden{display:none}
+.awakening-stage.revealing{opacity:0;pointer-events:none}
+.awakening-canvas{display:block;width:100%;height:100%;position:absolute;inset:0}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.continuity-settings #reset-memory{border-color:#b96b7899;background:#36171dcc;color:#ffd7df}
+.continuity-settings #replay-awakening{border-color:#5d9c80;background:#0a3121;color:#c4ffda}
+@media(prefers-reduced-motion:reduce){.awakening-stage{transition-duration:.12s!important}}
