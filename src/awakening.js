@@ -158,8 +158,9 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
   size();
   ctx.fillStyle='#000';ctx.fillRect(0,0,width,height);
   accessible.textContent='The screen is now dark. Press any key or click or tap to awaken the world.';
-  // Registration is deferred so the initial ENTER pointer event cannot be the second gesture.
-  requestAnimationFrame(()=>{
+  // Register after the ENTER event completes, but before the next real gesture.
+  // A full animation frame of delay could miss unusually quick second clicks.
+  queueMicrotask(()=>{
    if(phase!=='waiting')return;
    document.addEventListener('pointerdown',completeInteraction,true);
    document.addEventListener('keydown',completeInteraction,true);
