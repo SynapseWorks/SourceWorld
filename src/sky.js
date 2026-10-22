@@ -6,36 +6,75 @@ export function createDataSky(scene){
  const sky=new THREE.Mesh(new THREE.SphereGeometry(170,48,32),new THREE.ShaderMaterial({
   uniforms,side:THREE.BackSide,depthWrite:false,fog:false,
   vertexShader:`varying vec3 vDir; void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:`precision highp float;uniform float time;uniform float motion;uniform float anime;uniform float dayPhase;varying vec3 vDir;
-  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-  void main(){
-   vec3 d=normalize(vDir);
-   float horizon=1.-abs(d.y);
-   vec3 base=mix(vec3(.001,.008,.012),vec3(.008,.045,.032),pow(horizon,2.8));
-   float height=clamp(d.y,0.,1.);
-   vec2 starUV=vec2(atan(d.z,d.x)*42.,asin(d.y)*70.);
-   vec2 cell=floor(starUV);
-   float star=step(.993,hash(cell))*pow(1.-length(fract(starUV)-.5)*2.,5.);
-   float aurora=pow(max(0.,sin(d.x*21.+d.z*12.+time*motion*.12)*.5+.5),5.)*pow(horizon,3.);
-   vec2 lines=vec2(atan(d.z,d.x)*75.,d.y*85.+time*motion*1.2);
-   float trace=step(.992,hash(floor(lines)))*smoothstep(.2,.5,fract(lines.y))*smoothstep(.06,.22,abs(d.y));
-   vec3 result=base+vec3(.012,.11,.065)*aurora+vec3(.15,.62,.38)*star+vec3(.012,.18,.095)*trace;
-   if(anime>.5){
-    float celestial=pow(max(d.y,0.),.6);
-    vec3 skyTop=vec3(.24,.48,.78),skyLow=vec3(.98,.77,.67);
-    vec3 pastel=mix(skyLow,skyTop,celestial);
-    float cloud=sin(d.x*15.+d.z*11.+time*.018)*sin(d.x*9.-d.z*17.)*.5+.5;
-    cloud=smoothstep(.67,.81,cloud)*pow(1.-abs(d.y-.21),2.);
-    result=mix(pastel,vec3(.99,.94,.88),cloud*.85);
-    float daylight=clamp(sin(dayPhase*6.283185-1.570796)*.5+.5,0.,1.);
-    vec3 evening=mix(vec3(.09,.13,.28),vec3(.35,.27,.53),celestial);
-    result=mix(evening,result,daylight*.92+.08);
-    result+=vec3(.55,.63,.94)*star*(1.-daylight)*.4;
-   }
-   gl_FragColor=vec4(result,1.);
-   #include <tonemapping_fragment>
-   #include <colorspace_fragment>
-  }`
+  fragmentShader:precision highp float;
+uniform float time,motion,anime,dayPhase;
+varying vec3 vDir;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+ vec2 i=floor(p),f=fract(p);
+ f=f*f*(3.-2.*f);
+ return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),
+            mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);
+}
+float cloudField(vec2 p){
+ float a=noise(p)*.56;
+ a+=noise(p*2.1+vec2(11.2,3.7))*.29;
+ a+=noise(p*4.3-vec2(5.4,8.2))*.15;
+ return a;
+}
+void main(){
+ vec3 d=normalize(vDir);
+ float horizon=1.-abs(d.y);
+ vec3 base=mix(vec3(.001,.008,.012),vec3(.008,.045,.032),pow(horizon,2.8));
+ vec2 starUV=vec2(atan(d.z,d.x)*42.,asin(d.y)*70.);
+ vec2 cell=floor(starUV);
+ float star=step(.993,hash(cell))*pow(1.-length(fract(starUV)-.5)*2.,5.);
+ float aurora=pow(max(0.,sin(d.x*21.+d.z*12.+time*motion*.12)*.5+.5),5.)*pow(horizon,3.);
+ vec2 lines=vec2(atan(d.z,d.x)*75.,d.y*85.+time*motion*1.2);
+ float trace=step(.992,hash(floor(lines)))*smoothstep(.2,.5,fract(lines.y))*smoothstep(.06,.22,abs(d.y));
+ vec3 result=base+vec3(.012,.11,.065)*aurora+vec3(.15,.62,.38)*star+vec3(.012,.18,.095)*trace;
+ if(anime>.5){
+  float theta=dayPhase*6.283185;
+  float daylight=clamp(sin(theta-1.570796)*.5+.5,0.,1.);
+  float blueHour=pow(1.-daylight,2.);
+  float twilight=pow(1.-abs(daylight-.42)*2.,3.);
+  float h=clamp(d.y*.9+.14,0.,1.);
+  vec3 skyLow=mix(vec3(.15,.19,.37),vec3(.98,.76,.70),daylight);
+  vec3 skyHigh=mix(vec3(.045,.09,.23),vec3(.30,.57,.86),daylight);
+  skyLow=mix(skyLow,vec3(1.,.57,.57),twilight*.24);
+  vec3 painted=mix(skyLow,skyHigh,smoothstep(.03,.96,h));
+  // Three broad atmospheric cloud masses, not sharp repeating mathematical waves.
+  vec2 drift=vec2(time*.0014,time*.0005);
+  float cloudBase=cloudField(d.xz*5.5+d.y*vec2(2.,-3.)+drift);
+  float clouds=smoothstep(.49,.67,cloudBase)
+     *smoothstep(-.08,.22,d.y)*(1.-smoothstep(.76,.98,d.y));
+  float softCloud=smoothstep(.40,.58,cloudField(d.xz*3.0+vec2(22.,19.)+drift*.4))
+     *smoothstep(-.02,.12,d.y)*(1.-smoothstep(.65,.90,d.y))*.32;
+  vec3 sunDirection=normalize(vec3(cos(theta)*.8,.18+daylight*1.25,sin(theta)*.55+.2));
+  float sunAngle=max(dot(d,sunDirection),0.);
+  float halo=pow(sunAngle,58.);
+  float disc=smoothstep(.99935,.99983,sunAngle);
+  vec3 sunlight=mix(vec3(1.,.67,.58),vec3(1.,.97,.81),daylight);
+  vec3 cloudShadow=mix(vec3(.24,.30,.47),vec3(.68,.75,.85),daylight);
+  vec3 cloudWhite=mix(vec3(.47,.47,.67),vec3(1.,.97,.90),daylight);
+  float cloudLight=clamp(.5+.52*noise(d.xz*7.7+vec2(31.,4.))+halo*.15,0.,1.);
+  vec3 cloudInk=mix(cloudShadow,cloudWhite,cloudLight);
+  painted=mix(painted,cloudInk,clamp(clouds*.93+softCloud*.30,0.,.92));
+  // The horizon collects warm light without obscuring distant mountains.
+  float horizonGlow=pow(1.-max(0.,d.y),6.)*.14*daylight;
+  painted+=sunlight*horizonGlow;
+  painted+=sunlight*halo*.20*daylight;
+  painted=mix(painted,vec3(1.,.99,.91),disc*.92*daylight);
+  // Moon and stars return gently once the simulated city enters night.
+  vec3 moonDirection=normalize(vec3(-sunDirection.x,.6,-sunDirection.z));
+  float moon=smoothstep(.9994,.99988,max(0.,dot(d,moonDirection)));
+  painted+=vec3(.7,.80,.99)*(star*.55+moon*.75)*blueHour;
+  result=painted;
+ }
+ gl_FragColor=vec4(result,1.);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+}
  }));
  sky.frustumCulled=false;sky.renderOrder=-1000;sky.userData.noWireframe=true;
  scene.add(sky);
