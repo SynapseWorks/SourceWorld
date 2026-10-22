@@ -105,6 +105,7 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
  if(event.type==='REGION')announce(event.title,4);
 }});
 const tendingWorld=createTendingWorld(scene,{onChange(event){
+ ecosystem.setRestoredSites(tendingWorld.getRestored(),true);
  recordJournal(event);
  announce(event.title+' · THIS PLACE REMEMBERS YOU.',7);
  saveWorld();
@@ -176,6 +177,7 @@ if(continuity.saved){
  ecosystem.restore(continuity.snapshot);
  echoes.restore(continuity.snapshot.echoes||[]);
  tendingWorld.restore(continuity.snapshot.restoredSites||[]);
+ ecosystem.setRestoredSites(tendingWorld.getRestored());
  lastCallAt=Number.isFinite(continuity.snapshot.lastCallAt)?continuity.snapshot.lastCallAt:-1e9;
  lastResonanceAt=Number.isFinite(continuity.snapshot.lastResonanceAt)?continuity.snapshot.lastResonanceAt:-1e9;
  updateAbilityHUD();
