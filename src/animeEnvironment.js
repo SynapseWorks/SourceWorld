@@ -135,6 +135,34 @@ export function createAnimeEnvironment(scene){
   root.add(group);
  }
  bench(-20,-36,.4);bench(28,-66,-.3);bench(-25,-155,.3);bench(38,-190,-.4);
+ // Illustrated rain belongs to the view, while the weather simulation stays universal.
+ const rainGeometry=new THREE.BufferGeometry();
+ const rainPositions=[],rainSeeds=[];
+ for(let i=0;i<370;i++){
+  const x=(random()-.5)*72,z=(random()-.5)*72,seed=random();
+  const length=.55+random()*1.1;
+  rainPositions.push(x,0,z,x+.09,-length,z+.04);
+  rainSeeds.push(seed,seed);
+ }
+ rainGeometry.setAttribute('position',new THREE.Float32BufferAttribute(rainPositions,3));
+ rainGeometry.setAttribute('aSeed',new THREE.Float32BufferAttribute(rainSeeds,1));
+ const rainUniforms={uTime:{value:0},uStrength:{value:0}};
+ const rainMaterial=new THREE.ShaderMaterial({
+  uniforms:rainUniforms,transparent:true,depthWrite:false,fog:false,
+  vertexShader:`attribute float aSeed;uniform float uTime;
+   varying float vSoft;
+   void main(){
+    vec3 p=position;
+    p.y+=mod(aSeed*37.-uTime*(9.+aSeed*5.),37.)-1.;
+    vSoft=.55+aSeed*.45;
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+   }`,
+  fragmentShader:`precision mediump float;varying float vSoft;uniform float uStrength;
+   void main(){gl_FragColor=vec4(.78,.86,.94,uStrength*.27*vSoft);}`
+ });
+ const rain=new THREE.LineSegments(rainGeometry,rainMaterial);
+ rain.visible=false;rain.frustumCulled=false;rain.renderOrder=4;
+ rain.userData.noWireframe=true;root.add(rain);
  // Anime lighting is additive only in the anime mode. It is never applied to code materials.
  const daylight=new THREE.DirectionalLight('#ffe5c4',0);
  daylight.position.set(90,130,55);scene.add(daylight);
@@ -154,8 +182,15 @@ export function createAnimeEnvironment(scene){
   root.visible=enabled;
   if(!enabled){daylight.intensity=0;skylight.intensity=0;}
  }
- function update(time,phase,reducedMotion=false){
+ function update(time,phase,reducedMotion=false,weather='STABLE',camera){
   if(!root.visible)return;
+  const raining=!reducedMotion&&(weather==='CODE STORM'||weather==='DATA DRIZZLE');
+  rain.visible=raining;
+  if(raining){
+   if(camera)rain.position.set(camera.x,0,camera.z);
+   rainUniforms.uTime.value=time;
+   rainUniforms.uStrength.value=weather==='CODE STORM'?.86:.43;
+  }
   const day=Math.max(0,Math.sin((phase-.25)*Math.PI*2));
   daylight.intensity=.3+day*1.15;
   skylight.intensity=.28+day*.64;
