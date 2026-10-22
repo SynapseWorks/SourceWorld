@@ -82,7 +82,7 @@ const fragmentShader=`
   if(uAnime>.5){
    // Hand-painted color families derive from seed and location rather than glyph UVs.
    float theme=hash(vec2(floor(uSeed*.2),floor(vWorld.x*.015+vWorld.z*.009)));
-   float biome=smoothstep(-90.,-170.,vWorld.z);
+   float biome=1.-smoothstep(-170.,-90.,vWorld.z);
    float stone=step(.75,theme);
    float leaf=step(.35,theme)*(1.-stone);
    vec3 blush=vec3(.72,.67,.86);
