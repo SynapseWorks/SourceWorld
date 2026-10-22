@@ -78,3 +78,14 @@
 .settings{z-index:30!important;max-height:calc(100dvh - 95px);overflow-y:auto}
 @media(max-width:760px){.pause-btn{top:142px;right:18px;font-size:10px}.wayfinder{top:205px}.pause-panel{padding:25px}.pause-tip{line-height:1.8}}
 @media(max-width:430px){.pause-btn{right:12px;top:132px;padding:9px}.wayfinder{top:203px}.pause-btn span{font-size:9px}}
+
+/* v0.8 observation journal — intentionally secondary to exploration */
+.journal-toggle{position:absolute;z-index:7;right:38px;top:190px;background:#041c14df;border:1px solid #539c72a1;color:#b6ffd6;padding:12px 14px;border-radius:3px;font:10px 'DM Mono',monospace;letter-spacing:.1em;min-height:40px}
+.journal-toggle span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#144e34;margin-left:8px}
+.journal-panel{position:absolute;z-index:22;right:25px;top:78px;width:min(360px,calc(100vw - 42px));max-height:calc(100dvh - 105px);overflow:auto;padding:24px;background:#041811f2;border:1px solid #6adca06d;box-shadow:0 18px 70px #000b;backdrop-filter:blur(15px)}
+.journal-panel.hidden{display:none}.journal-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;color:#a3ffd0;font:11px 'DM Mono',monospace;letter-spacing:.1em}.journal-heading button{border:0;background:none;color:#b4ffdb;font-size:25px;min-width:34px;min-height:34px}
+.journal-intro{font-size:12px;line-height:1.6;color:#94b7a2;margin:18px 0;border-bottom:1px solid #3877566b;padding-bottom:17px}
+#journal-list{list-style:none;margin:0;padding:0;display:grid;gap:15px}#journal-list li{display:grid;gap:7px;border-left:2px solid #5bc88a5f;padding:5px 0 5px 13px}
+#journal-list small{color:#76c99a;letter-spacing:.13em;font:9px 'DM Mono',monospace}#journal-list strong{font:600 14px 'Space Grotesk',sans-serif;color:#d0ffe2}#journal-list p{margin:0;color:#9cbeaa;line-height:1.55;font:11px 'DM Mono',monospace}
+@media(max-width:760px){.journal-toggle{top:189px;right:18px}.wayfinder{top:252px}.journal-panel{right:12px;top:72px}}
+@media(max-width:430px){.journal-toggle{top:185px;right:12px;padding:8px;font-size:9px}.wayfinder{top:246px}}
