@@ -181,3 +181,60 @@
 /* Keep the WebGL canvas eligible for pointer lock while rendering behind the void. */
 #app.world-locked > #viewport{visibility:visible!important;opacity:0!important;pointer-events:none}
 #app:not(.world-locked) > #viewport{opacity:1}
+
+/* v1.5 Anime Reality 2.0 — painterly cinematic UI grading. No costly fullscreen blur pass. */
+#app.anime-reality #vignette{
+ background:radial-gradient(ellipse at 50% 42%,rgba(255,239,220,.03) 0%,
+   rgba(85,109,135,.06) 57%,rgba(31,54,78,.23) 100%);
+ opacity:.91;
+}
+#app.anime-reality .topbar{
+ background:linear-gradient(180deg,rgba(31,47,68,.85),rgba(31,47,68,.15));
+ color:#fff9f0;
+}
+#app.anime-reality .brand{color:#fff7ed}
+#app.anime-reality .brand-accent,#app.anime-reality .brandmark{color:#ffe7b5}
+#app.anime-reality .topmeta{color:#d5e2ee}
+#app.anime-reality .topmeta .dot{background:#ffe2ad;box-shadow:0 0 10px #ffcc93}
+#app.anime-reality .bottomleft{color:#f9f3e9;text-shadow:0 1px 7px #28445dbb}
+#app.anime-reality .location{color:#fff8ec}
+#app.anime-reality .eyebrow,#app.anime-reality .signal{color:#ffdfac}
+#app.anime-reality .hint,#app.anime-reality .bottomright{color:#f0ecdf}
+#app.anime-reality .crosshair{opacity:.36}
+#app.anime-reality .crosshair::before,#app.anime-reality .crosshair::after{background:#fff6e9}
+#app.anime-reality .wayfinder{
+ background:rgba(42,62,83,.82);border-color:#d7bdd9;color:#fff7ea;
+ box-shadow:0 12px 35px rgba(18,38,53,.19)
+}
+#app.anime-reality .echo-hud{
+ background:linear-gradient(90deg,rgba(60,81,101,.91),rgba(86,98,118,.65));
+ border-left-color:#ffdbab;
+}
+#app.anime-reality .echo-hud span,#app.anime-reality .echo-hud small{color:#e4edec}
+#app.anime-reality .echo-hud strong{color:#fff8de}
+#app.anime-reality .tend-compass{
+ background:rgba(246,233,227,.88);border-left-color:#cd88a5;color:#3f5261;
+}
+#app.anime-reality .tend-compass span{color:#6b6372}
+#app.anime-reality .ecosystem-readout,#app.anime-reality .continuity-readout{
+ background:rgba(239,231,224,.85);border-color:#d49dac;color:#485d6a;
+}
+#app.anime-reality .ecosystem-readout strong,#app.anime-reality .continuity-readout span{color:#2d4c5b}
+#app.anime-reality .explorer-tools #tools-toggle{
+ background:rgba(246,228,227,.94);border-color:#d8a3b2;color:#40384e;
+}
+#app.anime-reality .explorer-tools .tools-content{
+ background:rgba(245,233,230,.96);border-color:#d0acb6;
+}
+#app.anime-reality .explorer-tools .tools-content button:not(:disabled){
+ background:rgba(235,219,232,.8);color:#4b3d58;border-color:#bd9cac;
+}
+#app.anime-reality .explorer-tools .tools-content button:disabled{
+ background:rgba(225,221,225,.45);color:#807486;border-color:#c6b9c5;
+}
+#app.anime-reality .explorer-tools .tools-content .reality-btn.selected{
+ background:#e9bed4;color:#423146;border-color:#af7299;
+}
+@media(prefers-reduced-motion:reduce){
+ #app.anime-reality #vignette{transition:none}
+}
