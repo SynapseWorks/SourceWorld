@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {matrixMaterial} from './matrixMaterial.js';
+import {SITES as RESTORATION_SITES} from './tendingWorld.js';
 
 // A deterministic, bounded simulation. It updates ecology on a fixed timestep,
 // while animation interpolates smoothly between ecological state changes.
@@ -16,6 +17,8 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  const plants=[],residents=[],wildlife=[],memories=[];
  const influences=[];
  const gatherings=[];
+ const restoredSites=new Set();
+ const neighborhoodVisitors=[];
  const regionPlants=new Map(regions.map(r=>[r.id,[]]));
  const leafMaterial=matrixMaterial(12,16,1.1,356);
  const flowerMaterial=matrixMaterial(14,19,2,458);
@@ -101,7 +104,13 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   const head=new THREE.Mesh(headGeom,residentMaterial);head.position.y=1.95;person.add(head);
   const arms=new THREE.Mesh(new THREE.BoxGeometry(.65,.12,.13),residentMaterial);arms.position.y=1.44;person.add(arms);
   world.add(person);
-  residents.push({person,curve,pace:.008+random()*.008,offset:random(),role:i%5,halt:0,noticed:false});
+  const names=['Mira','Kori','Sol','Nella','Tavi','Rune','Ivo','Elian','Orin','Faye','Pip','Cedar','Jun','Lyra','Moss','Lumi','Wren','Arlo','Ari','Nova','Iris','Ember','Rin','Vela','Finn','Sora'];
+  const roles=['ARCHIVIST','COURIER','GARDENER','OBSERVER','WAYFINDER'];
+  const badge=new THREE.Mesh(new THREE.IcosahedronGeometry(.105,0),
+    new THREE.MeshBasicMaterial({color:[0xa9ffd1,0x99c7ff,0xffdea3,0xd8a9ff,0xffa9b9][i%5]}));
+  badge.position.set(.19,1.43,.17);person.add(badge);
+  residents.push({person,curve,pace:.008+random()*.008,offset:random(),role:i%5,
+   name:names[i],profession:roles[i%5],halt:0,noticed:false,lastGreetDay:0});
  }
  // Creature groups forage, gather and disperse; density and motion depend on weather.
  const creatureGeo=new THREE.OctahedronGeometry(.48,0);
@@ -121,6 +130,46 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  }
  const gathering=[{x:-8,z:-29,r:7},{x:8,z:-58,r:8},{x:0,z:-83,r:7}];
  const traceMaterial=new THREE.MeshBasicMaterial({color:0x98ffc4,transparent:true,opacity:.46,depthWrite:false,side:THREE.DoubleSide});
+ // Caretakers only appear at places the player has genuinely restored.
+ // Residents are deliberately simple geometric proxies, not detailed character assets.
+ const visitorNames=['Moss','Lumi','Cedar','Iris','Jun','Sora'];
+ for(const [index,site] of RESTORATION_SITES.entries()){
+  for(let i=0;i<2;i++){
+   const person=new THREE.Group();
+   const torso=new THREE.Mesh(humanBody,residentMaterial);torso.position.y=1.16;person.add(torso);
+   const head=new THREE.Mesh(humanHead,residentMaterial);head.position.y=1.94;person.add(head);
+   const pack=new THREE.Mesh(new THREE.BoxGeometry(.34,.53,.27),
+    new THREE.MeshBasicMaterial({color:0x396b58}));
+   pack.position.set(0,1.23,-.3);person.add(pack);
+   const lantern=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,0),
+    new THREE.MeshBasicMaterial({color:0xffdfb5}));
+   lantern.position.set(i===0?-.41:.41,1.02,.18);person.add(lantern);
+   person.visible=false;world.add(person);
+   neighborhoodVisitors.push({person,site,index:index*2+i,name:visitorNames[index*2+i],
+    noticedDay:-1});
+  }
+ }
+ function setRestoredSites(ids=[],applyEffect=false){
+  for(const id of ids){
+   const site=RESTORATION_SITES.find(item=>item.id===id);
+   if(!site||restoredSites.has(id))continue;
+   restoredSites.add(id);
+   if(applyEffect){
+    const biome=state.filter(s=>s.kind!=='city').sort((a,b)=>
+     Math.hypot(site.x-a.x,site.z-a.z)-Math.hypot(site.x-b.x,site.z-b.z))[0];
+    if(biome){
+     biome.growth=Math.min(1,biome.growth+.08);
+     biome.humidity=Math.min(1,biome.humidity+.06);
+     for(const plant of regionPlants.get(biome.id)||[]){
+      if(Math.hypot(site.x-plant.group.position.x,site.z-plant.group.position.z)<23)
+       plant.nectar=Math.min(1,plant.nectar+.24);
+     }
+    }
+    notice('COMMUNITY','A PLACE OPENS AGAIN','LOCAL INHABITANTS WILL BEGIN VISITING '+site.name+'.');
+   }
+  }
+ }
+
  const state=regions.map(r=>({...r,humidity:r.moisture,growth:.3,fauna:0,activity:.5}));
  let accumulation=0,simTime=0,lastCycle=-1,lastWeather='STABLE',lastPlayerRegion='';
  let epoch=0;
@@ -180,8 +229,10 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    c.angle+=elapsed*c.speed*.35;
   });
   lastCycle=Math.floor(simTime/125);
-  return state.filter((s,i)=>Math.abs(s.growth-before[i].growth)>.015||Math.abs(s.humidity-before[i].humidity)>.05)
-   .map(s=>s.name+' has continued to change').slice(0,4);
+  const changes=state.filter((s,i)=>Math.abs(s.growth-before[i].growth)>.015||Math.abs(s.humidity-before[i].humidity)>.05)
+   .map(s=>s.name+' has continued to change').slice(0,3);
+  if(elapsed>DAY&&restoredSites.size)changes.push('Neighbours continued visiting restored places.');
+  return changes;
  }
  function createTrace(x,z,time){
   const group=new THREE.Group();group.position.set(x,.08,z);world.add(group);
@@ -277,8 +328,31 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const proximity=Math.hypot(pos.x-player.x,pos.z-player.z);
    if(proximity<30)cityNearby++;
    p.person.visible=proximity<82&&(daylight>.15||p.role%4===0);
-   if(proximity<4&&!p.noticed){p.noticed=true;notice('ENCOUNTER','A PASSING SIGNAL','AN INHABITANT ACKNOWLEDGED YOUR PRESENCE, THEN CONTINUED ON THEIR WAY.');}
-   if(proximity>9)p.noticed=false;
+   const day=currentDay();
+   if(proximity<4&&p.lastGreetDay!==day){
+    p.lastGreetDay=day;
+    notice('CITIZEN',p.name+' · '+p.profession,
+      p.name+' ACKNOWLEDGED YOU BEFORE CONTINUING A FAMILIAR DAILY ROUTINE.');
+   }
+  }
+  // A restored public space develops a small, recurring community of visitors.
+  // They come and go according to the day cycle even when the player is elsewhere.
+  for(const visitor of neighborhoodVisitors){
+   const {site,person}=visitor;
+   const visiting=restoredSites.has(site.id)&&daylight>.18;
+   const distance=Math.hypot(player.x-site.x,player.z-site.z);
+   person.visible=visiting&&distance<105;
+   if(!visiting)continue;
+   const phase=simTime*.13+visitor.index*2.399;
+   const walkRadius=3.5+(visitor.index%2)*1.4;
+   person.position.set(site.x+Math.cos(phase)*walkRadius,0,site.z+Math.sin(phase)*walkRadius);
+   person.rotation.y=Math.atan2(site.x-person.position.x,site.z-person.position.z);
+   const near=Math.hypot(player.x-person.position.x,player.z-person.position.z);
+   if(near<5&&visitor.noticedDay!==currentDay()){
+    visitor.noticedDay=currentDay();
+    notice('NEIGHBOURHOOD',visitor.name+' RETURNS',
+      visitor.name+' IS CHECKING ON '+site.name+'. A FORMERLY EMPTY PLACE NOW HAS VISITORS.');
+   }
   }
   // Wildlife forages on nearby plants. Eating visibly dims flowers, while moisture
   // replenishes their nectar over time; nearby grazers may cluster at rich patches.
@@ -327,5 +401,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   lastWeather=weather;
   return {region,summary:publicState()};
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites};
 }
