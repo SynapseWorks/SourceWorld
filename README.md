@@ -1,4 +1,4 @@
-# SourceWorld v1.4 — The Awakening / Living Neighbourhoods
+# SourceWorld v1.5 — Anime Reality 2.0
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -33,7 +33,7 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **Q** — use Resonance Bloom once unlocked (also available as a button)
 - **F** — Signal Call, attracts wildlife (unlock at six hidden Echoes)
 - **G** — World Rewrite, restores neglected structures (unlock at eight hidden Echoes)
-- **R** — toggle Anime Reality, a cel-shaded alternate rendering of the same world
+- **R** — toggle Anime Reality 2.0, with painterly sky, semantic materials, wetland reflections, anime-dressed inhabitants and cinematic day/night lighting
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
@@ -200,6 +200,22 @@ The two-step gate also occurs on every subsequent page load. The animation respe
 **Verification**
 
 - GitHub Actions builds the production bundle and runs Playwright desktop/mobile tests covering the black waiting phase, second gesture, reveal, interface access, view switching, and full local-state reset. Live GPU rendering and detailed browser visuals require follow-up visual QA.
+
+## Anime Reality 2.0 (v1.5)
+
+The alternate visual mode now uses **material-aware rendering instead of a generic pastel filter**. The simulation state, map, movement, discoveries and collisions are shared with Code Reality and Wireframe.
+
+- **Material families**: ground, path, foliage, bark, stone, architecture, crystal, metal, flower and skin have distinct anime palettes. Regional wetland, forest, wilds and plateau tints create coherent transitions. Four softened tone steps, warm sunlight, cooler shadows, gentle pigment noise and selective colored silhouette inks improve object readability.
+- **Sun and sky**: a procedural sky shader now includes layered, drifting painted clouds, a sun halo, warm horizon light, moon and stars at night. Sun direction and brightness follow the existing 12-minute simulation day rather than a separate clock.
+- **Environmental richness**: the `animeEnvironment.js` scene adds instanced grass and foliage, flower accents, pebbles and a handful of benches at the same world coordinates. Instancing keeps draw calls low. The graphics-quality setting reduces their counts on constrained devices.
+- **Wetlands**: four anime-only reflective ponds blend into the marsh and Memory Pool areas; shader reflections and ripples respond to day/night and reduced motion. These are decorative surfaces and do not change gameplay collisions or currently provide swimming.
+- **People**: city inhabitants and returning caretakers swap their original code proxies for simple, illustrated models with clothing, hair, hands, eyes, shoes, bags and basic walking cycles. They remain placeholders for final character assets. Mobile quality reduces their visibility distance to preserve performance.
+- **Cinematic finish**: ambient/directional lighting powers the illustrated props, while the code shader uses matched simulated sunlight directly. The Anime Reality UI receives warmer, higher-contrast legible overlays and a restrained non-blurred vignette.
+- **View switching**: pressing **R** enters/exits Anime Reality without resetting progress or position; **V** still switches to wireframe and automatically exits anime view. No images, textures, downloads or server costs were added.
+
+### Rendering and QA limits
+
+The anime look is still built on stylized geometry and procedural materials, not realistic imported character/architecture art. True screen-space outline detection, HDR bloom and full shadow maps are intentionally not enabled; they would raise mobile WebGL costs. Runtime GPU compatibility and final in-game art direction should be checked with real browser screenshots and device testing.
 
 ## Future ideas
 
