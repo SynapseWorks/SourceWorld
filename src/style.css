@@ -162,7 +162,7 @@
 
 /* v1.4 — The Awakening: a genuinely empty void until the second interaction. */
 #app.world-locked{background:#000!important}
-#app.world-locked > :not(#intro):not(#awakening-stage){visibility:hidden!important}
+#app.world-locked > :where(:not(#intro):not(#awakening-stage)){visibility:hidden!important}
 #app #intro{background:#000!important;z-index:40;transition:opacity .12s linear,visibility .12s linear}
 #app #intro .scanlines{display:none}
 #app #intro .intro-content{isolation:isolate}
