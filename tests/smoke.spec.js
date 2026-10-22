@@ -42,3 +42,12 @@ test('mobile pause menu keeps world settings reachable without pointer lock',asy
  await page.getByRole('button',{name:/RESUME EXPLORING/}).click();
  await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeHidden();
 });
+
+test('field notes can be opened without entering pointer lock',async({page})=>{
+ await page.goto('/');
+ await page.locator('#journal-toggle').click();
+ await expect(page.locator('#journal-panel')).toBeVisible();
+ await expect(page.locator('#journal-list')).toContainText('Nothing recorded yet');
+ await page.locator('#journal-close').click();
+ await expect(page.locator('#journal-panel')).toBeHidden();
+});
