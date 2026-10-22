@@ -52,10 +52,13 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - `src/weather.js` — shader-animated code drizzle, storms, and fault lines
 - `src/artDirection.js` — transition arches, levitating shards, and landmark crowns
 - `src/sky.js` — dynamic camera-centered digital sky dome
-- `src/matrixMaterial.js` — procedural tiled digital rain texture material
+- `src/matrixMaterial.js` — UV-independent code volumes and shared anime surface-family shader
+- `src/animeEnvironment.js` — illustrated biome scatter, puddle shaders, lighting and weather visuals
+- `src/animeArchitecture.js` — illustrated city windows, doorways and awnings
+- `src/animeCitizens.js` — swappable character stand-ins with anime walking motion
 - `src/style.css` — UI styling, accessibility, responsive controls
 
-The material uses a shared atlas of tiny neon glyphs and shader UV animation per surface, with randomized column speeds and highlights. Environmental props all reuse one underlying code-driven surface language.
+In Code Reality, geometry samples scrolling neon glyphs in **world space**, not per-mesh UV seams. Anime Reality uses a shared sun-responsive painterly shading system with semantic material types so the same geometry looks like stone, foliage, pathways, or constructed architecture.
 
 ## Living Code mission (v0.2)
 
@@ -207,11 +210,11 @@ The alternate visual mode now uses **material-aware rendering instead of a gener
 
 - **Material families**: ground, path, foliage, bark, stone, architecture, crystal, metal, flower and skin have distinct anime palettes. Regional wetland, forest, wilds and plateau tints create coherent transitions. Four softened tone steps, warm sunlight, cooler shadows, gentle pigment noise and selective colored silhouette inks improve object readability.
 - **Sun and sky**: a procedural sky shader now includes layered, drifting painted clouds, a sun halo, warm horizon light, moon and stars at night. Sun direction and brightness follow the existing 12-minute simulation day rather than a separate clock.
-- **Environmental richness**: the `animeEnvironment.js` scene adds instanced grass and foliage, flower accents, pebbles and a handful of benches at the same world coordinates. Instancing keeps draw calls low. The graphics-quality setting reduces their counts on constrained devices.
+- **Environmental richness**: `animeEnvironment.js` adds instanced grass, flowers, pebbles, illustrated rain, small ponds and benches at the same world coordinates. `forest.js` adds rounded illustrated canopy clusters and soft contact shadows only while anime view is active. The graphics-quality setting reduces instanced scenery counts on constrained devices.
 - **Wetlands**: four anime-only reflective ponds blend into the marsh and Memory Pool areas; shader reflections and ripples respond to day/night and reduced motion. These are decorative surfaces and do not change gameplay collisions or currently provide swimming.
-- **People**: city inhabitants and returning caretakers swap their original code proxies for simple, illustrated models with clothing, hair, hands, eyes, shoes, bags and basic walking cycles. They remain placeholders for final character assets. Mobile quality reduces their visibility distance to preserve performance.
+- **People**: `animeCitizens.js` makes city inhabitants and caretakers appear as illustrated placeholder characters with clothing, hair, hands, eyes, shoes, bags and walking cycles. `animeArchitecture.js` overlays windows, awnings, doorways and warm evening glass onto the existing city buildings. Mobile quality reduces citizen visibility distance.
 - **Cinematic finish**: ambient/directional lighting powers the illustrated props, while the code shader uses matched simulated sunlight directly. The Anime Reality UI receives warmer, higher-contrast legible overlays and a restrained non-blurred vignette.
-- **View switching**: pressing **R** enters/exits Anime Reality without resetting progress or position; **V** still switches to wireframe and automatically exits anime view. No images, textures, downloads or server costs were added.
+- **View switching**: pressing **R** enters/exits Anime Reality without resetting progress or position; **V** still switches to wireframe and automatically exits anime view. Anime rain replaces falling-code particles without changing the weather driving vegetation and regional humidity. Reduced-motion preferences disable the visual precipitation, not the underlying climate. No images, textures, downloads or server costs were added.
 
 ### Rendering and QA limits
 
