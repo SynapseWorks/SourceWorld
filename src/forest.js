@@ -10,10 +10,10 @@ export function createForest(scene){
   const animated=[];
   const obstacles=[];
   const jade=new THREE.Color('#4affaa');
-  const rootMaterial=matrixMaterial(10,28,1.05,74);
-  const foliageMaterial=matrixMaterial(21,16,.74,245);
-  const branchMaterial=matrixMaterial(11,15,.65,481);
-  const stoneMaterial=matrixMaterial(15,10,.85,22);
+  const rootMaterial=matrixMaterial(10,28,1.05,74,'bark');
+  const foliageMaterial=matrixMaterial(21,16,.74,245,'foliage');
+  const branchMaterial=matrixMaterial(11,15,.65,481,'bark');
+  const stoneMaterial=matrixMaterial(15,10,.85,22,'stone');
   const barkGeometry=new THREE.CylinderGeometry(.32,.56,1,7,1);
   const limbGeometry=new THREE.CylinderGeometry(.12,.2,1,5,1);
   const foliageGeometry=new THREE.ConeGeometry(1,1,7,1);
@@ -21,10 +21,10 @@ export function createForest(scene){
   const angledCanopy=new THREE.ConeGeometry(1,1,5,1);
   const rockGeometry=new THREE.DodecahedronGeometry(1,0);
   const hexGeometry=new THREE.CylinderGeometry(1,1,1,6);
-  const floor=new THREE.Mesh(new THREE.BoxGeometry(100,1,160),matrixMaterial(80,120,.38,7));
+  const floor=new THREE.Mesh(new THREE.BoxGeometry(100,1,160),matrixMaterial(80,120,.38,7,'ground'));
   floor.position.set(0,-.55,-181);scene.add(floor);
   // A continuous glowing walkway extends behind the Source Node.
-  const path=new THREE.Mesh(new THREE.BoxGeometry(7,.055,156),matrixMaterial(12,150,1.25,32));
+  const path=new THREE.Mesh(new THREE.BoxGeometry(7,.055,156),matrixMaterial(12,150,1.25,32,'trail'));
   path.position.set(0,.012,-181);scene.add(path);
   // Horizontal seams and roots help the player read the terrain's shape.
   for(let i=0;i<25;i++){
@@ -108,7 +108,7 @@ export function createForest(scene){
     const x=side*(4.5+rand()*2.5);
     const g=new THREE.Group();g.position.set(x,0,z);
     const stem=new THREE.Mesh(lanternStem,rootMaterial);stem.position.y=.39;g.add(stem);
-    const cap=new THREE.Mesh(lanternCap,matrixMaterial(11,7,1.9,i*7));cap.position.y=.91;g.add(cap);
+    const cap=new THREE.Mesh(lanternCap,matrixMaterial(11,7,1.9,i*7,'flower'));cap.position.y=.91;g.add(cap);
     const glow=new THREE.Sprite(new THREE.SpriteMaterial({color:'#61ffbc',transparent:true,opacity:.27,depthWrite:false}));
     glow.position.y=.84;glow.scale.set(1.35,1.35,1);g.add(glow);
     scene.add(g);lanterns.push({glow,phase:i*.83});
@@ -133,7 +133,7 @@ export function createForest(scene){
   }
   const pedestal=new THREE.Mesh(hexGeometry,stoneMaterial);pedestal.scale.set(2.5,.55,2.5);
   pedestal.position.set(0,.3,8);heart.add(pedestal);
-  const seed=new THREE.Mesh(new THREE.IcosahedronGeometry(.95,1),matrixMaterial(22,22,2.9,327));
+  const seed=new THREE.Mesh(new THREE.IcosahedronGeometry(.95,1),matrixMaterial(22,22,2.9,327,'crystal'));
   seed.position.set(0,2.3,8);heart.add(seed);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(1.9,.045,7,48),new THREE.MeshBasicMaterial({color:jade,transparent:true,opacity:.85}));
   ring.position.set(0,2.3,8);ring.rotation.x=Math.PI/2;heart.add(ring);
@@ -152,7 +152,7 @@ export function createForest(scene){
     },
     activate(){
       interact.completed=true;
-      seed.material=matrixMaterial(28,28,4.4,481);
+      seed.material=matrixMaterial(28,28,4.4,481,'crystal');
       heartLight.intensity=26;heartLight.color.set('#c6fff0');
       ring.material.color.set('#d1ffef');
     }
