@@ -2,11 +2,11 @@ import * as THREE from 'three';
 
 // Camera-centered sky dome: infinite-feeling data atmosphere, no visible wall or ceiling.
 export function createDataSky(scene){
- const uniforms={time:{value:0},motion:{value:1},anime:{value:0}};
+ const uniforms={time:{value:0},motion:{value:1},anime:{value:0},dayPhase:{value:.5}};
  const sky=new THREE.Mesh(new THREE.SphereGeometry(170,48,32),new THREE.ShaderMaterial({
   uniforms,side:THREE.BackSide,depthWrite:false,fog:false,
   vertexShader:`varying vec3 vDir; void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:`precision highp float;uniform float time;uniform float motion;uniform float anime;varying vec3 vDir;
+  fragmentShader:`precision highp float;uniform float time;uniform float motion;uniform float anime;uniform float dayPhase;varying vec3 vDir;
   float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   void main(){
    vec3 d=normalize(vDir);
@@ -27,6 +27,10 @@ export function createDataSky(scene){
     float cloud=sin(d.x*15.+d.z*11.+time*.018)*sin(d.x*9.-d.z*17.)*.5+.5;
     cloud=smoothstep(.67,.81,cloud)*pow(1.-abs(d.y-.21),2.);
     result=mix(pastel,vec3(.99,.94,.88),cloud*.85);
+    float daylight=clamp(sin(dayPhase*6.283185-1.570796)*.5+.5,0.,1.);
+    vec3 evening=mix(vec3(.09,.13,.28),vec3(.35,.27,.53),celestial);
+    result=mix(evening,result,daylight*.92+.08);
+    result+=vec3(.55,.63,.94)*star*(1.-daylight)*.4;
    }
    gl_FragColor=vec4(result,1.);
    #include <tonemapping_fragment>
@@ -52,5 +56,5 @@ export function createDataSky(scene){
   shape.position.set(Math.sin(i*2.399)*90,25+(i%7)*9,Math.cos(i*2.399)*90);
   shape.rotation.z=(i%7-3)*.11;shape.userData.noWireframe=true;beams.add(shape);
  }
- return {setAnime(enabled){uniforms.anime.value=enabled?1:0;structures.visible=!enabled;},update(camera,time,speed){sky.position.copy(camera.position);uniforms.time.value=time;uniforms.motion.value=speed;structures.rotation.y=time*speed*.003;}};
+ return {setAnime(enabled){uniforms.anime.value=enabled?1:0;structures.visible=!enabled;},setDayPhase(value){uniforms.dayPhase.value=value;},update(camera,time,speed){sky.position.copy(camera.position);uniforms.time.value=time;uniforms.motion.value=speed;structures.rotation.y=time*speed*.003;}};
 }
