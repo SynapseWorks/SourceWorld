@@ -28,6 +28,30 @@ app.innerHTML=`
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
+// All optional tools live in one collapsible dock, leaving the scene in view.
+const toolDock=document.createElement('nav');
+toolDock.className='explorer-tools';
+toolDock.setAttribute('aria-label','Exploration and viewing tools');
+const toolToggle=document.createElement('button');
+toolToggle.id='tools-toggle';toolToggle.type='button';
+toolToggle.setAttribute('aria-expanded','false');
+toolToggle.setAttribute('aria-controls','tools-content');
+toolToggle.textContent='☷ EXPLORER TOOLS';
+const toolContent=document.createElement('div');
+toolContent.id='tools-content';toolContent.className='tools-content hidden';
+for(const id of ['pause-btn','vision','reality-btn','atlas-toggle','journal-toggle','resonance-btn']){
+ const item=document.getElementById(id);
+ if(item)toolContent.append(item);
+}
+const tendingActions=document.querySelector('.tend-actions');
+if(tendingActions)toolContent.append(tendingActions);
+toolDock.append(toolToggle,toolContent);app.append(toolDock);
+toolToggle.addEventListener('click',()=>{
+ const open=toolContent.classList.contains('hidden');
+ toolContent.classList.toggle('hidden',!open);
+ toolToggle.setAttribute('aria-expanded',String(open));
+ if(open)toolContent.querySelector('button')?.focus();
+});
 const scene=new THREE.Scene();scene.background=new THREE.Color('#010807');scene.fog=new THREE.FogExp2('#010807',.012);
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.08,210); camera.position.set(0,1.72,7.8);
 const renderer=new THREE.WebGLRenderer({antialias:!matchMedia('(pointer:coarse)').matches,powerPreference:'high-performance'});
@@ -542,6 +566,7 @@ function tick(){
  document.querySelector('#tend-nearby').textContent=tendingNearby?'NEARBY: '+tendingNearby.name:ecoGuideText(ecosystemState.region);
  document.querySelector('#world-day').textContent='DAY '+ecosystem.getDay();
  const phase=ecosystem.getPhase();
+ sky.setDayPhase(phase);
  document.querySelector('#world-phase').textContent=phase<.2?'NIGHT':phase<.36?'DAWN':phase<.68?'DAYLIGHT':phase<.84?'DUSK':'NIGHT';
  document.querySelector('#eco-region').textContent=ecosystemState.region||'SIMULATION STABLE';
  const eco=ecosystemState.summary.find(b=>b.name===ecosystemState.region);
