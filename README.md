@@ -1,4 +1,4 @@
-# SourceWorld v1.2 — The World Responds
+# SourceWorld v1.3 — Explore & Tend / Anime Reality
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -31,6 +31,9 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **J** — open/close Field Notes, showing encounters from the current session
 - **M** — open/close the Source Atlas, choose a navigation target
 - **Q** — use Resonance Bloom once unlocked (also available as a button)
+- **F** — Signal Call, attracts wildlife (unlock at six hidden Echoes)
+- **G** — World Rewrite, restores neglected structures (unlock at eight hidden Echoes)
+- **R** — toggle Anime Reality, a cel-shaded alternate rendering of the same world
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
@@ -156,6 +159,14 @@ This is the first ecosystem prototype, not a full agent-based society. Residents
 - Resonance has a 90-second in-world cooldown. Collected Echo IDs and intervention traces are saved locally alongside the ecosystem, so returning retains changes you've made.
 - The city now has changing street-light brightness and temporary gatherings at authored plaza sites as simulation time advances. NPCs are still placeholder assets and scripted walkers, ready to be replaced with more detailed characters later.
 - The main narrative remains achievable without collecting optional Echoes.
+
+## Explore & Tend / Anime Reality (v1.3)
+
+- **Signal Call** unlocks at six collected Echoes, attracts wildlife for 38 simulated seconds and recharges after 60 seconds. The player's presence now creates observable gatherings rather than just startling creatures.
+- **World Rewrite** unlocks at eight collected Echoes. Restore the Quiet Garden, Fractured Crossing and Wilds Beacon using G or the existing E interaction when nearby; restoration persists in browser continuity saves.
+- Prompts highlight nearby sites and encourage observing city routines, the wetland, forest and wild signals without adding compulsory missions.
+- **Anime Reality** toggles with R or the visible control: a cel-shaded hand-painted material palette replaces matrix glyphs in shared code-surface shaders, with stylized edge bands, a pastel procedural sky and a softer atmosphere. Wireframe and Anime Reality are mutually exclusive, and toggling does not move the player or reset progress.
+- The sky and code shader stay GPU-driven; character assets remain placeholders for a future visual asset pass.
 
 ## Future ideas
 
