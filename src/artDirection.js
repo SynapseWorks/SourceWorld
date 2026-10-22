@@ -5,7 +5,7 @@ import {matrixMaterial} from './matrixMaterial.js';
 export function createArtDirection(scene){
  const cyan=new THREE.MeshBasicMaterial({color:0x8affd2,transparent:true,opacity:.72,depthWrite:false});
  const pale=new THREE.MeshBasicMaterial({color:0x24ad8c,transparent:true,opacity:.38,depthWrite:false});
- const code=matrixMaterial(25,25,1.2,229);
+ const code=matrixMaterial(25,25,1.2,229,'crystal');
  const animated=[];
  function line(points,material=cyan){
   const geo=new THREE.BufferGeometry().setFromPoints(points.map(([x,y,z])=>new THREE.Vector3(x,y,z)));
