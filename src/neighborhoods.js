@@ -185,7 +185,7 @@ export function createNeighborhoods(scene,{onEvent=()=>{},onDistrict=()=>{},onTe
   {x:9,z:-99,color:'#abcab6',goods:'TEA'},
   {x:-8,z:-109,color:'#bdbad5',goods:'MAPS'}];
  for(const stall of stalls){
-  const stand=new THREE.Group();stand.position.set(stall.x,0,stall.z);root.add(stand);
+  const stand=new THREE.Group();stand.position.set(stall.x,0,stall.z);city.add(stand);
   box(stand,0,.95,0,2.5,.17,1.6,wood);
   for(const side of [-1,1])cylinder(stand,side*1.08,1.65,0,.08,.08,3.3,codeMaterial);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(1.65,1.1,4),luminous);
@@ -199,6 +199,12 @@ export function createNeighborhoods(scene,{onEvent=()=>{},onDistrict=()=>{},onTe
   const canopy=box(illustrated,0,3.2,0,3.1,.2,2.2,new THREE.MeshToonMaterial({color:stall.color}));
   for(const side of [-1,1])box(illustrated,side*1.15,1.7,0,.09,3.2,.09,animeWood);
   box(illustrated,0,.92,0,2.3,.2,1.3,animeWood);
+  for(let i=0;i<7;i++){
+   const color=stall.goods==='SEEDS'?'#9dbd7f':stall.goods==='TEA'?'#c8a27e':'#d5c2ac';
+   const pack=box(illustrated,(i%3-1)*.57,1.16,Math.floor(i/3)*.38-.34,
+    .35,.28,.27,new THREE.MeshToonMaterial({color}));
+   pack.rotation.y=(i%3-1)*.12;
+  }
  }
  // Memory Pool has a shaded pergola, while the orchard has a small place to sit.
  const pergola=new THREE.Group();pergola.position.set(43,0,-188);root.add(pergola);
@@ -252,7 +258,7 @@ export function createNeighborhoods(scene,{onEvent=()=>{},onDistrict=()=>{},onTe
    shoot.scale.set(.17,.6+(i%3)*.22,.2);
    shoot.position.set(Math.cos(a)*r,.5,Math.sin(a)*r);growth.add(shoot);
   }
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.45,.035,4,56),neutral);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.45,.035,4,56),neutral.clone());
   ring.rotation.x=Math.PI/2;ring.position.y=.16;group.add(ring);
   careObjects.set(spot.id,{group,bud,growth,ring});
  }
