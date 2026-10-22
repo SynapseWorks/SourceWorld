@@ -278,3 +278,39 @@
 @media(prefers-reduced-motion:reduce){
  .district-banner{animation:none}
 }
+
+/* v1.7 — frontier observations and lower-layer information without clutter. */
+.frontier-readout,.underlayer-readout{
+ position:absolute;z-index:4;bottom:176px;right:clamp(16px,3vw,48px);
+ display:flex;flex-direction:column;gap:5px;min-width:180px;max-width:270px;
+ padding:11px 14px;background:linear-gradient(90deg,rgba(7,28,24,.90),rgba(6,28,23,.66));
+ border-right:2px solid rgba(138,218,169,.64);pointer-events:none;text-align:right;
+}
+.frontier-readout.hidden,.underlayer-readout.hidden{display:none}
+.frontier-readout span,.underlayer-readout span{
+ color:#8bbfa5;font:9px 'DM Mono',monospace;letter-spacing:.15em
+}
+.frontier-readout strong,.underlayer-readout strong{
+ color:#d4ffe8;font:600 13px 'Space Grotesk',sans-serif;letter-spacing:.04em
+}
+.frontier-readout small,.underlayer-readout small{
+ color:#a7d4b9;font:9px/1.55 'DM Mono',monospace;letter-spacing:.03em
+}
+.underlayer-readout{bottom:175px;right:clamp(16px,3vw,48px);border-right-color:#b6a1f6;
+ background:linear-gradient(90deg,rgba(29,22,49,.88),rgba(33,27,55,.8))}
+.underlayer-readout span{color:#c6b4ff}
+.underlayer-readout strong{color:#f1e5ff}
+.underlayer-readout small{color:#d8c8f0}
+#app.anime-reality .frontier-readout{
+ background:rgba(234,228,215,.86);border-color:#cfb1a0
+}
+#app.anime-reality .frontier-readout span,#app.anime-reality .frontier-readout small{color:#5f7180}
+#app.anime-reality .frontier-readout strong{color:#3a5960}
+@media(max-width:800px){
+ .frontier-readout,.underlayer-readout{bottom:290px;right:14px;max-width:158px;padding:8px}
+ .frontier-readout strong,.underlayer-readout strong{font-size:10px}
+ .frontier-readout small,.underlayer-readout small{font-size:8px}
+}
+@media(pointer:coarse){
+ .frontier-readout,.underlayer-readout{bottom:350px;max-width:145px}
+}
