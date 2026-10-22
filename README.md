@@ -1,4 +1,4 @@
-# SourceWorld v0.8 — The Living World
+# SourceWorld v0.9 — The Living Ecosystem
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -116,6 +116,19 @@ A camera-centered spherical digital sky replaces the flat backdrop; distant data
 ## The Living World (v0.8)
 
 Three kinds of life drive this milestone: **chosen actions** (interactive Listening Well, Unwritten Seed, and Forgotten Archive); **reactive life** (fourteen roaming signal-creatures and artifacts that brighten when approached); and **autonomous events** (a recurring Memory Bloom near the forest clearing at X 10, Z -155, whether or not the player is nearby). The observation journal records whispers, discoveries, and world events during the session only. No backend, login, persistence, or external telemetry is introduced. Press **J** or select **Field Notes** to inspect it. The narrative encourages optional wandering, not compulsory task collection.
+
+## The Living Ecosystem (v0.9)
+
+- New `src/ecosystem.js` with deterministic seeded placement and a simple bounded ecology simulation.
+- Extended ground and winding links to Reflection Marsh, Emergent Wilds and Glass Plateau; the original city, forest and primary narrative remain intact.
+- Biome states respond differently to simulated weather: moisture rises during code storms, drains at environment-dependent rates, and affects slow vegetation growth.
+- 26 scheduled human-shaped city inhabitants traverse authored pedestrian routes, while 34 wildlife signals roam through ecological zones and react to player proximity.
+- Distinct plant populations use shared meshes/materials and grow with ecological conditions. A local readout shows the nearest region's moisture and growth.
+- Autonomous changes happen on simulation time. World state is session-local and pauses alongside gameplay; no database, login or tracking.
+
+### Current limits
+
+This is the first ecosystem prototype, not a full agent-based society. Residents follow scripted paths and do not yet converse, work, exchange resources or avoid every building. Biome transitions are approximate, and vegetation changes are intentionally slow. Later milestones should add a route network, ecosystem interactions, persistence controls and a dedicated world map.
 
 ## Future ideas
 
