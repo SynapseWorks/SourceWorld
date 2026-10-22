@@ -143,6 +143,13 @@ export function createAnimeEnvironment(scene){
  const sunDisc=new THREE.Sprite(new THREE.SpriteMaterial({color:'#fff7cf',transparent:true,opacity:.0,depthWrite:false}));
  sunDisc.scale.set(8,8,1);sunDisc.position.set(42,80,-110);
  sunDisc.userData.noWireframe=true;root.add(sunDisc);
+ const maximum={foliage:foliage.count,blossoms:blossoms.count,stones:stones.count};
+ function setQuality(quality=1){
+  const factor=quality<=.7?.48:quality<=1?.83:1;
+  foliage.count=Math.max(1,Math.floor(maximum.foliage*factor));
+  blossoms.count=Math.max(1,Math.floor(maximum.blossoms*factor));
+  stones.count=Math.max(1,Math.floor(maximum.stones*factor));
+ }
  function setEnabled(enabled){
   root.visible=enabled;
   if(!enabled){daylight.intensity=0;skylight.intensity=0;}
@@ -160,5 +167,5 @@ export function createAnimeEnvironment(scene){
   sunDisc.position.set(daylight.position.x*.85,daylight.position.y*.75,-110+daylight.position.z*.6);
   sunDisc.material.opacity=.06+day*.1;
  }
- return {setEnabled,update,root,poolsCount:pools.length,grassCount:foliage.count};
+ return {setEnabled,setQuality,update,root,poolsCount:pools.length,grassCount:maximum.foliage};
 }
