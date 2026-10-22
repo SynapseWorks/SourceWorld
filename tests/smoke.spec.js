@@ -62,7 +62,8 @@ test('ecosystem interface initializes without introducing startup errors',async(
 
 test('world atlas shows navigable destinations and closes with keyboard',async({page})=>{
  await page.goto('/');
- await page.locator('#atlas-toggle').click();
+ await page.locator('#enter').click();
+ await page.keyboard.press('m');
  await expect(page.locator('#world-map')).toBeVisible();
  await expect(page.locator('.map-destination').first()).toBeVisible();
  await page.locator('.map-destination').filter({hasText:'GLASS PLATEAU'}).click();
