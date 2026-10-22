@@ -20,7 +20,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
  const ctx=canvas.getContext('2d',{alpha:false});
  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  let phase='intro',frame=0,columns=[],width=1,height=1,font=17,dpr=1;
- let startedAt=0,lastFrame=0,revealed=false;
+ let startedAt=0,lastFrame=0,revealed=false,bailout=0;
  const chars=Array.from('アイウエオカキクケコサシスセソタチツテトナニヌネノマミムメモラリルレロワン0123456789<>+-:');
  const random=(a,b)=>a+Math.random()*(b-a);
  const screen=()=>({width:Math.max(1,innerWidth),height:Math.max(1,innerHeight)});
@@ -144,6 +144,9 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
   onSecondGesture(e); // Cursor acquisition must happen in this user-activation event.
   startedAt=performance.now();lastFrame=startedAt;
   frame=requestAnimationFrame(advance);
+  clearTimeout(bailout);
+  // A tab suspension, GPU crash or power-saving throttling must never strand visitors.
+  bailout=setTimeout(()=>{if(phase==='rain'||phase==='bang')finish();},reduced()?2600:8500);
  }
  function begin(){
   if(phase!=='intro')return;
@@ -164,6 +167,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
   });
  }
  function finish(){
+  clearTimeout(bailout);
   cancelAnimationFrame(frame);
   phase='done';
   curtain.classList.add('hidden');
