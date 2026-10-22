@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {matrixMaterial} from './matrixMaterial.js';
 import {SITES as RESTORATION_SITES} from './tendingWorld.js';
+import {CITY_PARCELS} from './neighborhoods.js';
 import {addAnimeCitizen} from './animeCitizens.js';
 
 // A deterministic, bounded simulation. It updates ecology on a fixed timestep,
@@ -113,8 +114,9 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
     new THREE.MeshBasicMaterial({color:[0xa9ffd1,0x99c7ff,0xffdea3,0xd8a9ff,0xffa9b9][i%5]}));
   badge.position.set(.19,1.43,.17);person.add(badge);
   const avatar=addAnimeCitizen(person,i,{role:i%5});
-  residents.push({person,avatar,curve,pace:.008+random()*.008,offset:random(),role:i%5,
-   name:names[i],profession:roles[i%5],halt:0,noticed:false,lastGreetDay:0});
+  const favorite=CITY_PARCELS[(i%8)+(routeIndex%2===0?0:8)];
+  residents.push({person,avatar,curve,favorite,pace:.008+random()*.008,offset:random(),role:i%5,
+   name:names[i],profession:roles[i%5],halt:0,noticed:false,lastGreetDay:0,lastShopDay:0});
  }
  // Creature groups forage, gather and disperse; density and motion depend on weather.
  const creatureGeo=new THREE.OctahedronGeometry(.48,0);
@@ -336,18 +338,36 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const direction=amount>1?-1:1;
    const pos=p.curve.getPoint(amount>1?2-amount:amount);
    const gatheringWindow=(simTime/DAY+i*.061)%1;
+   // A few minutes every day are spent visiting a familiar local business.
+   // Ease in and out of the doorway instead of jumping to a remote point.
+   const shopWindow=(simTime/DAY+i*.043)%1;
+   const nearShop=shopWindow>.16&&shopWindow<.30&&daylight>.2;
+   let visitingShop=0;
+   if(nearShop){
+    visitingShop=Math.min(1,(shopWindow-.16)/.035,(.30-shopWindow)/.035);
+    const store=p.favorite;
+    const entrance=new THREE.Vector3(store.face-store.side*.8,0,store.z);
+    pos.lerp(entrance,visitingShop*.91);
+   }
    if(gatheringWindow>.44&&gatheringWindow<.52){
     const spot=gathering[i%gathering.length],angle=i*2.399;
     pos.lerp(new THREE.Vector3(spot.x+Math.cos(angle)*spot.r*.54,0,spot.z+Math.sin(angle)*spot.r*.54),.95);
    }
    p.person.position.copy(pos);
    const ahead=p.curve.getPoint(Math.min(.999,Math.max(.001,(amount>1?2-amount:amount)+direction*.005)));
-   p.person.rotation.y=Math.atan2(ahead.x-pos.x,ahead.z-pos.z);
+   p.person.rotation.y=visitingShop>.65
+    ?Math.atan2(p.favorite.x-pos.x,p.favorite.z-pos.z)
+    :Math.atan2(ahead.x-pos.x,ahead.z-pos.z);
    const proximity=Math.hypot(pos.x-player.x,pos.z-player.z);
    if(proximity<30)cityNearby++;
    p.person.visible=proximity<(animeMode&&animePerformance?50:82)&&(daylight>.15||p.role%4===0);
-   if(p.person.visible)p.avatar.animate(simTime,true,reduced);
+   if(p.person.visible)p.avatar.animate(simTime,visitingShop<.85,reduced);
    const day=currentDay();
+   if(visitingShop>.77&&proximity<8&&p.lastShopDay!==day){
+    p.lastShopDay=day;
+    notice('LOCAL ROUTINE',p.name+' AT '+p.favorite.name,
+      p.name+' STOPPED AT '+p.favorite.name+' ('+p.favorite.purpose.toUpperCase()+'). THE STREET IS SOMEWHERE PEOPLE RETURN TO.');
+   }
    if(proximity<4&&p.lastGreetDay!==day){
     p.lastGreetDay=day;
     notice('CITIZEN',p.name+' · '+p.profession,
