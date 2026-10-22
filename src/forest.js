@@ -9,6 +9,8 @@ const rand=randomGenerator();
 export function createForest(scene){
   const animated=[];
   const obstacles=[];
+  const illustratedCrowns=[];
+  const illustratedShadows=[];
   const jade=new THREE.Color('#4affaa');
   const rootMaterial=matrixMaterial(10,28,1.05,74,'bark');
   const foliageMaterial=matrixMaterial(21,16,.74,245,'foliage');
@@ -77,6 +79,19 @@ export function createForest(scene){
       limb.rotation.z=Math.cos(theta)*.8;limb.rotation.x=Math.sin(theta)*.8;
       group.add(limb);
     }
+    // Palette-aware leaf silhouettes in Anime Reality, never shown in Code Vision.
+    const crownCount=variant===1?5:variant===2?3:2;
+    for(let k=0;k<crownCount;k++){
+      const angle=k*2.399+rand()*.5;
+      const r=size*(variant===1?1.2:1.65)*(k===0?.4:1);
+      illustratedCrowns.push({
+        x:x+Math.cos(angle)*r,z:z+Math.sin(angle)*r,
+        y:height*(.69+(k%3)*.065),
+        scale:size*(variant===1?1.25:1.02)*(.85+rand()*.45),
+        variant,variation:rand()
+      });
+    }
+    illustratedShadows.push({x,z,r:Math.max(1.3,size*3.1)});
     obstacles.push({x,z,r:Math.max(.35,size*.57)});
     animated.push({group,phase:rand()*Math.PI*2,variant});
   }
@@ -98,6 +113,34 @@ export function createForest(scene){
     rock.rotation.set(rand()*.4,rand()*6.28,rand()*.25);
     scene.add(rock);
   }
+  const crownPalette=['#6eaa76','#8cba72','#4e958d','#b4c57d','#78bfa5','#d5cb91'];
+  const canopyMaterial=new THREE.MeshToonMaterial({color:0xffffff,flatShading:true});
+  const crownGeometry=new THREE.IcosahedronGeometry(1,1);
+  const animeCrowns=new THREE.InstancedMesh(crownGeometry,canopyMaterial,illustratedCrowns.length);
+  const shadowMaterial=new THREE.MeshBasicMaterial({
+    color:'#51685d',transparent:true,opacity:.115,depthWrite:false,side:THREE.DoubleSide
+  });
+  const animeShadows=new THREE.InstancedMesh(new THREE.CircleGeometry(1,20),shadowMaterial,illustratedShadows.length);
+  const dummy=new THREE.Object3D();
+  illustratedCrowns.forEach((item,i)=>{
+    dummy.position.set(item.x,item.y,item.z);
+    dummy.rotation.set(0,item.variation*6.283,0);
+    dummy.scale.set(item.scale*1.5,item.scale*(.88+item.variation*.27),item.scale*1.55);
+    dummy.updateMatrix();animeCrowns.setMatrixAt(i,dummy.matrix);
+    const paletteIndex=(item.variant*2+Math.floor(item.variation*4))%crownPalette.length;
+    animeCrowns.setColorAt(i,new THREE.Color(crownPalette[paletteIndex]));
+  });
+  illustratedShadows.forEach((item,i)=>{
+    dummy.position.set(item.x,.015,item.z);dummy.rotation.set(-Math.PI/2,0,0);
+    dummy.scale.set(item.r,item.r*.78,1);dummy.updateMatrix();
+    animeShadows.setMatrixAt(i,dummy.matrix);
+  });
+  animeCrowns.instanceMatrix.needsUpdate=true;
+  animeShadows.instanceMatrix.needsUpdate=true;
+  if(animeCrowns.instanceColor)animeCrowns.instanceColor.needsUpdate=true;
+  animeCrowns.frustumCulled=false;animeShadows.frustumCulled=false;
+  animeCrowns.visible=false;animeShadows.visible=false;
+  scene.add(animeShadows,animeCrowns);
   // Codified mushrooms / little lanterns guide the way near the path.
   const lanterns=[];
   const lights=[];
@@ -142,6 +185,7 @@ export function createForest(scene){
   const interact={x:0,z:-217,completed:false};
   return {
     interact,obstacles,
+    setAnimeMode(enabled){animeCrowns.visible=enabled;animeShadows.visible=enabled;},
     updateVisibility(position){for(const tree of animated){const dx=tree.group.position.x-position.x,dz=tree.group.position.z-position.z;tree.group.visible=dx*dx+dz*dz<115*115;}},
     animate(time,delta,reduceMotion=false){
       if(!reduceMotion){
