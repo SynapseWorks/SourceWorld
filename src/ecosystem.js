@@ -95,6 +95,9 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   [[8,-59],[21,-59],[34,-65],[46,-67]]
  ];
  const bodyGeom=humanBody,headGeom=humanHead;
+  const names=['Mira','Kori','Sol','Nella','Tavi','Rune','Ivo','Elian','Orin','Faye','Pip','Cedar','Jun','Lyra','Moss','Lumi','Wren','Arlo','Ari','Nova','Iris','Ember','Rin','Vela','Finn','Sora'];
+  const roles=['ARCHIVIST','COURIER','GARDENER','OBSERVER','WAYFINDER'];
+
  for(let i=0;i<26;i++){
   const routeIndex=i%4;
   const routePoints=cityRoutes[routeIndex].map(([x,z])=>new THREE.Vector3(x,0,z));
@@ -104,8 +107,6 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   const head=new THREE.Mesh(headGeom,residentMaterial);head.position.y=1.95;person.add(head);
   const arms=new THREE.Mesh(new THREE.BoxGeometry(.65,.12,.13),residentMaterial);arms.position.y=1.44;person.add(arms);
   world.add(person);
-  const names=['Mira','Kori','Sol','Nella','Tavi','Rune','Ivo','Elian','Orin','Faye','Pip','Cedar','Jun','Lyra','Moss','Lumi','Wren','Arlo','Ari','Nova','Iris','Ember','Rin','Vela','Finn','Sora'];
-  const roles=['ARCHIVIST','COURIER','GARDENER','OBSERVER','WAYFINDER'];
   const badge=new THREE.Mesh(new THREE.IcosahedronGeometry(.105,0),
     new THREE.MeshBasicMaterial({color:[0xa9ffd1,0x99c7ff,0xffdea3,0xd8a9ff,0xffa9b9][i%5]}));
   badge.position.set(.19,1.43,.17);person.add(badge);
