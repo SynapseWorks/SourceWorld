@@ -155,8 +155,13 @@ export function createNeighborhoods(scene,{onEvent=()=>{},onDistrict=()=>{},onTe
  for(const z of [-27,-41,-55]){
   for(const anime of [false,true]){
    const parent=anime?animeOnly:city;
-   const cable=new THREE.Mesh(new THREE.TorusGeometry(10,.029,3,30,Math.PI),anime?animeMetal:neutral);
-   cable.position.set(0,6.65,z);cable.rotation.z=Math.PI;
+   // Gently sagging overhead wire stays well above head height.
+   const wire=new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-9.5,7.4,z),new THREE.Vector3(-4.5,6.8,z),
+    new THREE.Vector3(0,6.58,z),new THREE.Vector3(4.5,6.8,z),
+    new THREE.Vector3(9.5,7.4,z)
+   ]);
+   const cable=new THREE.Mesh(new THREE.TubeGeometry(wire,26,.028,4,false),anime?animeMetal:neutral);
    parent.add(cable);
    for(let k=-3;k<=3;k++){
     const x=k*2.35;
