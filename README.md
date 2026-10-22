@@ -1,4 +1,4 @@
-# SourceWorld v0.9 — The Living Ecosystem
+# SourceWorld v1.0 — Connections
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -29,6 +29,7 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **Space** — jump
 - **P** — open/close simulation pause menu and settings
 - **J** — open/close Field Notes, showing encounters from the current session
+- **M** — open/close the Source Atlas, choose a navigation target
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
@@ -129,6 +130,13 @@ Three kinds of life drive this milestone: **chosen actions** (interactive Listen
 ### Current limits
 
 This is the first ecosystem prototype, not a full agent-based society. Residents follow scripted paths and do not yet converse, work, exchange resources or avoid every building. Biome transitions are approximate, and vegetation changes are intentionally slow. Later milestones should add a route network, ecosystem interactions, persistence controls and a dedicated world map.
+
+## Connections (v1.0)
+
+- The Source Atlas is a lightweight responsive SVG map, showing biome bounds, routes, landmarks, player location, and select-to-navigate destinations. Press M or click Atlas; it safely pauses first-person movement while open. Closing it returns to the pause screen, where you can resume.
+- Wildlife now has an energy state, chooses vegetation to forage, consumes available nectar, and restores energy when feeding. Plants replenish resources based on regional moisture; a plant's visible size includes its available resources. Weather therefore indirectly influences foraging.
+- The system is deterministic and bounded, with session-local state and no database. Ecological processes update in fixed batches; visuals animate smoothly.
+- Current limitations: routes are schematic and don't yet support pathfinding, creature navigation is approximate, wildlife doesn't breed or die, and ecosystem state resets on reload.
 
 ## Future ideas
 
