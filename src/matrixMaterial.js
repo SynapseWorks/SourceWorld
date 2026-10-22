@@ -22,7 +22,7 @@ const shared={
  uTime:{value:0},uAtlas:{value:glyphAtlas()},uMotion:{value:1},
  uDensity:{value:1},uPulseTime:{value:-100},
  uPulseOrigin:{value:new THREE.Vector3()},uPlayerPos:{value:new THREE.Vector3()},
- uOutline:{value:1}
+ uOutline:{value:1},uAnime:{value:0}
 };
 export function setCodeTime(t){shared.uTime.value=t;}
 export function setCodeMotion(t){shared.uMotion.value=t;}
@@ -30,6 +30,7 @@ export function setCodeDensity(t){shared.uDensity.value=t;}
 export function setCodePlayerPosition(p){shared.uPlayerPos.value.copy(p);}
 export function triggerCodePulse(p,t){shared.uPulseOrigin.value.copy(p);shared.uPulseTime.value=t;}
 export function setCodeOutline(t){shared.uOutline.value=t;}
+export function setAnimeReality(enabled){shared.uAnime.value=enabled?1:0;}
 const vertexShader=`
  varying vec3 vWorld;
  varying vec3 vNormalWorld;
@@ -50,7 +51,7 @@ const vertexShader=`
 const fragmentShader=`
  precision highp float;
  uniform sampler2D uAtlas;
- uniform float uTime,uMotion,uDensity,uSeed,uBrightness,uOutline;
+ uniform float uTime,uMotion,uDensity,uSeed,uBrightness,uOutline,uAnime;
  uniform float uPulseTime;
  uniform vec2 uScale;
  uniform vec3 uPlayerPos,uPulseOrigin;
@@ -78,6 +79,37 @@ const fragmentShader=`
  void main(){
   vec3 N=normalize(vNormalWorld);
   vec3 V=normalize(vViewWorld);
+  if(uAnime>.5){
+   // Hand-painted color families derive from seed and location rather than glyph UVs.
+   float theme=hash(vec2(floor(uSeed*.2),floor(vWorld.x*.015+vWorld.z*.009)));
+   float biome=smoothstep(-90.,-170.,vWorld.z);
+   float stone=step(.75,theme);
+   float leaf=step(.35,theme)*(1.-stone);
+   vec3 blush=vec3(.72,.67,.86);
+   vec3 mint=vec3(.38,.74,.56);
+   vec3 sea=vec3(.39,.67,.82);
+   vec3 amber=vec3(.97,.71,.44);
+   vec3 albedo=mix(blush,mint,leaf);
+   albedo=mix(albedo,sea,stone);
+   albedo=mix(albedo,amber,clamp((theme-.76)*1.7,0.,.32));
+   albedo=mix(albedo,vec3(.31,.77,.65),biome*.32);
+   vec3 sun=normalize(vec3(.62,1.,.45));
+   float raw=max(dot(N,sun),0.);
+   float shade=raw>.72?1.05:raw>.33?.77:.52;
+   float highlight=pow(max(dot(reflect(-sun,N),V),0.),15.)*.15;
+   float edge=pow(1.-abs(dot(N,V)),2.6);
+   float ink=smoothstep(.44,.81,edge);
+   float band=step(.97,fract(vWorld.y*.13+vWorld.x*.019+uSeed*.17))*.035;
+   vec3 surface=albedo*shade+vec3(.99,.93,.75)*highlight;
+   surface+=vec3(.88,.94,.81)*band;
+   surface=mix(surface,vec3(.055,.11,.15),ink*.85*min(uOutline,1.4));
+   float fog=clamp((distance(vWorld,cameraPosition)-35.)/155.,0.,.69);
+   surface=mix(surface,vec3(.66,.78,.79),fog);
+   gl_FragColor=vec4(surface,1.);
+   #include <tonemapping_fragment>
+   #include <colorspace_fragment>
+   return;
+  }
   vec3 absN=abs(N);
   float vertical=1.-smoothstep(.6,.88,absN.y);
   // Project onto the face's dominant world plane. Shape seams no longer restart code columns.
@@ -116,7 +148,7 @@ export function matrixMaterial(x=12,y=12,brightness=1,seed=Math.random()*1000){
    uTime:shared.uTime,uAtlas:shared.uAtlas,uMotion:shared.uMotion,
    uDensity:shared.uDensity,uPulseTime:shared.uPulseTime,
    uPulseOrigin:shared.uPulseOrigin,uPlayerPos:shared.uPlayerPos,
-   uOutline:shared.uOutline,
+   uOutline:shared.uOutline,uAnime:shared.uAnime,
    uScale:{value:new THREE.Vector2(x,y)},
    uBrightness:{value:brightness},uSeed:{value:seed}
   },
