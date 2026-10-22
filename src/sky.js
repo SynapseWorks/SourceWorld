@@ -74,7 +74,7 @@ void main(){
  gl_FragColor=vec4(result,1.);
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
-}
+}`
  }));
  sky.frustumCulled=false;sky.renderOrder=-1000;sky.userData.noWireframe=true;
  scene.add(sky);
