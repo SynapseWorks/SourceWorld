@@ -3,7 +3,7 @@ import {matrixMaterial} from './matrixMaterial.js';
 
 // Underlayer-01 is a small, explicitly authored proof of the future deep-world system.
 // Wireframe Vision is the key to entering it; the existing 3D controls stay intact.
-export const UNDERLAYER_SURFACE={x:-13,z:-104};
+export const UNDERLAYER_SURFACE={x:0,z:-116};
 export const UNDERLAYER_FLOOR=-20;
 export const UNDERLAYER_EYE=-18.28;
 export function createUnderlayer(scene){
