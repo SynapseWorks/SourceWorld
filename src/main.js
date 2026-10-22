@@ -422,6 +422,7 @@ function setReality(enabled){
  sky.setAnime(enabled);
  animeEnvironment.setEnabled(enabled);
  ecosystem.setAnimeMode(enabled,qualityScale);
+ forest.setAnimeMode(enabled);
  particles.visible=!enabled;
  scene.background.set(enabled?'#d2e7e4':'#010807');
  scene.fog.color.set(enabled?'#c4d9d8':'#010807');
