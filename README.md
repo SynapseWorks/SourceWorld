@@ -1,4 +1,4 @@
-# SourceWorld v1.6 — The Neighbourhoods
+# SourceWorld v1.7 — The Unwritten Frontier
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -234,6 +234,28 @@ The anime look is still built on stylized geometry and procedural materials, not
 - **Navigation and accessibility:** the Source Atlas offers each district as a destination; its map pins do not reveal hidden Echo positions. First-arrival banners honor reduced-motion settings and the location subtitle is visible in either visual mode.
 
 **Technical notes:** all added meshes are procedural, with one shared set of facade coordinates, reusable meshes and local textures. No database, external character art, site tracking or new npm dependency. Interiors, true citizen pathfinding and rich conversations remain future milestones. Verify both Code and Anime facades, movement around the avenue, readable shop signs at varied window sizes, save/reload and the first-entry banner.
+
+## The Unwritten Frontier (v1.7)
+
+SourceWorld now extends beyond its original city and forest through a **seeded lattice of stable world nodes**. Rather than continuously appending random objects, the terrain generator samples the nearest two biome nodes and gradually shifts environmental forms and foliage as the player crosses the boundary.
+
+- **Five frontier biome families**: Mosslight Gardens, Glassfall Reaches, Amber Meadows, Siltreed Fens and Hollow Ridges. Each world node has deterministic coordinates, identity, ecology, colors and a brief history. Individual seeds are stable across revisits and browser sessions.
+- **Infinite-feeling local streaming**: nearby 128-unit terrain tiles are generated as you travel and distant ones removed. A 5×5 neighborhood bounds the active procedural world to 25 chunks; shared mesh geometry and instancing keep draw calls down. The authored city/forest core remains untouched, and clear objectives/paths stay unobstructed.
+- **World node attunement**: approach a node's floating crystal and use **E**. The node responds with a visual growth marker, creates a Field Notes observation and remembers its attuned state in your browser's continuity save.
+- **Atlas charts only discovered nodes**, not unvisited nodes or hidden Echoes. The Atlas can follow far-off discoveries, so moving beyond the original map doesn't leave your position marker offscreen.
+- **A first playable underlayer**: switch to **Wireframe Vision (V)** near X -13, Z -104 and use **E** on the gate. You enter **Underlayer-01: The Syntax Vault**, a small room underneath the forest boundary. Move using normal exploration controls; find the Rewrite Nexus within the chamber and use E to change the structural arrangement. Changes persist after reload. Return through its exit ring, or switch off Wireframe to return safely to the surface.
+- **No forced checklist**: node attunement and below-ground discovery are optional, and neither changes the existing main narrative or previous collectibles. Character and biome simulation continue to follow the same single world clock.
+
+### Technical boundaries and next directions
+
+This is a frontier **foundation**, not a complete procedural planet. The traversable ground is intentionally flat to match the existing movement physics. Node transitions currently affect distribution and material palettes, not full erosion/hydrology, enemy populations, narrative arcs or physical elevation. The initial underground vault is authored; the system does not yet procedurally generate connected cave networks or permit unrestricted terrain sculpting.
+
+Next systems:
+1. **Flight & aerial navigation**: earn an aerial ability, add altitude-safe movement/landing physics, first-person and third-person camera options, stamina/altitude limits and mobile controls.
+2. **Birds and the sky ecology**: flocking and migration between the procedural world nodes, nests, roosts, aerial discoveries and weather-responsive motion.
+3. **Deep world generation**: procedural cave and underlayer tiles linked to above-ground node geology, surface-to-depth entrances, layered Atlas navigation and reversible object rearrangement.
+4. **Ecological feedback**: rainfall, foraging and player tending alter long-term biome edges, wildlife presence and how restored landmarks look over time.
+5. **World polish and QA**: visual contrast and loading quality at tile seams, distance fog, performance on lower-end devices, collision and accessibility audits.
 
 ## Future ideas
 
