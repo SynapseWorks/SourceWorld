@@ -59,8 +59,8 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
  const rockGeo=new THREE.DodecahedronGeometry(1,0);
  const dummy=new THREE.Object3D();
  const visitedThisSession=new Set();
- let time=0,lastChunkX=Infinity,lastChunkZ=Infinity,simTick=0,currentNode=null,renderAnime=false;
- const activeLimit=25,visibleRadius=2;
+ let lastChunkX=Infinity,lastChunkZ=Infinity,simTick=0,currentNode=null;
+ const visibleRadius=2;
  function chunkKey(cx,cz){return cx+':'+cz;}
  function shouldPlace(x,z){
   // Keep known main paths, monuments and the old cities clear.
@@ -222,7 +222,7 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
   if(!active||paused)return {biome:currentNode?.biome||null,node:nearbyNode(pos)};
   const near=frontierAt(pos.x,pos.z,seed);
   // Only show frontier names outside the hand-authored central district.
-  const inFrontier=!shouldPlace(pos.x,pos.z);
+  const inFrontier=shouldPlace(pos.x,pos.z);
   const region=!inFrontier?null:near.node;
   if(region&&near.distance<115&&!discovered.has(region.id)){
    discovered.add(region.id);
