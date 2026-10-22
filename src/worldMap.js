@@ -56,7 +56,6 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
    label.textContent=location.name.replace('THE ','');
   }
  }
- for(const location of locations)renderPin(location);
  const me=create('g',{},svg);
  const glow=create('circle',{cx:0,cy:0,r:19,fill:'none',stroke:'#fcffcc','stroke-width':3},me);
  const dot=create('circle',{cx:0,cy:0,r:7,fill:'#fff6be'},me);
