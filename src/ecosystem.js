@@ -15,6 +15,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  const random=seeded(seed),world=new THREE.Group();scene.add(world);
  const plants=[],residents=[],wildlife=[],memories=[];
  const influences=[];
+ const gatherings=[];
  const regionPlants=new Map(regions.map(r=>[r.id,[]]));
  const leafMaterial=matrixMaterial(12,16,1.1,356);
  const flowerMaterial=matrixMaterial(14,19,2,458);
@@ -193,6 +194,20 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   influences.push({x,z,time,group});
   if(influences.length>20){const retired=influences.shift();world.remove(retired.group);}
  }
+ function callWildlife(position){
+  const focus={x:position.x,z:position.z,until:simTime+38};
+  gatherings.push(focus);
+  if(gatherings.length>3)gatherings.shift();
+  let responders=0;
+  for(const creature of wildlife){
+   const distance=Math.hypot(creature.group.position.x-position.x,creature.group.position.z-position.z);
+   if(distance<75){creature.callTarget=focus;responders++;}
+  }
+  notice('WILDLIFE','A GENTLE CALL',responders
+   ?'A SIGNAL SPREAD THROUGH THE HABITAT. NEARBY WILDLIFE IS GATHERING.'
+   :'THE SIGNAL TRAVELLED OUTWARD. SOMETHING MAY ANSWER LATER.');
+  return {responders};
+ }
  function influence(position){
   const nearest=state.filter(s=>s.kind!=='city').sort((a,b)=>Math.hypot(position.x-a.x,position.z-a.z)-Math.hypot(position.x-b.x,position.z-b.z))[0];
   if(!nearest)return false;
@@ -278,8 +293,12 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const roamX=creature.biome.x+Math.cos(creature.angle+creature.phase)*creature.radius;
    const roamZ=creature.biome.z+Math.sin(creature.angle*.9+creature.phase)*creature.radius;
    const hunger=THREE.MathUtils.clamp((.72-creature.energy)*1.7,0,1);
-   const x=foodRich?THREE.MathUtils.lerp(roamX,food.group.position.x,hunger):roamX;
-   const z=foodRich?THREE.MathUtils.lerp(roamZ,food.group.position.z,hunger):roamZ;
+   let x=foodRich?THREE.MathUtils.lerp(roamX,food.group.position.x,hunger):roamX;
+   let z=foodRich?THREE.MathUtils.lerp(roamZ,food.group.position.z,hunger):roamZ;
+   if(creature.callTarget&&simTime<creature.callTarget.until){
+    x=THREE.MathUtils.lerp(x,creature.callTarget.x, .84);
+    z=THREE.MathUtils.lerp(z,creature.callTarget.z, .84);
+   }else creature.callTarget=null;
    const near=Math.hypot(x-player.x,z-player.z);
    const disturbed=near<6;
    creature.group.position.lerp(new THREE.Vector3(x+(disturbed?5:0),1.1+Math.sin(simTime*.7+creature.phase)*.4,z),Math.min(1,step*1.7));
@@ -308,5 +327,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   lastWeather=weather;
   return {region,summary:publicState()};
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife};
 }
