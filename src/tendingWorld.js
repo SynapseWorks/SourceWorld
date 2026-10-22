@@ -9,8 +9,8 @@ export const SITES=[
 ];
 export function createTendingWorld(scene,{onChange=()=>{}}={}){
  const done=new Set(),sites=[];
- const surface=matrixMaterial(12,20,.8,2221);
- const lit=matrixMaterial(18,20,2.2,2341);
+ const surface=matrixMaterial(12,20,.8,2221,'stone');
+ const lit=matrixMaterial(18,20,2.2,2341,'crystal');
  const glow=new THREE.MeshBasicMaterial({color:0xa8ffcb,transparent:true,opacity:.7,depthWrite:false});
  for(const site of SITES){
   const group=new THREE.Group();group.position.set(site.x,0,site.z);scene.add(group);
