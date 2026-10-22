@@ -13,8 +13,8 @@ function rng(n){return (Math.sin(n*127.1+13.9)*43758.5453)%1;}
 export function createLivingWorld(scene,{onEvent=()=>{}}={}){
  const interacted=new Set(),seen=new Set();
  const objects=[],creatures=[];
- const coreMaterial=matrixMaterial(17,21,2.1,918);
- const baseMaterial=matrixMaterial(13,15,.8,114);
+ const coreMaterial=matrixMaterial(17,21,2.1,918,'crystal');
+ const baseMaterial=matrixMaterial(13,15,.8,114,'stone');
  const edgeMaterial=new THREE.MeshBasicMaterial({color:0x82ffbf,transparent:true,opacity:.7,depthWrite:false});
  const sphere=new THREE.IcosahedronGeometry(1,1);
  const torus=new THREE.TorusGeometry(1.7,.04,6,48);
@@ -56,7 +56,7 @@ export function createLivingWorld(scene,{onEvent=()=>{}}={}){
  // Small ambient life with distinctive looping trajectories and locally reactive behavior.
  const creatureGeometry=new THREE.OctahedronGeometry(.38,0);
  const tails=new THREE.ConeGeometry(.16,.65,4);
- const animalMaterial=matrixMaterial(9,10,2.4,778);
+ const animalMaterial=matrixMaterial(9,10,2.4,778,'flower');
  for(let i=0;i<14;i++){
   const group=new THREE.Group();scene.add(group);
   const body=new THREE.Mesh(creatureGeometry,animalMaterial);group.add(body);
