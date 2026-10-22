@@ -177,3 +177,7 @@
 .continuity-settings #reset-memory{border-color:#b96b7899;background:#36171dcc;color:#ffd7df}
 .continuity-settings #replay-awakening{border-color:#5d9c80;background:#0a3121;color:#c4ffda}
 @media(prefers-reduced-motion:reduce){.awakening-stage{transition-duration:.12s!important}}
+
+/* Keep the WebGL canvas eligible for pointer lock while rendering behind the void. */
+#app.world-locked > #viewport{visibility:visible!important;opacity:0!important;pointer-events:none}
+#app:not(.world-locked) > #viewport{opacity:1}
