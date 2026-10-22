@@ -48,6 +48,7 @@ const vertexShader=`
  varying vec3 vWorld;
  varying vec3 vNormalWorld;
  varying vec3 vViewWorld;
+ varying vec3 vInstanceTint;
  void main(){
   vec4 local=vec4(position,1.);
   vec3 localNormal=normal;
@@ -59,6 +60,11 @@ const vertexShader=`
   vWorld=world.xyz;
   vNormalWorld=normalize(mat3(modelMatrix)*localNormal);
   vViewWorld=cameraPosition-world.xyz;
+  #ifdef USE_INSTANCING_COLOR
+   vInstanceTint=instanceColor;
+  #else
+   vInstanceTint=vec3(-1.);
+  #endif
   gl_Position=projectionMatrix*viewMatrix*world;
  }`;
 const fragmentShader=`
@@ -69,7 +75,7 @@ const fragmentShader=`
  uniform float uPulseTime;
  uniform vec2 uScale;
  uniform vec3 uPlayerPos,uPulseOrigin;
- varying vec3 vWorld,vNormalWorld,vViewWorld;
+ varying vec3 vWorld,vNormalWorld,vViewWorld,vInstanceTint;
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
  float noise(vec2 p){
    vec2 b=floor(p),f=fract(p);
@@ -135,6 +141,8 @@ const fragmentShader=`
    float fine=noise(vWorld.xz*.34+uSeed*.09);
    float grain=mix(coarse,fine,.22);
    vec3 albedo=animeBase(family,vWorld);
+   // Biome nodes tint instanced foliage without affecting meshes lacking instance colors.
+   if(vInstanceTint.r>=0.)albedo=mix(albedo,vInstanceTint,.65);
    float paint=family>2.5&&family<4.5?.83+grain*.31:.91+grain*.18;
    albedo*=paint;
    if(family>.5&&family<2.5){
