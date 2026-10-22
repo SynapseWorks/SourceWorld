@@ -514,6 +514,7 @@ function setReality(enabled){
  setAnimeDayPhase(ecosystem.getPhase());
  sky.setAnime(enabled);
  animeEnvironment.setEnabled(enabled);
+ frontier.setAnime(enabled);
  animeArchitecture.setEnabled(enabled);
  neighborhoods.setAnime(enabled);
  ecosystem.setAnimeMode(enabled,qualityScale);
