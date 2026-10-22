@@ -16,6 +16,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
  accessible.className='sr-only';
  accessible.textContent='After selecting Enter, press any key or click once more to awaken the simulation.';
  curtain.append(canvas,accessible);app.append(curtain);
+ curtain.addEventListener('contextmenu',e=>e.preventDefault());
  const ctx=canvas.getContext('2d',{alpha:false});
  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  let phase='intro',frame=0,columns=[],width=1,height=1,font=17,dpr=1;
@@ -134,11 +135,11 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
   if(phase!=='waiting')return;
   // Ignore wheel, mousemove, key repeat and synthetic focus events.
   if(e.type==='keydown'&&e.repeat)return;
-  if(e.type==='pointerdown'&&e.button!==0)return;
   e.preventDefault();
   e.stopPropagation();
   document.removeEventListener('pointerdown',completeInteraction,true);
   document.removeEventListener('keydown',completeInteraction,true);
+  document.removeEventListener('wheel',completeInteraction,true);
   phase='rain';curtain.dataset.phase='rain';
   onSecondGesture(e); // Cursor acquisition must happen in this user-activation event.
   startedAt=performance.now();lastFrame=startedAt;
@@ -159,6 +160,7 @@ export function createAwakening({app,intro,enter,onSecondGesture=()=>{},onComple
    if(phase!=='waiting')return;
    document.addEventListener('pointerdown',completeInteraction,true);
    document.addEventListener('keydown',completeInteraction,true);
+   document.addEventListener('wheel',completeInteraction,{capture:true,passive:false});
   });
  }
  function finish(){
