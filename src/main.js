@@ -15,6 +15,7 @@ import {createEchoes,UNLOCK_COUNT} from './echoes.js';
 import {createTendingWorld} from './tendingWorld.js';
 import {createAwakening} from './awakening.js';
 import {createAnimeEnvironment} from './animeEnvironment.js';
+import {createAnimeArchitecture} from './animeArchitecture.js';
 import {readContinuity,writeContinuity,clearContinuity,formatElapsed} from './continuity.js';
 
 const app=document.querySelector('#app');
@@ -70,6 +71,7 @@ const generatedSectors=createGeneratedSectors(scene,{seed:60421,count:155});
 const simulationWeather=createSimulationWeather(scene,{particleCount:1500});
 const artDirection=createArtDirection(scene);
 const animeEnvironment=createAnimeEnvironment(scene);
+const animeArchitecture=createAnimeArchitecture(scene);
 animeEnvironment.setQuality(qualityScale);
 const journalPanel=document.querySelector('#journal-panel');
 const journalButton=document.querySelector('#journal-toggle');
@@ -421,6 +423,7 @@ function setReality(enabled){
  setAnimeDayPhase(ecosystem.getPhase());
  sky.setAnime(enabled);
  animeEnvironment.setEnabled(enabled);
+ animeArchitecture.setEnabled(enabled);
  ecosystem.setAnimeMode(enabled,qualityScale);
  forest.setAnimeMode(enabled);
  particles.visible=!enabled;
@@ -621,6 +624,7 @@ function tick(){
  sky.setDayPhase(phase);
  setAnimeDayPhase(phase);
  animeEnvironment.update(t,phase,reduced);
+ animeArchitecture.update(phase);
  document.querySelector('#world-phase').textContent=phase<.2?'NIGHT':phase<.36?'DAWN':phase<.68?'DAYLIGHT':phase<.84?'DUSK':'NIGHT';
  document.querySelector('#eco-region').textContent=ecosystemState.region||'SIMULATION STABLE';
  const eco=ecosystemState.summary.find(b=>b.name===ecosystemState.region);
