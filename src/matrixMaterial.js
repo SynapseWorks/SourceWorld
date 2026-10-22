@@ -22,7 +22,8 @@ const shared={
  uTime:{value:0},uAtlas:{value:glyphAtlas()},uMotion:{value:1},
  uDensity:{value:1},uPulseTime:{value:-100},
  uPulseOrigin:{value:new THREE.Vector3()},uPlayerPos:{value:new THREE.Vector3()},
- uOutline:{value:1},uAnime:{value:0}
+ uOutline:{value:1},uAnime:{value:0},uAnimeDay:{value:.8},
+ uAnimeSun:{value:new THREE.Vector3(.58,.73,.45).normalize()}
 };
 export function setCodeTime(t){shared.uTime.value=t;}
 export function setCodeMotion(t){shared.uMotion.value=t;}
@@ -31,6 +32,18 @@ export function setCodePlayerPosition(p){shared.uPlayerPos.value.copy(p);}
 export function triggerCodePulse(p,t){shared.uPulseOrigin.value.copy(p);shared.uPulseTime.value=t;}
 export function setCodeOutline(t){shared.uOutline.value=t;}
 export function setAnimeReality(enabled){shared.uAnime.value=enabled?1:0;}
+export function setAnimeDayPhase(phase){
+ const light=Math.max(0,Math.sin((phase-.25)*Math.PI*2));
+ shared.uAnimeDay.value=Math.max(.08,Math.min(1,.14+light*.86));
+ const azimuth=phase*Math.PI*2;
+ shared.uAnimeSun.value.set(Math.cos(azimuth)*.8,.18+light*1.25,Math.sin(azimuth)*.55+.2).normalize();
+}
+const ANIME_SURFACES=Object.freeze({
+ auto:0,ground:1,trail:2,foliage:3,bark:4,stone:5,architecture:6,
+ crystal:7,metal:8,flower:9,skin:10
+});
+export function getAnimeSurfaceNames(){return Object.keys(ANIME_SURFACES);}
+
 const vertexShader=`
  varying vec3 vWorld;
  varying vec3 vNormalWorld;
@@ -51,12 +64,48 @@ const vertexShader=`
 const fragmentShader=`
  precision highp float;
  uniform sampler2D uAtlas;
- uniform float uTime,uMotion,uDensity,uSeed,uBrightness,uOutline,uAnime;
+ uniform float uTime,uMotion,uDensity,uSeed,uBrightness,uOutline,uAnime,uAnimeDay,uAnimeFamily;
+ uniform vec3 uAnimeSun;
  uniform float uPulseTime;
  uniform vec2 uScale;
  uniform vec3 uPlayerPos,uPulseOrigin;
  varying vec3 vWorld,vNormalWorld,vViewWorld;
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
+ float noise(vec2 p){
+   vec2 b=floor(p),f=fract(p);
+   f=f*f*(3.-2.*f);
+   return mix(mix(hash(b),hash(b+vec2(1.,0.)),f.x),
+     mix(hash(b+vec2(0.,1.)),hash(b+vec2(1.,1.)),f.x),f.y);
+ }
+ vec3 animeBase(float family,vec3 world){
+   float forest=1.-smoothstep(38.,105.,distance(world.xz,vec2(0.,-181.)));
+   float marsh=1.-smoothstep(23.,85.,distance(world.xz,vec2(100.,-215.)));
+   float wilds=1.-smoothstep(36.,105.,distance(world.xz,vec2(-110.,-250.)));
+   float plateau=1.-smoothstep(26.,82.,distance(world.xz,vec2(108.,-90.)));
+   vec3 base=vec3(.69,.73,.78);
+   if(family<.5){base=vec3(.65,.75,.82);}
+   else if(family<1.5){base=vec3(.49,.68,.58);}
+   else if(family<2.5){base=vec3(.76,.73,.66);}
+   else if(family<3.5){base=vec3(.38,.67,.45);}
+   else if(family<4.5){base=vec3(.48,.39,.37);}
+   else if(family<5.5){base=vec3(.62,.65,.71);}
+   else if(family<6.5){base=vec3(.72,.73,.77);}
+   else if(family<7.5){base=vec3(.57,.78,.81);}
+   else if(family<8.5){base=vec3(.48,.64,.71);}
+   else if(family<9.5){base=vec3(.83,.58,.74);}
+   else {base=vec3(.91,.76,.67);}
+   if(family<2.5){
+    base=mix(base,vec3(.38,.62,.47),forest*.38);
+    base=mix(base,vec3(.39,.68,.63),marsh*.57);
+    base=mix(base,vec3(.57,.65,.38),wilds*.44);
+    base=mix(base,vec3(.67,.61,.56),plateau*.55);
+   }else if(family>2.5&&family<4.5){
+    base=mix(base,vec3(.28,.55,.48),marsh*.33);
+    base=mix(base,vec3(.53,.64,.34),wilds*.27);
+   }
+   return base;
+ }
+
  // Repeated scrolling columns in world space, not tiled mesh UVs.
  vec3 rain(vec2 uv,float seed,float phase){
   vec2 coordinate=uv;
@@ -80,31 +129,43 @@ const fragmentShader=`
   vec3 N=normalize(vNormalWorld);
   vec3 V=normalize(vViewWorld);
   if(uAnime>.5){
-   // Hand-painted color families derive from seed and location rather than glyph UVs.
-   float theme=hash(vec2(floor(uSeed*.2),floor(vWorld.x*.015+vWorld.z*.009)));
-   float biome=1.-smoothstep(-170.,-90.,vWorld.z);
-   float stone=step(.75,theme);
-   float leaf=step(.35,theme)*(1.-stone);
-   vec3 blush=vec3(.72,.67,.86);
-   vec3 mint=vec3(.38,.74,.56);
-   vec3 sea=vec3(.39,.67,.82);
-   vec3 amber=vec3(.97,.71,.44);
-   vec3 albedo=mix(blush,mint,leaf);
-   albedo=mix(albedo,sea,stone);
-   albedo=mix(albedo,amber,clamp((theme-.76)*1.7,0.,.32));
-   albedo=mix(albedo,vec3(.31,.77,.65),biome*.32);
-   vec3 sun=normalize(vec3(.62,1.,.45));
-   float raw=max(dot(N,sun),0.);
-   float shade=raw>.72?1.05:raw>.33?.77:.52;
-   float highlight=pow(max(dot(reflect(-sun,N),V),0.),15.)*.15;
-   float edge=pow(1.-abs(dot(N,V)),2.6);
-   float ink=smoothstep(.44,.81,edge);
-   float band=step(.97,fract(vWorld.y*.13+vWorld.x*.019+uSeed*.17))*.035;
-   vec3 surface=albedo*shade+vec3(.99,.93,.75)*highlight;
-   surface+=vec3(.88,.94,.81)*band;
-   surface=mix(surface,vec3(.055,.11,.15),ink*.85*min(uOutline,1.4));
-   float fog=clamp((distance(vWorld,cameraPosition)-35.)/155.,0.,.69);
-   surface=mix(surface,vec3(.66,.78,.79),fog);
+   // Material-aware painterly cel shading instead of a universal color filter.
+   float family=uAnimeFamily;
+   float coarse=noise(vWorld.xz*.065+uSeed*.27);
+   float fine=noise(vWorld.xz*.34+uSeed*.09);
+   float grain=mix(coarse,fine,.22);
+   vec3 albedo=animeBase(family,vWorld);
+   float paint=family>2.5&&family<4.5?.83+grain*.31:.91+grain*.18;
+   albedo*=paint;
+   if(family>.5&&family<2.5){
+    float earth=noise(vWorld.xz*.21+uSeed*1.5);
+    albedo=mix(albedo,albedo*vec3(1.08,.96,.87),smoothstep(.44,.77,earth)*.22);
+   }
+   if(family>2.5&&family<3.5){
+    float foliage=noise(vWorld.xz*.53+vWorld.y*.19);
+    albedo=mix(albedo,vec3(.64,.78,.42),smoothstep(.52,.81,foliage)*.23);
+   }
+   vec3 light=normalize(uAnimeSun);
+   float lambert=max(0.,dot(N,light));
+   float ambient=.23+.10*uAnimeDay;
+   // Four softened painted tone masses and cool bounce in the shadows.
+   float shade=ambient+smoothstep(.09,.21,lambert)*.16+
+    smoothstep(.38,.53,lambert)*.21+smoothstep(.73,.86,lambert)*.19;
+   vec3 lightTint=mix(vec3(.45,.58,.75),vec3(1.09,1.03,.91),smoothstep(.18,.79,lambert));
+   vec3 surface=albedo*lightTint*shade*(.45+.55*uAnimeDay);
+   float specular=family>6.5&&family<9.0?.22:.035;
+   float shine=pow(max(dot(reflect(-light,N),V),0.),family>6.5?22.:42.)*specular;
+   surface+=vec3(1.,.94,.79)*shine*uAnimeDay;
+   float rim=pow(1.-clamp(abs(dot(N,V)),0.,1.),2.15);
+   float silhouette=smoothstep(.46,.82,rim);
+   float outlineWeight=family>2.5&&family<4.5?.53:family<2.5?.62:.82;
+   vec3 ink=mix(vec3(.12,.17,.23),albedo*.32,.32);
+   surface=mix(surface,ink,clamp(silhouette*outlineWeight*min(uOutline,1.6),0.,.88));
+   float lightRim=pow(1.-abs(dot(N,V)),3.8)*max(0.,dot(N,light))*.17;
+   surface+=vec3(1.,.81,.65)*lightRim*uAnimeDay;
+   float mist=smoothstep(35.,188.,distance(vWorld,cameraPosition));
+   vec3 fogTint=mix(vec3(.15,.19,.34),vec3(.73,.82,.82),uAnimeDay);
+   surface=mix(surface,fogTint,mist*.72);
    gl_FragColor=vec4(surface,1.);
    #include <tonemapping_fragment>
    #include <colorspace_fragment>
@@ -142,13 +203,15 @@ const fragmentShader=`
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
  }`;
-export function matrixMaterial(x=12,y=12,brightness=1,seed=Math.random()*1000){
+export function matrixMaterial(x=12,y=12,brightness=1,seed=Math.random()*1000,animeSurface='auto'){
+ const family=typeof animeSurface==='number'?animeSurface:(ANIME_SURFACES[animeSurface]??0);
  return new THREE.ShaderMaterial({
   uniforms:{
    uTime:shared.uTime,uAtlas:shared.uAtlas,uMotion:shared.uMotion,
    uDensity:shared.uDensity,uPulseTime:shared.uPulseTime,
    uPulseOrigin:shared.uPulseOrigin,uPlayerPos:shared.uPlayerPos,
    uOutline:shared.uOutline,uAnime:shared.uAnime,
+   uAnimeDay:shared.uAnimeDay,uAnimeSun:shared.uAnimeSun,uAnimeFamily:{value:family},
    uScale:{value:new THREE.Vector2(x,y)},
    uBrightness:{value:brightness},uSeed:{value:seed}
   },
