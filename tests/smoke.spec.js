@@ -79,3 +79,10 @@ test('world memory controls are available',async({page})=>{
  await expect(page.locator('#continuity-status')).toContainText(/autosave|restored|saved|storage/i);
  await expect(page.locator('#world-day')).toContainText('DAY');
 });
+
+test('hidden echoes and ability controls are present',async({page})=>{
+ await page.goto('/');
+ await expect(page.locator('#echo-count')).toHaveText('0 / 9');
+ await expect(page.locator('#resonance-btn')).toBeDisabled();
+ await expect(page.locator('#ability-status')).toContainText('FIND 4');
+});
