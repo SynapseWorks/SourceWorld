@@ -14,6 +14,7 @@ const regions=[
 export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  const random=seeded(seed),world=new THREE.Group();scene.add(world);
  const plants=[],residents=[],wildlife=[],memories=[];
+ const regionPlants=new Map(regions.map(r=>[r.id,[]]));
  const leafMaterial=matrixMaterial(12,16,1.1,356);
  const flowerMaterial=matrixMaterial(14,19,2,458);
  const rockMaterial=matrixMaterial(12,18,.73,512);
@@ -77,7 +78,8 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    const bud=new THREE.Mesh(isFlower?crown:spire,isFlower?flowerMaterial:leafMaterial);
    bud.position.y=1.1;group.add(bud);
    const size=.4+random()*1.9;
-   plants.push({group,stem,bud,region,base:size,age:random(),mature:random()*.4,phase:random()*7,seen:false});
+   const plant={group,stem,bud,region,base:size,age:random(),mature:random()*.4,phase:random()*7,seen:false,nectar:.3+random()*.7,foraged:0};
+   plants.push(plant);regionPlants.get(region.id).push(plant);
   }
  }
  // People-shaped simulations follow neighbourhood schedules. They are not static props.
@@ -104,7 +106,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  for(let i=0;i<34;i++){
   const biome=regions[1+i%3];
   const group=new THREE.Group();group.add(new THREE.Mesh(creatureGeo,flowerMaterial));world.add(group);
-  wildlife.push({group,biome,angle:random()*6.28,radius:12+random()*biome.r*.63,speed:.04+random()*.13,phase:random()*6,alert:false});
+  wildlife.push({group,biome,angle:random()*6.28,radius:12+random()*biome.r*.63,speed:.04+random()*.13,phase:random()*6,alert:false,energy:.45+random()*.4,target:null,foraging:0});
  }
  const state=regions.map(r=>({...r,humidity:r.moisture,growth:.3,fauna:0,activity:.5}));
  let accumulation=0,simTime=0,lastCycle=-1,lastWeather='STABLE',lastPlayerRegion='';
@@ -117,10 +119,15 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   const storm=weather==='CODE STORM'?1:weather==='DATA DRIZZLE'?.43:0;
   if(accumulation>=.45){
    const delta=accumulation;accumulation=0;
+   for(const plant of plants){
+    const biome=stateFor(plant.region);
+    plant.nectar=THREE.MathUtils.clamp(plant.nectar+delta*(.004+biome.humidity*.024)-plant.foraged*.022,0,1);
+    plant.foraged=0;
+   }
    state.forEach(s=>{
     const drainage=s.kind==='plateau'?.018:s.kind==='wetland'?.003:.009;
     s.humidity=THREE.MathUtils.clamp(s.humidity+storm*.039*delta-drainage*delta,.03,1);
-    const capacity=(s.humidity*.82+s.energy*.18);
+    const capacity=(s.humidity*.68+s.energy*.12+Math.min(1,(regionPlants.get(s.id)?.reduce((acc,p)=>acc+p.nectar,0)||0)/Math.max(1,regionPlants.get(s.id)?.length||1))*.20);
     s.growth=THREE.MathUtils.clamp(s.growth+(capacity-s.growth)*delta*.034,0,1);
     s.activity=THREE.MathUtils.clamp(.4+s.energy*.32+storm*(s.kind==='city'?- .18:.16),0,1);
    });
@@ -128,7 +135,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   for(const plant of plants){
    const biome=stateFor(plant.region);
    plant.age=Math.min(1,plant.age+step*(.002+biome.humidity*.008));
-   const scale=plant.base*(.24+plant.age*.5+biome.growth*.48);
+   const scale=plant.base*(.24+plant.age*.5+biome.growth*.34+plant.nectar*.14);
    plant.group.scale.set(scale,scale,scale);
    if(!reduced)plant.bud.rotation.y+=step*.07;
   }
@@ -146,16 +153,31 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    if(proximity<4&&!p.noticed){p.noticed=true;notice('ENCOUNTER','A PASSING SIGNAL','AN INHABITANT ACKNOWLEDGED YOUR PRESENCE, THEN CONTINUED ON THEIR WAY.');}
    if(proximity>9)p.noticed=false;
   }
+  // Wildlife forages on nearby plants. Eating visibly dims flowers, while moisture
+  // replenishes their nectar over time; nearby grazers may cluster at rich patches.
   for(const creature of wildlife){
    const biome=stateFor(creature.biome);
    creature.angle+=step*creature.speed*(biome.humidity>.5?1.3:.65);
-   const x=creature.biome.x+Math.cos(creature.angle+creature.phase)*creature.radius;
-   const z=creature.biome.z+Math.sin(creature.angle*.9+creature.phase)*creature.radius;
+   const zone=regionPlants.get(creature.biome.id)||[];
+   const candidate=zone[Math.floor((Math.sin(creature.phase+simTime*.007)*.5+.5)*zone.length)]||null;
+   if((!creature.target||creature.target.nectar<.13)&&candidate)creature.target=candidate;
+   const food=creature.target;
+   const foodRich=food&&food.nectar>.18;
+   const roamX=creature.biome.x+Math.cos(creature.angle+creature.phase)*creature.radius;
+   const roamZ=creature.biome.z+Math.sin(creature.angle*.9+creature.phase)*creature.radius;
+   const hunger=THREE.MathUtils.clamp((.72-creature.energy)*1.7,0,1);
+   const x=foodRich?THREE.MathUtils.lerp(roamX,food.group.position.x,hunger):roamX;
+   const z=foodRich?THREE.MathUtils.lerp(roamZ,food.group.position.z,hunger):roamZ;
    const near=Math.hypot(x-player.x,z-player.z);
-   const disturb=near<6?6:0;
-   creature.group.position.set(x+Math.cos(creature.angle)*disturb,1.1+Math.sin(simTime*.7+creature.phase)*.4,z);
+   const disturbed=near<6;
+   creature.group.position.lerp(new THREE.Vector3(x+(disturbed?5:0),1.1+Math.sin(simTime*.7+creature.phase)*.4,z),Math.min(1,step*1.7));
    creature.group.visible=near<85;
-   if(near<6&&!creature.alert){creature.alert=true;notice('ENCOUNTER','A CURIOUS WILD SIGNAL','A CREATURE CHANGED ITS PATH AS YOU APPROACHED.');}
+   creature.energy=Math.max(.05,creature.energy-step*.0013);
+   if(foodRich&&Math.hypot(creature.group.position.x-food.group.position.x,creature.group.position.z-food.group.position.z)<2.5){
+    food.nectar=Math.max(0,food.nectar-step*.06);food.foraged+=step;
+    creature.energy=Math.min(1,creature.energy+step*.08);
+   }
+   if(disturbed&&!creature.alert){creature.alert=true;notice('ENCOUNTER','A GRAZER INTERRUPTED','YOUR APPROACH SENT A FORAGING SIGNAL AWAY FROM ITS FOOD.');}
    if(near>11)creature.alert=false;
   }
   state[0].fauna=cityNearby;
