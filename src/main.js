@@ -7,6 +7,7 @@ import {createOpenWorld} from './openWorld.js';
 import {createReconstruction} from './reconstruction.js';
 import {createGeneratedSectors} from './worldgen.js';
 import {createFrontier} from './frontier.js';
+import {createUnderlayer,UNDERLAYER_EYE} from './underlayer.js';
 import {createSimulationWeather} from './weather.js';
 import {createArtDirection} from './artDirection.js';
 import {createLivingWorld} from './livingWorld.js';
@@ -31,7 +32,10 @@ app.innerHTML=`
   <span class="district-kicker">YOU HAVE FOUND A PLACE</span>
   <strong id="district-banner-name">A NEW NEIGHBOURHOOD</strong>
   <span id="district-banner-subtitle"></span>
- </div><div class="tend-compass" id="tend-compass" aria-live="off">✧ EXPLORE · TEND · OBSERVE <span id="tend-nearby">THE WORLD IS UNFOLDING</span></div><div id="echo-hud" class="echo-hud" aria-live="polite"><span>HIDDEN ECHOES</span><strong id="echo-count">0 / 9</strong><small id="ability-status">RESONANCE LOCKED · FIND 4</small></div><div class="tend-actions"><button id="call-btn" type="button" disabled aria-label="Signal Call: gather wildlife">◇ SIGNAL CALL [ F ]</button><button id="rewrite-btn" type="button" disabled aria-label="World Rewrite: restore a nearby site">⌁ WORLD REWRITE [ G ]</button></div><button id="resonance-btn" class="resonance-btn" type="button" disabled aria-label="Use resonance bloom ability">✧ RESONANCE [ Q ]</button><button id="atlas-toggle" class="atlas-toggle" type="button" aria-expanded="false" aria-controls="world-map">⌁ ATLAS [ M ]</button><button id="journal-toggle" class="journal-toggle" type="button" aria-expanded="false" aria-controls="journal-panel">◈ FIELD NOTES <span id="journal-count">0</span></button><aside id="journal-panel" class="journal-panel hidden" aria-label="Field notes"><div class="journal-heading"><span>FIELD NOTES / OBSERVATIONS</span><button type="button" id="journal-close" aria-label="Close field notes">×</button></div><p class="journal-intro">A record of the world, the things you changed, and the things that happened anyway.</p><ol id="journal-list" aria-live="polite"><li class="journal-empty">Nothing recorded yet. The world is waiting.</li></ol></aside><div id="continuity-readout" class="continuity-readout" aria-live="off"><span id="world-day">DAY 1</span><span id="world-phase">DORMANT</span></div><div id="frontier-readout" class="frontier-readout hidden" aria-live="off"><span>UNWRITTEN FRONTIER</span><strong id="frontier-name">WORLD NODE</strong><small id="frontier-stats">GENERATING AS YOU GO</small></div><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE GROWING WORLD · V1.7</div><div class="location" id="location">THE AWAKENING</div><div class="place-tagline" id="place-tagline" aria-live="off"></div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+ </div><div class="tend-compass" id="tend-compass" aria-live="off">✧ EXPLORE · TEND · OBSERVE <span id="tend-nearby">THE WORLD IS UNFOLDING</span></div><div id="echo-hud" class="echo-hud" aria-live="polite"><span>HIDDEN ECHOES</span><strong id="echo-count">0 / 9</strong><small id="ability-status">RESONANCE LOCKED · FIND 4</small></div><div class="tend-actions"><button id="call-btn" type="button" disabled aria-label="Signal Call: gather wildlife">◇ SIGNAL CALL [ F ]</button><button id="rewrite-btn" type="button" disabled aria-label="World Rewrite: restore a nearby site">⌁ WORLD REWRITE [ G ]</button></div><button id="resonance-btn" class="resonance-btn" type="button" disabled aria-label="Use resonance bloom ability">✧ RESONANCE [ Q ]</button><button id="atlas-toggle" class="atlas-toggle" type="button" aria-expanded="false" aria-controls="world-map">⌁ ATLAS [ M ]</button><button id="journal-toggle" class="journal-toggle" type="button" aria-expanded="false" aria-controls="journal-panel">◈ FIELD NOTES <span id="journal-count">0</span></button><aside id="journal-panel" class="journal-panel hidden" aria-label="Field notes"><div class="journal-heading"><span>FIELD NOTES / OBSERVATIONS</span><button type="button" id="journal-close" aria-label="Close field notes">×</button></div><p class="journal-intro">A record of the world, the things you changed, and the things that happened anyway.</p><ol id="journal-list" aria-live="polite"><li class="journal-empty">Nothing recorded yet. The world is waiting.</li></ol></aside><div id="continuity-readout" class="continuity-readout" aria-live="off"><span id="world-day">DAY 1</span><span id="world-phase">DORMANT</span></div><div id="underlayer-readout" class="underlayer-readout hidden">
+ <span>LAYER -01 · SYNTAX VAULT</span><strong>THE WORLD HAS DEPTH</strong>
+ <small>REARRANGE THE INNER STRUCTURE WITH E · RETURN VIA THE GATE</small>
+ </div><div id="frontier-readout" class="frontier-readout hidden" aria-live="off"><span>UNWRITTEN FRONTIER</span><strong id="frontier-name">WORLD NODE</strong><small id="frontier-stats">GENERATING AS YOU GO</small></div><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE GROWING WORLD · V1.7</div><div class="location" id="location">THE AWAKENING</div><div class="place-tagline" id="place-tagline" aria-live="off"></div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="pause-screen hidden" id="pause-screen" role="dialog" aria-label="Simulation paused" aria-modal="true"><div class="pause-panel"><div class="pause-eyebrow">TRANSMISSION INTERRUPTED</div><h2>SIMULATION <em>PAUSED.</em></h2><p>The world remains. Return whenever you are ready.</p><div class="pause-actions"><button id="resume-btn" type="button" class="pause-primary">RESUME EXPLORING <span>↗</span></button><button id="pause-settings-btn" type="button" class="pause-secondary">WORLD PARAMETERS ⚙</button></div><div class="pause-tip">P — PAUSE / RESUME · ESC — RELEASE CURSOR</div></div></div><div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="continuity-settings"><span>WORLD MEMORY · SAVED IN THIS BROWSER</span><span id="continuity-status">Checking local storage…</span><button type="button" id="reset-memory">RESET WORLD &amp; REAWAKEN</button><button type="button" id="replay-awakening">REPLAY AWAKENING (KEEP PROGRESS)</button></div><div class="panel-small">Press P at any time to return to this menu. ESC releases the mouse cursor.</div></div>
 <div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">The world does not end at the edge of the map. Wander beyond the familiar streets to find living biomes, discover new world nodes, and help reality grow.</p><div class="return-report hidden" id="return-report"><div class="return-eyebrow">WHILE YOU WERE AWAY</div><strong id="return-time"></strong><ul id="return-events"></ul></div><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — WIREFRAME <span>•</span> R — ANIME REALITY <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 1.7.0<br/>EVERYTHING IS CODE.</div></div>
@@ -115,6 +119,7 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
  recordJournal(event);
  if(event.type==='REGION')announce(event.title,4);
 }});
+const underlayer=createUnderlayer(scene);
 const frontier=createFrontier(scene,{
  onEvent(event){
   recordJournal(event);
@@ -222,6 +227,7 @@ let saveSupported=true;
 if(continuity.saved){
  ecosystem.restore(continuity.snapshot);
  frontier.restore(continuity.snapshot.frontierState||{});
+ underlayer.restore(continuity.snapshot.underlayerState||{});
  neighborhoods.restore(continuity.snapshot.placeState||{});
  echoes.restore(continuity.snapshot.echoes||[]);
  tendingWorld.restore(continuity.snapshot.restoredSites||[]);
@@ -246,6 +252,7 @@ function saveWorld(){
  snapshot.restoredSites=tendingWorld.getRestored();snapshot.lastCallAt=lastCallAt;
  snapshot.placeState=neighborhoods.snapshot();
  snapshot.frontierState=frontier.snapshot();
+ snapshot.underlayerState=underlayer.snapshot();
  saveSupported=writeContinuity(snapshot,unifiedJournal);
  document.querySelector('#continuity-status').textContent=saveSupported?'Memory saved locally':'Browser storage unavailable — session only';
  return saveSupported;
@@ -415,6 +422,27 @@ function completeFragment(item){
 }
 function interact(){
  if(!active||menuVisible())return;
+ // Wireframe Vision reveals a small playable lower layer and its rewrite nexus.
+ if(underlayer.inside||wireframe){
+  const layerAction=underlayer.interact(camera.position,wireframe);
+  if(layerAction){
+   if(layerAction.type==='enter'||layerAction.type==='exit'){
+    camera.position.set(layerAction.x,layerAction.y,layerAction.z);
+    vy=0;grounded=true;keys.clear();resetJoystick();
+    announce(layerAction.type==='enter'?'UNDERLAYER -01 · FIND THE REWRITE NEXUS AND RETURN VIA THE GATE.':'BACK ABOVE THE SURFACE.',8);
+    recordJournal({type:'STRATA',title:layerAction.title,
+      description:layerAction.type==='enter'?'YOU FOUND A HIDDEN SPACE BENEATH THE VISIBLE WORLD.':'YOU RETURNED TO THE VISIBLE WORLD.'});
+   }else{
+    recordJournal({type:'WORLD REWRITE',title:layerAction.title,
+     description:'YOU SHIFTED THE LOWER STRUCTURE INTO ARRANGEMENT '+(layerAction.arrangement+1)+'.'});
+    announce('SYNTAX VAULT REARRANGED · THE STRUCTURE REMEMBERS.',7);
+   }
+   triggerCodePulse(camera.position,clock.elapsedTime);
+   saveWorld();return;
+  }
+  if(underlayer.inside)return;
+ }
+
  const tender=tendingWorld.getNearby(camera.position);
  if(tender&&echoes.getCount()>=REWRITE_UNLOCK){useWorldRewrite();return;}
  const echo=echoes.interact(camera.position);
@@ -462,6 +490,12 @@ let wireframe=false,animeReality=false;
 const visionButton=document.querySelector('#vision');
 function setVision(enabled){
  if(enabled&&animeReality)setReality(false);
+ if(!enabled&&underlayer.inside){
+  underlayer.exitLayer();camera.position.set(underlayer.position.x,1.72,underlayer.position.z);
+  vy=0;grounded=true;keys.clear();resetJoystick();
+  announce('EXITED UNDERLAYER · REALITY RESTORED.',5);
+ }
+ underlayer.setVisible(enabled);
  wireframe=enabled;visionButton.setAttribute('aria-pressed',String(enabled));
  visionButton.classList.toggle('selected',enabled);
  visionButton.querySelector('span').textContent=enabled?'RESTORE CODE [ V ]':'CODE VISION [ V ]';
@@ -647,6 +681,7 @@ renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId
 interactionLabel.addEventListener('click',interact);
 document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(!menuVisible()&&grounded){vy=5.1;grounded=false;}});
 function collision(x,z){
+ if(underlayer.inside)return !underlayer.bounds(x,z);
  // Check each obstacle independently; an unrelated box must never end the test.
  for(const b of solidity){
   if(camera.position.y>b.y+b.h/2+.6||camera.position.y<b.y-b.h/2-1)continue;
@@ -673,6 +708,8 @@ function tick(){
  const reduced=document.querySelector('#reduced').checked;
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
+ underlayer.update(t,dt,{wireframe,reduced});
+ document.querySelector('#underlayer-readout').classList.toggle('hidden',!underlayer.inside);
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  artDirection.update(t,dt,reduced);
@@ -690,7 +727,7 @@ function tick(){
  document.querySelector('#tend-nearby').textContent=tendingNearby?'NEARBY: '+tendingNearby.name:ecoGuideText(ecosystemState.region);
  document.querySelector('#world-day').textContent='DAY '+ecosystem.getDay();
  const phase=ecosystem.getPhase();
- const placeState=neighborhoods.update(t,camera.position,{phase,day:ecosystem.getDay(),reduced,paused:menuVisible()||!active,active:active&&!awakening.isBlocking()});
+ const placeState=neighborhoods.update(t,camera.position,{phase,day:ecosystem.getDay(),reduced,paused:menuVisible()||!active,active:active&&!underlayer.inside&&!awakening.isBlocking()});
  if(districtBannerUntil&&t>districtBannerUntil){neighborhood.classList.add('hidden');districtBannerUntil=0;}
  sky.setDayPhase(phase);
  setAnimeDayPhase(phase);
@@ -712,12 +749,13 @@ function tick(){
  for(const item of interactables){if(!reduced){item.prism.rotation.y+=dt*.8;item.prism.position.y=2.05+Math.sin(t*1.7+item.number)*.22;item.halo.rotation.z+=dt*.28;}}
  for(const item of sculptures){if(!reduced){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}}
  let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
+ const nearLayerGate=underlayer.nearGate(camera.position,wireframe);
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
  const livingNearby=livingWorld.encounters.find(item=>Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<item.r);
  const frontierNearby=frontierState.node;
- interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- const canInteract=!!(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby);
+ interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ const canInteract=!!(nearLayerGate||nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby);
  interactionLabel.classList.toggle('visible',canInteract);
  interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
@@ -739,7 +777,8 @@ function tick(){
   if(!collision(camera.position.x,nextZ))camera.position.z=nextZ;
   if(keys.has('Space')&&grounded){vy=5.1;grounded=false;}
   vy-=13*dt;camera.position.y+=vy*dt;
-  if(camera.position.y<=1.72){camera.position.y=1.72;vy=0;grounded=true;}
+  const floorEye=underlayer.inside?UNDERLAYER_EYE:1.72;
+  if(camera.position.y<=floorEye){camera.position.y=floorEye;vy=0;grounded=true;}
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
@@ -756,7 +795,7 @@ function tick(){
  }else{wayfinder.textContent='◇ SYSTEM AT REST';metric.textContent='COMPLETE';}
  if(mapOpen)atlas.refresh();
  const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
- document.querySelector('#location').textContent=localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
+ document.querySelector('#location').textContent=underlayer.inside?'THE SYNTAX VAULT':localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
  document.querySelector('#place-tagline').textContent=placeState.district?.subtitle||'';
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
