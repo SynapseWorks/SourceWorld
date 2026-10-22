@@ -1,4 +1,4 @@
-# SourceWorld v1.0 — Connections
+# SourceWorld v1.1 — A World With Memory
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -137,6 +137,15 @@ This is the first ecosystem prototype, not a full agent-based society. Residents
 - Wildlife now has an energy state, chooses vegetation to forage, consumes available nectar, and restores energy when feeding. Plants replenish resources based on regional moisture; a plant's visible size includes its available resources. Weather therefore indirectly influences foraging.
 - The system is deterministic and bounded, with session-local state and no database. Ecological processes update in fixed batches; visuals animate smoothly.
 - Current limitations: routes are schematic and don't yet support pathfinding, creature navigation is approximate, wildlife doesn't breed or die, and ecosystem state resets on reload.
+
+## A World With Memory (v1.1)
+
+- Ecological state is now saved locally in the current browser, with a versioned document and safe fallback if storage is blocked. No server, account, or cross-device sync.
+- When you return, elapsed wall-clock time advances the ecology using a deterministic bounded aggregate update (maximum seven days of offline progression). Plants mature, nectar recovers, regional moisture and growth evolve, and wildlife energy/positions shift.
+- Time has day/night phases (12 real minutes per simulation day). City walkers are more active during daylight; some remain visible overnight.
+- A 'While You Were Away' report summarizes changes. A small HUD shows simulation day and phase. The settings menu includes a local-memory reset control.
+- Saves occur periodically and on page hide. Clearing the browser's site data will remove the save.
+- This is offline progression **for the ecosystem only**. Narrative items and exact individual NPC positions are not yet persisted. No simulation runs on a server while the game is closed; instead, elapsed time is applied on the next visit.
 
 ## Future ideas
 
