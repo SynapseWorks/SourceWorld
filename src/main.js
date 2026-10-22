@@ -50,26 +50,27 @@ function toggleJournal(open){
 }
 journalButton.addEventListener('click',()=>toggleJournal(!notesOpen));
 document.querySelector('#journal-close').addEventListener('click',()=>toggleJournal(false));
-const livingWorld=createLivingWorld(scene,{onEvent(event){
+const unifiedJournal=[];
+function recordJournal(entry){
+ unifiedJournal.unshift({type:entry.type,title:entry.title,description:entry.description});
+ if(unifiedJournal.length>16)unifiedJournal.length=16;
  journalList.replaceChildren();
- event.journal.forEach(entry=>{
+ unifiedJournal.forEach(item=>{
   const li=document.createElement('li');
-  const category=document.createElement('small');category.textContent=entry.type;
-  const title=document.createElement('strong');title.textContent=entry.title;
-  const description=document.createElement('p');description.textContent=entry.description;
+  const category=document.createElement('small');category.textContent=item.type;
+  const title=document.createElement('strong');title.textContent=item.title;
+  const description=document.createElement('p');description.textContent=item.description;
   li.append(category,title,description);journalList.append(li);
  });
- document.querySelector('#journal-count').textContent=event.journal.length;
+ document.querySelector('#journal-count').textContent=unifiedJournal.length;
+}
+const livingWorld=createLivingWorld(scene,{onEvent(event){
+ recordJournal(event);
  if(event.type==='DISCOVERY'||event.type==='WITNESSED')announce(event.description,7);
 }});
 const ecosystem=createEcosystem(scene,{onEvent(event){
-  const notes=livingWorld.getJournal();
-  notes.unshift({type:event.type,title:event.title,description:event.description});
-  if(notes.length>12)notes.length=12;
-  journalList.replaceChildren();
-  notes.forEach(entry=>{const li=document.createElement('li');const type=document.createElement('small');type.textContent=entry.type;const title=document.createElement('strong');title.textContent=entry.title;const body=document.createElement('p');body.textContent=entry.description;li.append(type,title,body);journalList.append(li);});
-  document.querySelector('#journal-count').textContent=notes.length;
-  if(event.type==='REGION')announce(event.title,4);
+ recordJournal(event);
+ if(event.type==='REGION')announce(event.title,4);
 }});
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
