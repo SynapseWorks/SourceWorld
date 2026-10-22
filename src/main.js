@@ -14,11 +14,11 @@ app.innerHTML=`
 <div id="viewport" aria-label="3D digital world"></div>
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span><span class="system-weather" id="weather-state" aria-live="off">ATMOSPHERE / STABLE</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
-<button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
+<button id="pause-btn" class="pause-btn" type="button" aria-label="Pause and open settings" title="Pause / Settings (P)">Ⅱ <span>MENU [ P ]</span></button><button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
 <div class="bottomleft"><div class="eyebrow">SIMULATION 001 / INSIDE THE CODE · V0.7</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
-<div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press ESC to unlock the cursor at any time.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">Look beyond the surface. Falling symbols illuminate the structures of reality from within. Wander an impossible landscape written in living information.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> ESC — PAUSE</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.7.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="pause-screen hidden" id="pause-screen" role="dialog" aria-label="Simulation paused" aria-modal="true"><div class="pause-panel"><div class="pause-eyebrow">TRANSMISSION INTERRUPTED</div><h2>SIMULATION <em>PAUSED.</em></h2><p>The world remains. Return whenever you are ready.</p><div class="pause-actions"><button id="resume-btn" type="button" class="pause-primary">RESUME EXPLORING <span>↗</span></button><button id="pause-settings-btn" type="button" class="pause-secondary">WORLD PARAMETERS ⚙</button></div><div class="pause-tip">P — PAUSE / RESUME · ESC — RELEASE CURSOR</div></div></div><div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press P at any time to return to this menu. ESC releases the mouse cursor.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">Look beyond the surface. Falling symbols illuminate the structures of reality from within. Wander an impossible landscape written in living information.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.7.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -161,7 +161,7 @@ function completeFragment(item){
  announce('FRAGMENT '+item.number+' RECOVERED — '+item.label+(recovered.size===3?' · THE SOURCE IS READY':''));
 }
 function interact(){
- if(!active)return;
+ if(!active||menuVisible())return;
  for(const item of interactables){
   if(!item.done&&Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<3.4){completeFragment(item);return;}
  }
@@ -212,36 +212,75 @@ const particlesGeo=new THREE.BufferGeometry();particlesGeo.setAttribute('positio
 const particles=new THREE.Points(particlesGeo,new THREE.PointsMaterial({color:'#1acb70',size:.045,transparent:true,opacity:.48,depthWrite:false}));scene.add(particles);
 
 const intro=document.querySelector('#intro'),enter=document.querySelector('#enter');
+const pauseScreen=document.querySelector('#pause-screen'),pauseButton=document.querySelector('#pause-btn');
+const resumeButton=document.querySelector('#resume-btn'),pauseSettingsButton=document.querySelector('#pause-settings-btn');
+let paused=false,everEntered=false,unlockForMenu=false;
+function menuVisible(){return paused||settings.classList.contains('open');}
+function pauseGame(show=true){
+ if(!everEntered)return;
+ paused=show;keys.clear();resetJoystick();
+ pauseScreen.classList.toggle('hidden',!show);
+ pauseButton.setAttribute('aria-expanded',String(show));
+ if(show){
+  intro.classList.add('hidden');
+  if(document.pointerLockElement===renderer.domElement){unlockForMenu=true;document.exitPointerLock();}
+  resumeButton.focus();
+ }else{
+  toggleSettings(false);
+  if(!mobile)capture();
+ }
+}
+pauseButton.addEventListener('click',()=>pauseGame(!paused));
+resumeButton.addEventListener('click',()=>pauseGame(false));
+pauseSettingsButton.addEventListener('click',()=>toggleSettings(true));
 const settings=document.querySelector('#settings'),settingsBtn=document.querySelector('#settings-btn');
 let active=false,locked=false,mobile=matchMedia('(pointer:coarse)').matches;
 const settingsTrigger=document.querySelector('#settings-btn');
-settings.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();toggleSettings(false);settingsTrigger.focus();}});
+settings.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();toggleSettings(false);(paused?pauseSettingsButton:settingsTrigger).focus();}});
 let yaw=0,pitch=0,vy=0,grounded=true;const keys=new Set();
 const clock=new THREE.Clock();
 
 function capture(){
- if(mobile){active=true;intro.classList.add('hidden');return;}
+ everEntered=true;paused=false;
+ pauseScreen.classList.add('hidden');
+ intro.classList.add('hidden');
+ if(mobile){active=true;return;}
  const request=renderer.domElement.requestPointerLock?.();
  if(request&&typeof request.catch==='function')request.catch(()=>{intro.classList.remove('hidden');});
 }
 enter.addEventListener('click',capture);
-renderer.domElement.addEventListener('click',()=>{if(active&&!mobile&&!settings.classList.contains('open'))capture();});
+renderer.domElement.addEventListener('click',()=>{if(active&&!mobile&&!menuVisible())capture();});
 document.addEventListener('pointerlockchange',()=>{
  locked=document.pointerLockElement===renderer.domElement;
- if(locked){active=true;intro.classList.add('hidden');settings.classList.remove('open');}
- else if(active&&!mobile){intro.classList.remove('hidden');enter.innerHTML='RESUME SIMULATION <span>↗</span>';}
+ if(locked){active=true;everEntered=true;paused=false;intro.classList.add('hidden');pauseScreen.classList.add('hidden');}
+ else if(active&&!mobile){
+  keys.clear();
+  if(unlockForMenu){unlockForMenu=false;return;}
+  pauseGame(true);
+ }
 });
 document.addEventListener('mousemove',e=>{
  if(!locked)return;yaw-=e.movementX*.0022;pitch=Math.max(-1.48,Math.min(1.48,pitch-e.movementY*.0022));
 });
-window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();if(e.code==='KeyV'&&!e.repeat&&document.activeElement?.tagName!=='INPUT')setVision(!wireframe);});
+window.addEventListener('keydown',e=>{
+ const editing=['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
+ if(e.code==='KeyP'&&!e.repeat&&!editing){e.preventDefault();if(everEntered)pauseGame(!paused);return;}
+ if(e.code==='Escape'&&paused&&!settings.classList.contains('open')){e.preventDefault();pauseGame(false);return;}
+ if(menuVisible()||editing)return;
+ if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+ keys.add(e.code);
+ if(e.code==='KeyE'&&!e.repeat)interact();
+ if(e.code==='KeyV'&&!e.repeat)setVision(!wireframe);
+});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();resetJoystick();});
 function toggleSettings(open){
+ if(open&&everEntered&&!paused)pauseGame(true);
  settings.classList.toggle('open',open);settings.classList.toggle('hidden',!open);
  settingsBtn.setAttribute('aria-expanded',String(open));
- if(open&&locked)document.exitPointerLock();
- if(open)document.querySelector('#settings-close').focus();
+ if(open){settings.style.zIndex='30';document.querySelector('#settings-close').focus();}
+ else if(paused){pauseSettingsButton.focus();}
 }
+
 settingsBtn.addEventListener('click',()=>toggleSettings(!settings.classList.contains('open')));
 document.querySelector('#settings-close').addEventListener('click',()=>toggleSettings(false));
 document.querySelector('#weather-toggle').addEventListener('change',e=>simulationWeather.setEnabled(e.target.checked));
@@ -258,7 +297,7 @@ const joystick=document.querySelector('#joystick'),knob=document.querySelector('
 let touchMoveX=0,touchMoveY=0,joystickId=null,lookId=null,lastLook={x:0,y:0};
 if(mobile){document.querySelector('#touch-controls').classList.add('visible');}
 renderer.domElement.addEventListener('pointerdown',e=>{
- if(!mobile||!active)return;
+ if(!mobile||!active||menuVisible())return;
  if(e.clientX>=innerWidth*.35){lookId=e.pointerId;lastLook={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId);}
 });
 function updateJoystick(e){
@@ -267,7 +306,7 @@ function updateJoystick(e){
  touchMoveY=Math.max(-1,Math.min(1,(e.clientY-cy)/40));
  knob.style.transform=`translate(${touchMoveX*32}px,${touchMoveY*32}px)`;
 }
-joystick.addEventListener('pointerdown',e=>{if(!active)return;e.preventDefault();joystickId=e.pointerId;joystick.setPointerCapture(e.pointerId);updateJoystick(e);});
+joystick.addEventListener('pointerdown',e=>{if(!active||menuVisible())return;e.preventDefault();joystickId=e.pointerId;joystick.setPointerCapture(e.pointerId);updateJoystick(e);});
 joystick.addEventListener('pointermove',e=>{if(e.pointerId===joystickId)updateJoystick(e);});
 joystick.addEventListener('pointerup',resetJoystick);joystick.addEventListener('pointercancel',resetJoystick);
 function resetJoystick(){joystickId=null;touchMoveX=touchMoveY=0;knob.style.transform='translate(0,0)';}
@@ -275,7 +314,7 @@ renderer.domElement.addEventListener('pointermove',e=>{if(!mobile||e.pointerId!=
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null;});
 renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null;});
 interactionLabel.addEventListener('click',interact);
-document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(grounded){vy=5.1;grounded=false;}});
+document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(!menuVisible()&&grounded){vy=5.1;grounded=false;}});
 function collision(x,z){
  // Check each obstacle independently; an unrelated box must never end the test.
  for(const b of solidity){
@@ -311,7 +350,7 @@ function tick(){
  interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
  const canInteract=!!(nearby||nearSource||nearHeart);
  interactionLabel.classList.toggle('visible',canInteract);
- interactionLabel.disabled=!canInteract;
+ interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
  forest.updateVisibility(camera.position);
  setCodeTime(t);
@@ -319,7 +358,7 @@ function tick(){
  if(!reduced){sourceGroup.rotation.y=t*.13;core.rotation.x=t*.06;
  ring.rotation.z=t*.11;ring2.rotation.x=t*.09;
  particles.rotation.y=t*.0003;}
- if(active&&(locked||mobile)){
+ if(active&&!paused&&!menuVisible()&&(locked||mobile)){
   const forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-touchMoveY;
   const strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+touchMoveX;
   const direction=new THREE.Vector2(strafe,forward);if(direction.length()>1)direction.normalize();
