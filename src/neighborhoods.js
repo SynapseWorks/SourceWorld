@@ -94,6 +94,63 @@ export function createNeighborhoods(scene,{onEvent=()=>{},onDistrict=()=>{},onTe
   }));light.position.set(x,y,z);light.scale.set(2.4,2.4,1);parent.add(light);timeLights.push(light);}
   return body;
  }
+ // The same storefront identities remain legible in Code Reality.
+ // Every frontage has a holographic business name and an individual rooftop glyph.
+ function hologram(parcel){
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=160;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,512,160);
+  ctx.fillStyle='rgba(2,18,18,.86)';ctx.fillRect(0,0,512,160);
+  ctx.strokeStyle='#52d5a0';ctx.lineWidth=4;ctx.strokeRect(8,8,496,144);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#9bffcd';
+  let fontSize=parcel.name.length>15?32:parcel.name.length>11?39:43;
+  ctx.font='700 '+fontSize+'px monospace';
+  while(ctx.measureText(parcel.name).width>455&&fontSize>22){
+   fontSize-=2;ctx.font='700 '+fontSize+'px monospace';
+  }
+  ctx.fillText(parcel.name,256,64);
+  ctx.font='600 19px monospace';ctx.fillStyle='#65b992';
+  ctx.fillText(parcel.purpose.toUpperCase(),256,124);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+  const plaque=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(4.1,parcel.d*.62),1.1),
+   new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.DoubleSide,depthWrite:false}));
+  plaque.position.set(parcel.face-parcel.side*.46,3.21,parcel.z);
+  plaque.rotation.y=parcel.side===1?-Math.PI/2:Math.PI/2;
+  city.add(plaque);
+  const top=parcel.h;
+  const x=parcel.x,z=parcel.z;
+  switch(parcel.kind){
+   case 'tea':case 'food':{
+    for(let i=0;i<3;i++){
+     const ring=new THREE.Mesh(new THREE.TorusGeometry(.34+i*.19,.035,5,28),luminous);
+     ring.position.set(x+(i-1)*.9,top+1.25+i*.44,z);
+     ring.rotation.x=Math.PI/2;city.add(ring);
+    }
+    break;
+   }
+   case 'books':case 'post':{
+    for(let i=0;i<5;i++)box(city,x+((i-2)*.45),top+.65,z,.24,1.25+(i%3)*.45,.65,luminous);
+    break;
+   }
+   case 'plants':case 'home':{
+    for(let i=0;i<5;i++){
+     const shrub=new THREE.Mesh(sharedCone,leaf);
+     shrub.position.set(x+(i-2)*1.2,top+.78,z);
+     shrub.scale.set(.6,.94+(i%3)*.18,.6);city.add(shrub);
+    }
+    break;
+   }
+   case 'textile':{
+    for(let i=0;i<4;i++)box(city,x-1.5+i,top+.72,z,.16,1.35,.55,luminous).rotation.z=(i%2?1:-1)*.21;
+    break;
+   }
+   case 'clock':{
+    const dial=new THREE.Mesh(new THREE.TorusGeometry(1.3,.10,7,32),luminous);
+    dial.position.set(x,top+1.8,z);dial.rotation.y=Math.PI/2;city.add(dial);break;
+   }
+  }
+ }
+ CITY_PARCELS.forEach(hologram);
  // The lantern street runs above the avenue; high enough not to obstruct players.
  for(const z of [-27,-41,-55]){
   for(const anime of [false,true]){
