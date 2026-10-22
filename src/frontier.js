@@ -243,7 +243,14 @@ export function createFrontier(scene,{seed=FRONTIER_SEED,onEvent=()=>{}}={}){
   landGeo.dispose();plantGeo.dispose();crystalGeo.dispose();rockGeo.dispose();
   Object.values(materials).forEach(m=>m.dispose());
  }
- return {update,refresh,interact,nearbyNode,snapshot,restore,dispose,
+ function getDiscoveredNodes(){
+  return [...discovered].map(id=>{
+   const match=/^frontier:(-?\d+):(-?\d+)$/.exec(id);
+   if(!match)return null;
+   return frontierNode(Number(match[1]),Number(match[2]),seed);
+  }).filter(Boolean);
+ }
+ return {update,refresh,interact,nearbyNode,snapshot,restore,dispose,getDiscoveredNodes,
   getStats:()=>({chunks:chunks.size,discovered:discovered.size,attuned:attuned.size}),
   nodeAt:frontierNode,biomeAt:frontierAt};
 }
