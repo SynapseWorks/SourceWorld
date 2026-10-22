@@ -110,12 +110,73 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
  }
  const state=regions.map(r=>({...r,humidity:r.moisture,growth:.3,fauna:0,activity:.5}));
  let accumulation=0,simTime=0,lastCycle=-1,lastWeather='STABLE',lastPlayerRegion='';
+ let epoch=0;
+ const DAY=720; // 12 real-time minutes per complete simulation day.
+ const safe=(v,defaultValue,min=0,max=1)=>Number.isFinite(v)?THREE.MathUtils.clamp(v,min,max):defaultValue;
+ function snapshot(){
+  return {simTime,biomes:state.map(s=>({id:s.id,humidity:s.humidity,growth:s.growth,activity:s.activity})),
+   plants:plants.map(p=>({age:p.age,nectar:p.nectar})),
+   wildlife:wildlife.map(c=>({energy:c.energy,angle:c.angle}))};
+ }
+ function restore(saved){
+  if(!saved||!Array.isArray(saved.biomes))return false;
+  simTime=safe(saved.simTime,0,0,1e9);
+  for(const entry of saved.biomes){
+   const s=state.find(item=>item.id===entry.id);if(!s)continue;
+   s.humidity=safe(entry.humidity,s.humidity,.03,1);
+   s.growth=safe(entry.growth,s.growth);
+   s.activity=safe(entry.activity,s.activity);
+  }
+  if(Array.isArray(saved.plants))saved.plants.slice(0,plants.length).forEach((p,i)=>{
+   plants[i].age=safe(p.age,plants[i].age);
+   plants[i].nectar=safe(p.nectar,plants[i].nectar);
+  });
+  if(Array.isArray(saved.wildlife))saved.wildlife.slice(0,wildlife.length).forEach((c,i)=>{
+   wildlife[i].energy=safe(c.energy,wildlife[i].energy,.05,1);
+   wildlife[i].angle=safe(c.angle,wildlife[i].angle,-1e8,1e8);
+  });
+  lastCycle=Math.floor(simTime/125);
+  return true;
+ }
+ function fastForward(seconds){
+  const elapsed=safe(seconds,0,0,604800);
+  if(!elapsed)return [];
+  const before=state.map(s=>({id:s.id,growth:s.growth,humidity:s.humidity}));
+  // Deterministic aggregate offline evolution; bounded independent of elapsed hours.
+  // Avoid simulating tens of millions of render frames for a week of absence.
+  simTime+=elapsed;
+  const days=elapsed/DAY;
+  state.forEach((s,i)=>{
+   const rainCycle=.5+.5*Math.sin(simTime*.002+i*2.3);
+   const humidityTarget=THREE.MathUtils.clamp(s.moisture*.68+rainCycle*.32,.03,1);
+   s.humidity=THREE.MathUtils.lerp(s.humidity,humidityTarget,1-Math.exp(-elapsed/1800));
+   const capacity=s.humidity*.78+s.energy*.22;
+   s.growth=THREE.MathUtils.lerp(s.growth,capacity,1-Math.exp(-elapsed/4200));
+   s.activity=.38+s.energy*.3+(Math.sin(simTime/DAY*6.283+i)*.12);
+  });
+  plants.forEach((p,i)=>{
+   const biome=state.find(s=>s.id===p.region.id);
+   p.age=Math.min(1,p.age+elapsed*(.001+biome.humidity*.002));
+   p.nectar=THREE.MathUtils.lerp(p.nectar,biome.humidity*.8+.2,1-Math.exp(-elapsed/700));
+  });
+  wildlife.forEach((c,i)=>{
+   c.energy=THREE.MathUtils.clamp(c.energy+(Math.sin(i*4.7+simTime/900)*.12),.18,1);
+   c.angle+=elapsed*c.speed*.35;
+  });
+  lastCycle=Math.floor(simTime/125);
+  return state.filter((s,i)=>Math.abs(s.growth-before[i].growth)>.015||Math.abs(s.humidity-before[i].humidity)>.05)
+   .map(s=>s.name+' has continued to change').slice(0,4);
+ }
+ const currentDay=()=>Math.floor(simTime/DAY)+1;
+ const dayPhase=()=>simTime%DAY/DAY;
+
  const stateFor=(r)=>state.find(s=>s.id===r.id);
  const publicState=()=>state.map(({id,name,humidity,growth,fauna,activity})=>({id,name,humidity,growth,fauna,activity}));
  function notice(type,title,description){onEvent({type,title,description});}
  function update(t,dt,player,{paused=false,reduced=false,weather='STABLE'}={}){
   if(paused)return {region:lastPlayerRegion,summary:publicState()};
   const step=Math.min(dt,.08);simTime+=step;accumulation+=step;
+  const daylight=Math.sin(dayPhase()*Math.PI*2-Math.PI/2)*.5+.5;
   const storm=weather==='CODE STORM'?1:weather==='DATA DRIZZLE'?.43:0;
   if(accumulation>=.45){
    const delta=accumulation;accumulation=0;
@@ -129,7 +190,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
     s.humidity=THREE.MathUtils.clamp(s.humidity+storm*.039*delta-drainage*delta,.03,1);
     const capacity=(s.humidity*.68+s.energy*.12+Math.min(1,(regionPlants.get(s.id)?.reduce((acc,p)=>acc+p.nectar,0)||0)/Math.max(1,regionPlants.get(s.id)?.length||1))*.20);
     s.growth=THREE.MathUtils.clamp(s.growth+(capacity-s.growth)*delta*.034,0,1);
-    s.activity=THREE.MathUtils.clamp(.4+s.energy*.32+storm*(s.kind==='city'?- .18:.16),0,1);
+    s.activity=THREE.MathUtils.clamp(.18+daylight*.5+s.energy*.23+storm*(s.kind==='city'?-.18:.16),0,1);
    });
   }
   for(const plant of plants){
@@ -149,7 +210,7 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    p.person.rotation.y=Math.atan2(ahead.x-pos.x,ahead.z-pos.z);
    const proximity=Math.hypot(pos.x-player.x,pos.z-player.z);
    if(proximity<30)cityNearby++;
-   p.person.visible=proximity<82;
+   p.person.visible=proximity<82&&(daylight>.15||p.role%4===0);
    if(proximity<4&&!p.noticed){p.noticed=true;notice('ENCOUNTER','A PASSING SIGNAL','AN INHABITANT ACKNOWLEDGED YOUR PRESENCE, THEN CONTINUED ON THEIR WAY.');}
    if(proximity>9)p.noticed=false;
   }
@@ -196,5 +257,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   lastWeather=weather;
   return {region,summary:publicState()};
  }
- return {update,getState:publicState,regions};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase};
 }
