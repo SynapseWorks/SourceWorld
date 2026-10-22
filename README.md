@@ -1,4 +1,4 @@
-# SourceWorld v1.1 — A World With Memory
+# SourceWorld v1.2 — The World Responds
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -30,6 +30,7 @@ GitHub Actions verifies JavaScript syntax, creates a production build, and runs 
 - **P** — open/close simulation pause menu and settings
 - **J** — open/close Field Notes, showing encounters from the current session
 - **M** — open/close the Source Atlas, choose a navigation target
+- **Q** — use Resonance Bloom once unlocked (also available as a button)
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
 - **Mobile** — left touch pad to move; drag right side to look
@@ -146,6 +147,15 @@ This is the first ecosystem prototype, not a full agent-based society. Residents
 - A 'While You Were Away' report summarizes changes. A small HUD shows simulation day and phase. The settings menu includes a local-memory reset control.
 - Saves occur periodically and on page hide. Clearing the browser's site data will remove the save.
 - This is offline progression **for the ecosystem only**. Narrative items and exact individual NPC positions are not yet persisted. No simulation runs on a server while the game is closed; instead, elapsed time is applied on the next visit.
+
+## The World Responds (v1.2)
+
+- Three main recovery prisms have been moved toward side streets rather than the middle of the road. Their mission function remains intact.
+- Nine additional **optional hidden Echoes** are scattered beyond the obvious path. They become noticeable on approach rather than being permanently marked on the compass. Collect with E when nearby; a subtle HUD shows progression.
+- Collect **four Echoes** to unlock **Resonance Bloom**. Press Q (or its button) to boost nearby vegetation and the moisture/growth of the nearest non-city biome. It creates a new, visibly growing garden trace at your location.
+- Resonance has a 90-second in-world cooldown. Collected Echo IDs and intervention traces are saved locally alongside the ecosystem, so returning retains changes you've made.
+- The city now has changing street-light brightness and temporary gatherings at authored plaza sites as simulation time advances. NPCs are still placeholder assets and scripted walkers, ready to be replaced with more detailed characters later.
+- The main narrative remains achievable without collecting optional Echoes.
 
 ## Future ideas
 
