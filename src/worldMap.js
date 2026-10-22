@@ -1,6 +1,6 @@
 // Lightweight DOM/SVG map: no extra renderer and no third-party mapping dependency.
 // All coordinates refer to the same X/Z plane used by Three.js.
-export function createWorldMap({mount,regions,getPlayer,onNavigate,onClose}){
+export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavigate,onClose}){
  const locations=[
   {name:'THE AWAKENING',x:0,z:7,type:'origin'},
   {name:'MIRROR PLAZA',x:-43,z:-34,type:'landmark'},
@@ -9,7 +9,8 @@ export function createWorldMap({mount,regions,getPlayer,onNavigate,onClose}){
   {name:'ECHO CLEARING',x:-31,z:-153,type:'landmark'},
   {name:'MEMORY POOL',x:32,z:-190,type:'landmark'},
   {name:'HEART OF THE GROVE',x:0,z:-217,type:'objective'},
-  ...regions.map(r=>({name:r.name,x:r.x,z:r.z,type:'region'}))
+  ...regions.map(r=>({name:r.name,x:r.x,z:r.z,type:'region'})),
+  ...extraLocations.map(p=>({name:p.name,x:p.x,z:p.z,type:'neighbourhood',description:p.subtitle}))
  ];
  const minX=-220,maxX=220,minZ=-370,maxZ=65;
  const px=x=>(x-minX)/(maxX-minX)*1000;
@@ -47,7 +48,7 @@ export function createWorldMap({mount,regions,getPlayer,onNavigate,onClose}){
   fill:'none',stroke:'#59ae83','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.7});
  for(const location of locations){
   create('circle',{cx:px(location.x),cy:py(location.z),r:location.type==='region'?9:6,
-   fill:location.type==='objective'?'#d9ffab':'#a9ffd1',stroke:'#042015','stroke-width':2});
+   fill:location.type==='objective'?'#d9ffab':location.type==='neighbourhood'?'#ffdea9':'#a9ffd1',stroke:'#042015','stroke-width':2});
   if(location.type==='region'||location.type==='objective') {
    const node=create('text',{x:px(location.x)+13,y:py(location.z)-12,fill:'#c8f9df','font-size':17,'font-family':'monospace'});
    node.textContent=location.name.replace('THE ','');
@@ -65,6 +66,7 @@ export function createWorldMap({mount,regions,getPlayer,onNavigate,onClose}){
  for(const location of locations){
   const btn=document.createElement('button');btn.type='button';btn.className='map-destination';
   btn.textContent=location.name;btn.dataset.name=location.name;
+  if(location.description)btn.title=location.description;
   btn.addEventListener('click',()=>{destination=location;onNavigate(location);
    list.querySelectorAll('button').forEach(item=>item.classList.toggle('selected',item===btn));});
   list.append(btn);
