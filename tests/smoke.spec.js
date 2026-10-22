@@ -71,3 +71,11 @@ test('world atlas shows navigable destinations and closes with keyboard',async({
  await page.locator('#world-map').press('Escape');
  await expect(page.locator('#world-map')).toBeHidden();
 });
+
+test('world memory controls are available',async({page})=>{
+ await page.goto('/');
+ await page.locator('#settings-btn').click();
+ await expect(page.locator('#reset-memory')).toBeVisible();
+ await expect(page.locator('#continuity-status')).toContainText(/autosave|restored|saved|storage/i);
+ await expect(page.locator('#world-day')).toContainText('DAY');
+});
