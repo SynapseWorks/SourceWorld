@@ -162,6 +162,8 @@ This is the first ecosystem prototype, not a full agent-based society. Residents
 
 ## Explore & Tend / Anime Reality (v1.3)
 
+- Optional controls are grouped in an expandable **Explorer Tools** dock; keyboard shortcuts work during pointer-lock exploration. On mobile, open the dock to access the viewing modes and unlocked tending actions.
+
 - **Signal Call** unlocks at six collected Echoes, attracts wildlife for 38 simulated seconds and recharges after 60 seconds. The player's presence now creates observable gatherings rather than just startling creatures.
 - **World Rewrite** unlocks at eight collected Echoes. Restore the Quiet Garden, Fractured Crossing and Wilds Beacon using G or the existing E interaction when nearby; restoration persists in browser continuity saves.
 - Prompts highlight nearby sites and encourage observing city routines, the wetland, forest and wild signals without adding compulsory missions.
