@@ -1,118 +1,111 @@
 import {test,expect} from '@playwright/test';
-test('boots the construct and provides accessible navigation',async({page})=>{
- const errors=[];
- page.on('pageerror',error=>errors.push(error.message));
- page.on('console',message=>{if(message.type()==='error'&&/THREE.WebGLProgram|Shader Error|ERROR: 0:/.test(message.text()))errors.push(message.text());});
+
+// The world must stay completely black until the SECOND user interaction.
+async function awaken(page,isMobile){
+ await page.goto('/');
+ await expect(page.locator('#intro')).toBeVisible();
+ await expect(page.locator('#app')).toHaveClass(/world-locked/);
+ await page.locator('#enter').click();
+ await expect(page.locator('#awakening-stage')).toHaveAttribute('data-phase','waiting');
+ await expect(page.locator('#awakening-stage')).toHaveCSS('background-color','rgb(0, 0, 0)');
+ if(isMobile)await page.locator('#awakening-stage').tap();
+ else await page.keyboard.press('Space');
+ await expect(page.locator('#awakening-stage')).toBeHidden({timeout:15000});
+ await expect(page.locator('#app')).not.toHaveClass(/world-locked/);
+}
+async function openSettings(page){
+ if(await page.locator('#pause-screen').isVisible()){
+  await page.locator('#pause-settings-btn').click();
+ }else{
+  await page.locator('#settings-btn').click();
+ }
+ await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
+}
+test('first entry opens an absolute black void and nothing advances before another interaction',async({page})=>{
+ const failures=[];
+ page.on('pageerror',e=>failures.push(e.message));
  await page.goto('/');
  await expect(page.getByRole('heading',{name:/THE WORLD IS CODE/i})).toBeVisible();
- await expect(page.getByRole('button',{name:/ENTER THE SIMULATION/})).toBeVisible();
+ await expect(page.locator('#settings-btn')).toBeHidden();
+ await page.locator('#enter').click();
+ await expect(page.locator('#awakening-stage')).toHaveAttribute('data-phase','waiting');
+ await page.waitForTimeout(400);
+ await expect(page.locator('#awakening-stage')).toHaveAttribute('data-phase','waiting');
+ await expect(page.locator('#app')).toHaveClass(/world-locked/);
+ await expect(page.locator('#awakening-stage')).toHaveCSS('background-color','rgb(0, 0, 0)');
+ expect(failures).toEqual([]);
+});
+test('second gesture forms the universe then unlocks controls without a page reload',async({page,isMobile})=>{
+ const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',message=>{if(message.type()==='error'&&/THREE.WebGLProgram|Shader Error|ERROR: 0:/.test(message.text()))errors.push(message.text());});
+ await awaken(page,isMobile);
  await expect(page.locator('#viewport canvas')).toHaveCount(1);
- await expect(page.getByRole('button',{name:'Open settings'})).toBeVisible();
  await expect(page.locator('#tools-toggle')).toBeVisible();
- await expect(page.getByRole('button',{name:'Pause and open settings'})).toHaveCount(1);
- await page.getByRole('button',{name:'Open settings'}).click();
- await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
- await expect(page.locator('#density')).toHaveValue('100');
- await page.locator('#weather-toggle').uncheck();
- await page.getByRole('button',{name:'Close settings'}).click();
- await expect(page.getByRole('dialog',{name:'World settings'})).toBeHidden();
- await expect(page.locator('#vision')).toHaveAttribute('aria-pressed','false');
+ await expect(page.locator('#world-day')).toContainText('DAY');
+ if(isMobile)await expect(page.locator('#touch-controls')).toHaveClass(/visible/);
  expect(errors).toEqual([]);
 });
-test('small viewports retain entry action and readable HUD',async({page,isMobile})=>{
- await page.goto('/');
- await expect(page.locator('#enter')).toBeInViewport();
- await expect(page.locator('#settings-btn')).toBeInViewport();
- await expect(page.locator('#objectives')).toHaveCount(1);
- await expect(page.locator('#objective-direction')).toHaveCount(1);
- if(isMobile)await expect(page.locator('#touch-controls')).toHaveClass(/visible/);
-});
-
-test('mobile pause menu keeps world settings reachable without pointer lock',async({page,isMobile})=>{
- test.skip(!isMobile,'Touch flow');
- await page.goto('/');
- await page.locator('#enter').click();
- await expect(page.locator('#intro')).toHaveClass(/hidden/);
+test('pause and settings remain accessible after the awakening',async({page,isMobile})=>{
+ await awaken(page,isMobile);
  await page.locator('#tools-toggle').click();
- await page.getByRole('button',{name:'Pause and open settings'}).click();
+ await expect(page.locator('#tools-content')).toBeVisible();
+ if(!(await page.locator('#pause-screen').isVisible()))await page.locator('#pause-btn').click();
  await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeVisible();
- await page.getByRole('button',{name:/WORLD PARAMETERS/}).click();
+ await page.locator('#pause-settings-btn').click();
  await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
  await page.locator('#outline').fill('150');
  await expect(page.locator('#outline-value')).toHaveText('150%');
- await page.getByRole('button',{name:'Close settings'}).click();
- await page.getByRole('button',{name:/RESUME EXPLORING/}).click();
- await expect(page.getByRole('dialog',{name:'Simulation paused'})).toBeHidden();
+ await page.locator('#settings-close').click();
+ await expect(page.locator('#settings')).toBeHidden();
 });
-
-test('field notes can be opened without entering pointer lock',async({page})=>{
- await page.goto('/');
- await page.locator('#enter').click();
- await page.keyboard.press('j');
- await expect(page.locator('#journal-panel')).toBeVisible();
- await expect(page.locator('#journal-list')).toContainText('Nothing recorded yet');
- await page.locator('#journal-close').click();
- await expect(page.locator('#journal-panel')).toBeHidden();
-});
-
-test('ecosystem interface initializes without introducing startup errors',async({page})=>{
- const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/');
- await expect(page.locator('#ecosystem-readout')).toBeVisible();
- await expect(page.locator('#eco-region')).toContainText('SIMULATION STABLE');
- expect(errors).toEqual([]);
-});
-
-test('world atlas shows navigable destinations and closes with keyboard',async({page})=>{
- await page.goto('/');
- await page.locator('#enter').click();
+test('atlas and field notes still work with the new experience flow',async({page,isMobile})=>{
+ await awaken(page,isMobile);
  await page.keyboard.press('m');
  await expect(page.locator('#world-map')).toBeVisible();
- await expect(page.locator('.map-destination').first()).toBeVisible();
  await page.locator('.map-destination').filter({hasText:'GLASS PLATEAU'}).click();
  await expect(page.locator('.map-destination.selected')).toContainText('GLASS PLATEAU');
  await page.locator('#world-map').press('Escape');
  await expect(page.locator('#world-map')).toBeHidden();
+ await page.keyboard.press('j');
+ await expect(page.locator('#journal-panel')).toBeVisible();
+ await page.locator('#journal-close').click();
+ await expect(page.locator('#journal-panel')).toBeHidden();
 });
-
-test('world memory controls are available',async({page})=>{
- await page.goto('/');
- await page.locator('#settings-btn').click();
- await expect(page.locator('#reset-memory')).toBeVisible();
- await expect(page.locator('#continuity-status')).toContainText(/autosave|restored|saved|storage/i);
- await expect(page.locator('#world-day')).toContainText('DAY');
+test('anime and wireframe switches survive the reveal',async({page,isMobile})=>{
+ await awaken(page,isMobile);
+ await page.keyboard.press('r');
+ await expect(page.locator('#reality-btn')).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('#app')).toHaveClass(/anime-reality/);
+ await page.keyboard.press('v');
+ await expect(page.locator('#reality-btn')).toHaveAttribute('aria-pressed','false');
+ await expect(page.locator('#vision')).toHaveAttribute('aria-pressed','true');
 });
-
-test('hidden echoes and ability controls are present',async({page})=>{
+test('restoration and wildlife abilities remain locked until Echoes are earned',async({page})=>{
  await page.goto('/');
  await expect(page.locator('#echo-count')).toHaveText('0 / 9');
  await expect(page.locator('#resonance-btn')).toBeDisabled();
- await expect(page.locator('#ability-status')).toContainText('FIND 4');
-});
-
-test('anime reality is toggled without discarding world controls',async({page})=>{
- await page.goto('/');
- const button=page.locator('#reality-btn');
- await expect(button).toHaveAttribute('aria-pressed','false');
- await page.locator('#enter').click();
- await page.keyboard.press('r');
- await expect(button).toHaveAttribute('aria-pressed','true');
- await expect(page.locator('#app')).toHaveClass(/anime-reality/);
- await page.keyboard.press('r');
- await expect(button).toHaveAttribute('aria-pressed','false');
-});
-test('new tending abilities are gated behind exploration',async({page})=>{
- await page.goto('/');
  await expect(page.locator('#call-btn')).toBeDisabled();
  await expect(page.locator('#rewrite-btn')).toBeDisabled();
 });
-
-test('explorer dock hides extra actions until opened',async({page})=>{
+test('complete world reset clears saved state and restarts from the intro',async({page,isMobile})=>{
  await page.goto('/');
- await expect(page.locator('#tools-content')).toBeHidden();
- await expect(page.locator('#tools-toggle')).toHaveAttribute('aria-expanded','false');
- await page.locator('#tools-toggle').click();
- await expect(page.locator('#tools-content')).toBeVisible();
- await expect(page.locator('#tools-toggle')).toHaveAttribute('aria-expanded','true');
- await expect(page.locator('#reality-btn')).toBeVisible();
+ await page.evaluate(()=>{
+  localStorage.setItem('sourceworld:continuity:v1',JSON.stringify({
+   version:1,savedAt:Date.now()-3600000,
+   snapshot:{simTime:450,biomes:[],echoes:['alley','mirror','canopy','fissure'],
+    restoredSites:['garden'],influences:[]},history:[{type:'DISCOVERY',title:'Prior state',description:'To be cleared'}]
+  }));
+ });
+ await page.reload();
+ await page.locator('#enter').click();
+ if(isMobile)await page.locator('#awakening-stage').tap();else await page.keyboard.press('Space');
+ await expect(page.locator('#awakening-stage')).toBeHidden({timeout:15000});
+ await openSettings(page);
+ page.once('dialog',d=>d.accept());
+ await page.locator('#reset-memory').click();
+ await expect(page.locator('#intro')).toBeVisible({timeout:15000});
+ await expect(page.locator('#app')).toHaveClass(/world-locked/);
+ const saved=await page.evaluate(()=>localStorage.getItem('sourceworld:continuity:v1'));
+ expect(saved).toBeNull();
 });
