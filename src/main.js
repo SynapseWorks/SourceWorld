@@ -10,6 +10,7 @@ import {createSimulationWeather} from './weather.js';
 import {createArtDirection} from './artDirection.js';
 import {createLivingWorld} from './livingWorld.js';
 import {createEcosystem} from './ecosystem.js';
+import {createWorldMap} from './worldMap.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
@@ -17,10 +18,10 @@ app.innerHTML=`
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span><span class="system-weather" id="weather-state" aria-live="off">ATMOSPHERE / STABLE</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
 <button id="pause-btn" class="pause-btn" type="button" aria-label="Pause and open settings" title="Pause / Settings (P)">Ⅱ <span>MENU [ P ]</span></button><button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
-<button id="journal-toggle" class="journal-toggle" type="button" aria-expanded="false" aria-controls="journal-panel">◈ FIELD NOTES <span id="journal-count">0</span></button><aside id="journal-panel" class="journal-panel hidden" aria-label="Field notes"><div class="journal-heading"><span>FIELD NOTES / OBSERVATIONS</span><button type="button" id="journal-close" aria-label="Close field notes">×</button></div><p class="journal-intro">A record of the world, the things you changed, and the things that happened anyway.</p><ol id="journal-list" aria-live="polite"><li class="journal-empty">Nothing recorded yet. The world is waiting.</li></ol></aside><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE LIVING ECOSYSTEM · V0.9</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<button id="atlas-toggle" class="atlas-toggle" type="button" aria-expanded="false" aria-controls="world-map">⌁ ATLAS [ M ]</button><button id="journal-toggle" class="journal-toggle" type="button" aria-expanded="false" aria-controls="journal-panel">◈ FIELD NOTES <span id="journal-count">0</span></button><aside id="journal-panel" class="journal-panel hidden" aria-label="Field notes"><div class="journal-heading"><span>FIELD NOTES / OBSERVATIONS</span><button type="button" id="journal-close" aria-label="Close field notes">×</button></div><p class="journal-intro">A record of the world, the things you changed, and the things that happened anyway.</p><ol id="journal-list" aria-live="polite"><li class="journal-empty">Nothing recorded yet. The world is waiting.</li></ol></aside><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / CONNECTIONS · V1.0</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="pause-screen hidden" id="pause-screen" role="dialog" aria-label="Simulation paused" aria-modal="true"><div class="pause-panel"><div class="pause-eyebrow">TRANSMISSION INTERRUPTED</div><h2>SIMULATION <em>PAUSED.</em></h2><p>The world remains. Return whenever you are ready.</p><div class="pause-actions"><button id="resume-btn" type="button" class="pause-primary">RESUME EXPLORING <span>↗</span></button><button id="pause-settings-btn" type="button" class="pause-secondary">WORLD PARAMETERS ⚙</button></div><div class="pause-tip">P — PAUSE / RESUME · ESC — RELEASE CURSOR</div></div></div><div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press P at any time to return to this menu. ESC releases the mouse cursor.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">No two districts are alike. Follow branching routes toward people, wild creatures, emergent gardens and weather-driven ecosystems. The world keeps changing.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.9.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">Follow the connections: hungry creatures find food, plants recover after storms, inhabitants follow their routines. Open the Atlas to choose your own route.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 1.0.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -42,6 +43,8 @@ const journalPanel=document.querySelector('#journal-panel');
 const journalButton=document.querySelector('#journal-toggle');
 const journalList=document.querySelector('#journal-list');
 let notesOpen=false;
+let mapOpen=false;
+let chosenDestination=null;
 function toggleJournal(open){
  notesOpen=open;journalPanel.classList.toggle('hidden',!open);
  journalButton.setAttribute('aria-expanded',String(open));
@@ -72,6 +75,25 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
  recordJournal(event);
  if(event.type==='REGION')announce(event.title,4);
 }});
+const atlasButton=document.querySelector('#atlas-toggle');
+const atlas=createWorldMap({
+ mount:app,regions:ecosystem.regions,getPlayer:()=>camera.position,
+ onNavigate(location){chosenDestination=location;document.querySelector('#objective-label').textContent='ATLAS DESTINATION';},
+ onClose(){toggleMap(false);}
+});
+function toggleMap(open){
+ mapOpen=open;
+ atlasButton.setAttribute('aria-expanded',String(open));
+ if(open){
+  if(notesOpen)toggleJournal(false);
+  if(everEntered&&!paused)pauseGame(true);
+  atlas.open();
+ }else{
+  atlas.close();
+  atlasButton.focus();
+ }
+}
+atlasButton.addEventListener('click',()=>toggleMap(!mapOpen));
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
 const interactables=[];
@@ -253,11 +275,12 @@ const intro=document.querySelector('#intro'),enter=document.querySelector('#ente
 const pauseScreen=document.querySelector('#pause-screen'),pauseButton=document.querySelector('#pause-btn');
 const resumeButton=document.querySelector('#resume-btn'),pauseSettingsButton=document.querySelector('#pause-settings-btn');
 let paused=false,everEntered=false,unlockForMenu=false;
-function menuVisible(){return paused||notesOpen||settings.classList.contains('open');}
+function menuVisible(){return paused||notesOpen||mapOpen||settings.classList.contains('open');}
 function pauseGame(show=true){
  if(!everEntered)return;
  paused=show;keys.clear();resetJoystick();
  if(!show&&notesOpen){notesOpen=false;journalPanel.classList.add('hidden');journalButton.setAttribute('aria-expanded','false');}
+ if(!show&&mapOpen){mapOpen=false;atlas.close();atlasButton.setAttribute('aria-expanded','false');}
  pauseScreen.classList.toggle('hidden',!show);
  pauseButton.setAttribute('aria-expanded',String(show));
  if(show){
@@ -304,9 +327,10 @@ document.addEventListener('mousemove',e=>{
 });
 window.addEventListener('keydown',e=>{
  const editing=['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
+ if(e.code==='KeyM'&&!e.repeat&&!editing){e.preventDefault();toggleMap(!mapOpen);return;}
  if(e.code==='KeyJ'&&!e.repeat&&!editing){e.preventDefault();toggleJournal(!notesOpen);return;}
  if(e.code==='KeyP'&&!e.repeat&&!editing){e.preventDefault();if(everEntered)pauseGame(!paused);return;}
- if(e.code==='Escape'&&paused&&!settings.classList.contains('open')&&!notesOpen){e.preventDefault();pauseGame(false);return;}
+ if(e.code==='Escape'&&paused&&!settings.classList.contains('open')&&!notesOpen&&!mapOpen){e.preventDefault();pauseGame(false);return;}
  if(menuVisible()||editing)return;
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
  keys.add(e.code);
@@ -421,7 +445,7 @@ function tick(){
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
- const nextTarget=interactables.find(item=>!item.done)||(!sourceActivated?{x:0,z:-85,label:'SOURCE NODE'}:!forest.interact.completed?{x:0,z:-217,label:'HEART OF THE GROVE'}:null);
+ const nextTarget=chosenDestination?{...chosenDestination,label:chosenDestination.name}:interactables.find(item=>!item.done)||(!sourceActivated?{x:0,z:-85,label:'SOURCE NODE'}:!forest.interact.completed?{x:0,z:-217,label:'HEART OF THE GROVE'}:null);
  const wayfinder=document.querySelector('#objective-direction');
  const metric=document.querySelector('#objective-distance');
  if(nextTarget){
@@ -432,6 +456,7 @@ function tick(){
   wayfinder.textContent=arrow+' '+(nextTarget.label||'SIGNAL FRAGMENT');
   metric.textContent=Math.round(Math.hypot(dx,dz))+' M';
  }else{wayfinder.textContent='◇ SYSTEM AT REST';metric.textContent='COMPLETE';}
+ if(mapOpen)atlas.refresh();
  const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
  document.querySelector('#location').textContent=localLandmark?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
