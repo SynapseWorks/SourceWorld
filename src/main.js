@@ -8,6 +8,7 @@ import {createReconstruction} from './reconstruction.js';
 import {createGeneratedSectors} from './worldgen.js';
 import {createSimulationWeather} from './weather.js';
 import {createArtDirection} from './artDirection.js';
+import {createLivingWorld} from './livingWorld.js';
 
 const app=document.querySelector('#app');
 app.innerHTML=`
@@ -15,10 +16,10 @@ app.innerHTML=`
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span><span class="system-weather" id="weather-state" aria-live="off">ATMOSPHERE / STABLE</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
 <button id="pause-btn" class="pause-btn" type="button" aria-label="Pause and open settings" title="Pause / Settings (P)">Ⅱ <span>MENU [ P ]</span></button><button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
-<div class="bottomleft"><div class="eyebrow">SIMULATION 001 / INSIDE THE CODE · V0.7</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+<button id="journal-toggle" class="journal-toggle" type="button" aria-expanded="false" aria-controls="journal-panel">◈ FIELD NOTES <span id="journal-count">0</span></button><aside id="journal-panel" class="journal-panel hidden" aria-label="Field notes"><div class="journal-heading"><span>FIELD NOTES / OBSERVATIONS</span><button type="button" id="journal-close" aria-label="Close field notes">×</button></div><p class="journal-intro">A record of the world, the things you changed, and the things that happened anyway.</p><ol id="journal-list" aria-live="polite"><li class="journal-empty">Nothing recorded yet. The world is waiting.</li></ol></aside><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE LIVING WORLD · V0.8</div><div class="location" id="location">THE AWAKENING</div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="pause-screen hidden" id="pause-screen" role="dialog" aria-label="Simulation paused" aria-modal="true"><div class="pause-panel"><div class="pause-eyebrow">TRANSMISSION INTERRUPTED</div><h2>SIMULATION <em>PAUSED.</em></h2><p>The world remains. Return whenever you are ready.</p><div class="pause-actions"><button id="resume-btn" type="button" class="pause-primary">RESUME EXPLORING <span>↗</span></button><button id="pause-settings-btn" type="button" class="pause-secondary">WORLD PARAMETERS ⚙</button></div><div class="pause-tip">P — PAUSE / RESUME · ESC — RELEASE CURSOR</div></div></div><div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="panel-small">Press P at any time to return to this menu. ESC releases the mouse cursor.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">Look beyond the surface. Falling symbols illuminate the structures of reality from within. Wander an impossible landscape written in living information.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.7.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">The world is alive when you are watching, and when you are not. Follow curious lights, approach the roaming signals, and discover what changes because you were there.</p><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — CODE VISION <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 0.8.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
@@ -36,6 +37,30 @@ const reconstruction=createReconstruction(scene);
 const generatedSectors=createGeneratedSectors(scene,{seed:60421,count:155});
 const simulationWeather=createSimulationWeather(scene,{particleCount:1500});
 const artDirection=createArtDirection(scene);
+const journalPanel=document.querySelector('#journal-panel');
+const journalButton=document.querySelector('#journal-toggle');
+const journalList=document.querySelector('#journal-list');
+let notesOpen=false;
+function toggleJournal(open){
+ notesOpen=open;journalPanel.classList.toggle('hidden',!open);
+ journalButton.setAttribute('aria-expanded',String(open));
+ if(open){if(everEntered&&!paused)pauseGame(true);document.querySelector('#journal-close').focus();}
+ else journalButton.focus();
+}
+journalButton.addEventListener('click',()=>toggleJournal(!notesOpen));
+document.querySelector('#journal-close').addEventListener('click',()=>toggleJournal(false));
+const livingWorld=createLivingWorld(scene,{onEvent(event){
+ journalList.replaceChildren();
+ event.journal.forEach(entry=>{
+  const li=document.createElement('li');
+  const category=document.createElement('small');category.textContent=entry.type;
+  const title=document.createElement('strong');title.textContent=entry.title;
+  const description=document.createElement('p');description.textContent=entry.description;
+  li.append(category,title,description);journalList.append(li);
+ });
+ document.querySelector('#journal-count').textContent=event.journal.length;
+ if(event.type==='DISCOVERY'||event.type==='WITNESSED')announce(event.description,7);
+}});
 const geometries={box:new THREE.BoxGeometry(1,1,1),cylinder:new THREE.CylinderGeometry(1,1,1,10,1),cone:new THREE.ConeGeometry(1,1,9),sphere:new THREE.IcosahedronGeometry(1,2)};
 const solidity=[];
 const interactables=[];
@@ -162,6 +187,8 @@ function completeFragment(item){
 }
 function interact(){
  if(!active||menuVisible())return;
+ const livingInteraction=livingWorld.interact(camera.position,clock.elapsedTime);
+ if(livingInteraction){triggerCodePulse(new THREE.Vector3(livingInteraction.x,0,livingInteraction.z),clock.elapsedTime);return;}
  for(const item of interactables){
   if(!item.done&&Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<3.4){completeFragment(item);return;}
  }
@@ -215,10 +242,11 @@ const intro=document.querySelector('#intro'),enter=document.querySelector('#ente
 const pauseScreen=document.querySelector('#pause-screen'),pauseButton=document.querySelector('#pause-btn');
 const resumeButton=document.querySelector('#resume-btn'),pauseSettingsButton=document.querySelector('#pause-settings-btn');
 let paused=false,everEntered=false,unlockForMenu=false;
-function menuVisible(){return paused||settings.classList.contains('open');}
+function menuVisible(){return paused||notesOpen||settings.classList.contains('open');}
 function pauseGame(show=true){
  if(!everEntered)return;
  paused=show;keys.clear();resetJoystick();
+ if(!show&&notesOpen){notesOpen=false;journalPanel.classList.add('hidden');journalButton.setAttribute('aria-expanded','false');}
  pauseScreen.classList.toggle('hidden',!show);
  pauseButton.setAttribute('aria-expanded',String(show));
  if(show){
@@ -236,6 +264,7 @@ pauseSettingsButton.addEventListener('click',()=>toggleSettings(true));
 const settings=document.querySelector('#settings'),settingsBtn=document.querySelector('#settings-btn');
 let active=false,locked=false,mobile=matchMedia('(pointer:coarse)').matches;
 const settingsTrigger=document.querySelector('#settings-btn');
+journalPanel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();toggleJournal(false);}});
 settings.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();toggleSettings(false);(paused?pauseSettingsButton:settingsTrigger).focus();}});
 let yaw=0,pitch=0,vy=0,grounded=true;const keys=new Set();
 const clock=new THREE.Clock();
@@ -264,8 +293,9 @@ document.addEventListener('mousemove',e=>{
 });
 window.addEventListener('keydown',e=>{
  const editing=['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
+ if(e.code==='KeyJ'&&!e.repeat&&!editing){e.preventDefault();toggleJournal(!notesOpen);return;}
  if(e.code==='KeyP'&&!e.repeat&&!editing){e.preventDefault();if(everEntered)pauseGame(!paused);return;}
- if(e.code==='Escape'&&paused&&!settings.classList.contains('open')){e.preventDefault();pauseGame(false);return;}
+ if(e.code==='Escape'&&paused&&!settings.classList.contains('open')&&!notesOpen){e.preventDefault();pauseGame(false);return;}
  if(menuVisible()||editing)return;
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
  keys.add(e.code);
@@ -334,6 +364,7 @@ function tick(){
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
  artDirection.update(t,dt,reduced);
+ livingWorld.update(t,dt,camera.position,{motion:!reduced,paused:menuVisible()});
  document.querySelector('#weather-state').textContent='ATMOSPHERE / '+atmosphere;
  const found=openWorld.update(t,dt,camera.position,!document.querySelector('#reduced').checked);
  if(reconstruction.update(t,dt,camera.position,!document.querySelector('#reduced').checked)&&active){
@@ -347,8 +378,9 @@ function tick(){
  let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
- interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- const canInteract=!!(nearby||nearSource||nearHeart);
+ const livingNearby=livingWorld.encounters.find(item=>Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<item.r);
+ interactionLabel.textContent=nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ const canInteract=!!(nearby||nearSource||nearHeart||livingNearby);
  interactionLabel.classList.toggle('visible',canInteract);
  interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
