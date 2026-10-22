@@ -59,3 +59,14 @@ test('ecosystem interface initializes without introducing startup errors',async(
  await expect(page.locator('#eco-region')).toContainText('SIMULATION STABLE');
  expect(errors).toEqual([]);
 });
+
+test('world atlas shows navigable destinations and closes with keyboard',async({page})=>{
+ await page.goto('/');
+ await page.locator('#atlas-toggle').click();
+ await expect(page.locator('#world-map')).toBeVisible();
+ await expect(page.locator('.map-destination').first()).toBeVisible();
+ await page.locator('.map-destination').filter({hasText:'GLASS PLATEAU'}).click();
+ await expect(page.locator('.map-destination.selected')).toContainText('GLASS PLATEAU');
+ await page.locator('#world-map').press('Escape');
+ await expect(page.locator('#world-map')).toBeHidden();
+});
