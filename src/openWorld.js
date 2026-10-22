@@ -5,9 +5,9 @@ import {matrixMaterial} from './matrixMaterial.js';
 // Heights remain flat near the player's routes because the controller uses a fixed ground level.
 export function createOpenWorld(scene){
  const landmarks=[];
- const ground=matrixMaterial(80,90,.34,399);
- const trail=matrixMaterial(11,35,1.12,844);
- const stone=matrixMaterial(16,13,.8,177);
+ const ground=matrixMaterial(80,90,.34,399,'ground');
+ const trail=matrixMaterial(11,35,1.12,844,'trail');
+ const stone=matrixMaterial(16,13,.8,177,'stone');
  const outlines=new THREE.LineBasicMaterial({color:0x2baf76,transparent:true,opacity:.29,depthWrite:false});
  const accent=new THREE.MeshBasicMaterial({color:0x47ffae,transparent:true,opacity:.57});
  const rng=(n)=>{const s=Math.sin(n*127.1+14.7)*43758.5453;return s-Math.floor(s);};
@@ -78,7 +78,7 @@ export function createOpenWorld(scene){
    rock.position.set(x,h*.35,z);rock.scale.set(.8+rng(k+16),h*.55,1.1+rng(k+5));
    rock.rotation.y=rng(k*9+index)*6.28;scene.add(rock);
   }
-  const centerpiece=new THREE.Mesh(new THREE.OctahedronGeometry(2.35,1),matrixMaterial(18,18,1.8,101+index));
+  const centerpiece=new THREE.Mesh(new THREE.OctahedronGeometry(2.35,1),matrixMaterial(18,18,1.8,101+index,'crystal'));
   centerpiece.position.set(place.x,3.5,place.z);scene.add(centerpiece);
   if(index===0)centerpiece.visible=false; // replaced by observer-dependent reconstruction
   const halo=new THREE.Mesh(new THREE.TorusGeometry(3.8,.04,6,64),accent);
