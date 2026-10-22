@@ -85,8 +85,9 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
   me.setAttribute('transform',`translate(${markerX} ${markerY})`);
   const focus=viewTarget||p;
   const centerX=px(focus.x),centerY=py(focus.z);
-  const viewX=Math.min(0,Math.max(-9000,centerX-500));
-  const viewY=Math.min(0,Math.max(-9000,centerY-500));
+  // Pan in every direction once the player or selected node leaves the original map.
+  const viewX=centerX<100||centerX>900?Math.max(-9000,Math.min(9000,centerX-500)):0;
+  const viewY=centerY<100||centerY>900?Math.max(-9000,Math.min(9000,centerY-500)):0;
   svg.setAttribute('viewBox',`${viewX} ${viewY} 1000 1000`);
  }
  for(const location of [...locations]){
