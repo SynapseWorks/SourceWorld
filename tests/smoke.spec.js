@@ -67,15 +67,25 @@ test('atlas and field notes still work with the new experience flow',async({page
  await page.locator('#journal-close').click();
  await expect(page.locator('#journal-panel')).toBeHidden();
 });
-test('anime and wireframe switches survive the reveal',async({page,isMobile})=>{
+test('anime reality 2.0 compiles and view switching remains reversible',async({page,isMobile})=>{
+ const shaderErrors=[];
+ page.on('pageerror',error=>shaderErrors.push(error.message));
+ page.on('console',message=>{
+  if(message.type()==='error'&&/THREE.WebGLProgram|Shader Error|ERROR: 0:|INVALID_OPERATION.*compile/i.test(message.text()))
+   shaderErrors.push(message.text());
+ });
  await awaken(page,isMobile);
  if(await page.locator('#pause-screen').isVisible())await page.locator('#resume-btn').click();
  await page.keyboard.press('r');
  await expect(page.locator('#reality-btn')).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('#app')).toHaveClass(/anime-reality/);
+ await page.waitForTimeout(650); // Let the first anime frame compile GPU shaders.
  await page.keyboard.press('v');
  await expect(page.locator('#reality-btn')).toHaveAttribute('aria-pressed','false');
  await expect(page.locator('#vision')).toHaveAttribute('aria-pressed','true');
+ await page.keyboard.press('v');
+ await expect(page.locator('#vision')).toHaveAttribute('aria-pressed','false');
+ expect(shaderErrors).toEqual([]);
 });
 test('restoration and wildlife abilities remain locked until Echoes are earned',async({page})=>{
  await page.goto('/');
