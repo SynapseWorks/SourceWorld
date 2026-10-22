@@ -589,7 +589,7 @@ function tick(){
  // The universe is truly dormant while the entry menu, void and falling code own the screen.
  // Begin costly 3D updates only when the Big Bang starts revealing it.
  if(app.classList.contains('world-locked'))return;
- if(active&&!awakening.isBlocking()&&t-lastSavedAt>22){lastSavedAt=t;saveWorld();}
+ if(active&&!suppressSave&&!awakening.isBlocking()&&t-lastSavedAt>22){lastSavedAt=t;saveWorld();}
  if(Math.floor(t)%2===0&&Math.floor(t*2)%4===0)updateAbilityHUD();
  const reduced=document.querySelector('#reduced').checked;
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
