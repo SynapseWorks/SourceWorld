@@ -8,6 +8,7 @@ test('boots the construct and provides accessible navigation',async({page})=>{
  await expect(page.getByRole('button',{name:/ENTER THE SIMULATION/})).toBeVisible();
  await expect(page.locator('#viewport canvas')).toHaveCount(1);
  await expect(page.getByRole('button',{name:'Open settings'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Pause and open settings'})).toBeVisible();
  await page.getByRole('button',{name:'Open settings'}).click();
  await expect(page.getByRole('dialog',{name:'World settings'})).toBeVisible();
  await expect(page.locator('#density')).toHaveValue('100');
