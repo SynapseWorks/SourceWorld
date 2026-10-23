@@ -65,6 +65,36 @@ export function createUnderlayer(scene){
  nucleus.position.y=4.0;nexus.add(nucleus);
  const orbit=new THREE.Mesh(new THREE.TorusGeometry(4.4,.09,5,64),gateGlow);
  orbit.position.y=4.0;orbit.rotation.x=.35;nexus.add(orbit);
+ // Substrate edits leave three distinct, nonblocking surface artifacts.
+ // They are visible even in Code/Anime Reality after a player changes the vault.
+ const surfaceMemory=new THREE.Group();surfaceMemory.name='Surface consequences of layer rewrites';
+ surfaceMemory.position.set(center.x,0,center.z);surfaceMemory.visible=false;
+ scene.add(surfaceMemory);
+ const sourceForms=[];
+ for(let i=0;i<3;i++){
+  const form=new THREE.Group();form.visible=false;surfaceMemory.add(form);sourceForms.push(form);
+  if(i===0){
+   for(let k=0;k<5;k++){
+    const angle=k*2.399;
+    const shard=new THREE.Mesh(new THREE.OctahedronGeometry(.6+(k%2)*.3,0),crystal);
+    shard.position.set(Math.cos(angle)*8,2.4+(k%3)*1.1,Math.sin(angle)*8);
+    form.add(shard);
+   }
+  }else if(i===1){
+   for(let k=0;k<7;k++){
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(1.5+(k%3)*.4,.047,5,45),crystal);
+    ring.position.set((k-3)*2.3,4.6+(k%3)*1.7,-9);
+    ring.rotation.set(.5,k*.6,.35);form.add(ring);
+   }
+  }else{
+   for(let k=0;k<9;k++){
+    const a=k*2.39996;
+    const bud=new THREE.Mesh(new THREE.ConeGeometry(.34,1.3+(k%4)*.6,6),crystal);
+    bud.position.set(Math.cos(a)*10,.9,Math.sin(a)*9);
+    form.add(bud);
+   }
+  }
+ }
  const arrangements=[
   [[-14,-8],[14,-8],[-14,-17],[14,-17]],
   [[-21,-2],[-7,-14],[8,-24],[21,-10]],
@@ -78,6 +108,8 @@ export function createUnderlayer(scene){
    group.rotation.y=(arrangement+i%2)*Math.PI*.19;
   });
   nucleus.scale.setScalar(1+arrangement*.12);
+  sourceForms.forEach((form,i)=>form.visible=sessionShifts>0&&i===arrangement);
+  surfaceMemory.visible=sessionShifts>0;
  }
  updateLayout();
  function nearGate(pos,wireframe){
@@ -105,6 +137,7 @@ export function createUnderlayer(scene){
  function bounds(x,z){return Math.abs(x-center.x)<29&&Math.abs(z-center.z)<29;}
  function update(t,dt,{wireframe=false,reduced=false}={}){
   setVisible(wireframe||inside);
+  if(surfaceMemory.visible&&!reduced)surfaceMemory.rotation.y+=dt*.012;
   if(root.visible&&!reduced){
    nucleus.rotation.y+=dt*.22;
    orbit.rotation.z+=dt*.12;
