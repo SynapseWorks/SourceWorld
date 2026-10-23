@@ -20,6 +20,21 @@ npm test
 
 GitHub Actions verifies JavaScript syntax, creates a production build, and runs Chromium desktop/mobile smoke tests. Traces are preserved for failures.
 
+## The world beyond the first map — v1.7
+
+The seeded frontier streams **128-unit terrain tiles**, retaining no more than 25 active generated tiles around the explorer. Biome nodes roughly 384 units apart determine one of five nearby environments, with smooth artistic transitions in Anime Reality. Generated tiles unload outside the active radius and reappear consistently when revisited. New region discoveries and node attunements are saved in browser continuity, not the raw meshes.
+
+**The underground prototype** is the Syntax Vault at approximately X 0, Z -116. In Wireframe Vision, approach the gate and press **E** to enter; the same movement controls work at layer -01. At the underground nexus, **E** cycles three spatial arrangements. These edits now also leave *persistent, visible surface consequences* near the entrance, even when returning to Code or Anime Reality. Return via the exit gate.
+
+**An aerial ecology preview** adds migratory signal-birds that group around city and generated biome nodes, respond to storm conditions, and shift their flight paths independently of movement input. These birds are observable from the ground: user-controlled flight is **not implemented yet**.
+
+### Next development phases
+
+1. **Flight unlock and aerial navigation:** design a flight ability with lift, descent, stamina/cooldown and accessible mobile controls. Add altitude-aware collision, safe landing and fall recovery. Create skyways, rooftop observation points, migratory flocks and hidden aerial Echoes.
+2. **Multi-depth geology:** extend the authored Syntax Vault into a reusable procedural underground chunk system with naturally generated tunnels, ceilings, chambers, cave flora, and safe portal entrances. Keep upper and lower layer data synchronized via per-node state.
+3. **World editing:** provide a diegetic Wireframe construction interface with selection, snapping, movement bounds, undo and a clear preview. Persist only edits rather than whole meshes. Surface consequences should affect citizens and ecology.
+4. **World-streaming polish:** profile chunk regeneration, reduce generation spikes, implement biome-transition sound/lighting, add landmarks unique to each node and a discovery-based atlas that expands rather than exposing the infinite frontier.
+
 ## Controls
 
 - **Enter Simulation** — the entry menu disappears into total blackness; **a second click, tap or keypress** begins the green code rain and Big Bang reveal. Desktop requests pointer lock on the second gesture; if the browser declines, select Resume when prompted.
