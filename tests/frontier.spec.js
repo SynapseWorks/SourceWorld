@@ -67,3 +67,27 @@ test('wireframe-only gate allows a below-ground rewrite and safe return',async({
  expect(result.returnTrip).toMatchObject({type:'exit',y:1.72});
  expect(result.arrangement).toBe(1);
 });
+
+test('underground reconfiguration also leaves a persistent surface artifact',async({page})=>{
+ await page.goto('/');
+ const result=await page.evaluate(async()=>{
+  const {createUnderlayer,UNDERLAYER_SURFACE}=await import('/src/underlayer.js');
+  const scene={children:[],add(o){this.children.push(o)}};
+  const under=createUnderlayer(scene);
+  const surface=scene.children.find(o=>o.name==='Surface consequences of layer rewrites');
+  const before={visible:surface.visible,shifts:under.snapshot().shifts};
+  under.interact(UNDERLAYER_SURFACE,true);
+  under.interact({x:0,z:UNDERLAYER_SURFACE.z-17},true);
+  const after={visible:surface.visible,active:surface.children.filter(g=>g.visible).length,shifts:under.snapshot().shifts};
+  const save=under.snapshot();
+  const otherScene={children:[],add(o){this.children.push(o)}};
+  const other=createUnderlayer(otherScene);
+  other.restore(save);
+  const otherSurface=otherScene.children.find(o=>o.name==='Surface consequences of layer rewrites');
+  return {before,after,restored:otherSurface.visible,variant:otherSurface.children.findIndex(g=>g.visible)};
+ });
+ expect(result.before).toEqual({visible:false,shifts:0});
+ expect(result.after).toMatchObject({visible:true,active:1,shifts:1});
+ expect(result.restored).toBe(true);
+ expect(result.variant).toBe(1);
+});
