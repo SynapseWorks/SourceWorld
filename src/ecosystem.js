@@ -279,6 +279,31 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    }
   }
  }
+ function receiveSubsurfaceWater({x,z,flow=0,care=0,strength=.018}={}){
+  // Editing a cave aquifer creates an actual response at its surface biome.
+  // Outside authored regions, the cave's own surface spring remains persistent.
+  if(!Number.isFinite(x)||!Number.isFinite(z))return null;
+  const closest=state.reduce((best,candidate)=>{
+   const distance=Math.hypot(candidate.x-x,candidate.z-z);
+   return distance<best.distance?{biome:candidate,distance}:best;
+  },{biome:null,distance:Infinity});
+  if(!closest.biome||closest.distance>195)return null;
+  const amount=THREE.MathUtils.clamp(strength,0,.05);
+  const target=closest.biome;
+  const humidityBefore=target.humidity,growthBefore=target.growth;
+  target.humidity=Math.min(1,target.humidity+amount*(flow>0?1:.45));
+  target.growth=Math.min(1,target.growth+amount*.66);
+  let roots=0;
+  for(const plant of regionPlants.get(target.id)||[]){
+   if(Math.hypot(plant.group.position.x-x,plant.group.position.z-z)<140){
+    plant.nectar=Math.min(1,plant.nectar+amount*2.1);
+    plant.age=Math.min(1,plant.age+amount*.53);
+    roots++;
+   }
+  }
+  return {name:target.name,humidity:target.humidity-humidityBefore,
+   growth:target.growth-growthBefore,roots};
+ }
  function receiveSkySeeds({x,z,strength=.01}={}){
   // Birds fertilize the nearest habitat whether or not the explorer witnesses it.
   // This is intentionally much gentler than the player-unlocked Resonance ability.
@@ -473,5 +498,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   for(const citizen of residents)citizen.avatar.setEnabled(enabled);
   for(const caretaker of neighborhoodVisitors)caretaker.avatar.setEnabled(enabled);
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,getTime:()=>simTime,influence,callWildlife,setRestoredSites,setAnimeMode,careAt,receiveSkySeeds};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,getTime:()=>simTime,influence,callWildlife,setRestoredSites,setAnimeMode,careAt,receiveSkySeeds,receiveSubsurfaceWater};
 }
