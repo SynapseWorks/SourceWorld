@@ -20,6 +20,8 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
   rock:new THREE.ConeGeometry(.92,2.2,7),
   plant:new THREE.ConeGeometry(.35,1.05,6),
   gem:new THREE.IcosahedronGeometry(.52,0),
+  crown:new THREE.IcosahedronGeometry(1,1),
+  beam:new THREE.CylinderGeometry(.11,.13,1,7),
   ring:new THREE.TorusGeometry(1,.035,4,44,Math.PI*1.8),
   halo:new THREE.RingGeometry(.71,.75,40)
  };
@@ -73,8 +75,57 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
   const halo=mesh(shared.halo,materials.landing,0,.044,0,data.r*.8,1,data.r*.8);
   halo.rotation.x=-Math.PI/2;halo.userData.noWireframe=true;
   const bud=mesh(shared.gem,anime?pretty.leaf:materials.codeLight,2.1,1.3,0,.8,1.2,.8);
+  // A biome's silhouette is unmistakable from above, even before the palette resolves.
+  const motifs=[];
+  function motif(geometry,material,x,y,z,sx,sy,sz){
+   const item=mesh(geometry,anime?pretty.leaf:material,x,y,z,sx,sy,sz);
+   motifs.push({item,codeMaterial:material});
+   return item;
+  }
+  switch(data.biome){
+   case 'mosslight':
+    for(let k=0;k<4;k++){
+     const a=k*2.399;
+     const x=Math.cos(a)*data.r*.47,z=Math.sin(a)*data.r*.47;
+     motif(shared.beam,materials.codeStone,x,1.1,z,.9,2.1,.9);
+     motif(shared.crown,materials.codePlant,x,2.6,z,1.4,1.05,1.4);
+    }
+    break;
+   case 'glassfall':
+    for(let k=0;k<5;k++){
+     const a=k*2.399;
+     const crystal=motif(shared.gem,materials.codeLight,
+       Math.cos(a)*data.r*.58,1.4+(k%2)*.8,Math.sin(a)*data.r*.58,
+       .9,2.6+(k%2)*1.25,.9);
+     crystal.rotation.y=a*.5;
+    }
+    break;
+   case 'amber':
+    for(let k=0;k<7;k++){
+     const a=k*2.399,r=data.r*(.4+.22*(k%3)/2);
+     motif(shared.plant,materials.codePlant,Math.cos(a)*r,1.0,Math.sin(a)*r,.9,1.75,.9);
+     if(k%2===0)motif(shared.gem,materials.codeLight,Math.cos(a)*r,2.16,
+       Math.sin(a)*r,.61,.78,.61);
+    }
+    break;
+   case 'siltreed':
+    for(let k=0;k<7;k++){
+     const a=k*2.399,r=data.r*(.4+.2*(k%3)/2);
+     const reed=motif(shared.plant,materials.codePlant,Math.cos(a)*r,2.1,
+       Math.sin(a)*r,.48,3.4+(k%3)*.62,.48);
+     reed.rotation.z=(k%2?-.08:.08);
+    }
+    break;
+   case 'hollow':
+    for(let k=0;k<3;k++){
+     const arc=motif(shared.ring,materials.codeStone,(k-1)*3.1,2.0,-2,
+       2.4,2.5,2.4);
+     arc.rotation.x=.3;arc.rotation.z=k*.5;
+    }
+    break;
+  }
   if(wireframe&&anime)for(const item of [base,rock,landmark,flora,bud])item.material.wireframe=true;
-  const entry={data,group,base,rock,landmark,flora,wind,halo,bud,pretty};
+  const entry={data,group,base,rock,landmark,flora,wind,halo,bud,motifs,pretty};
   chunks.set(data.id,entry);
   return entry;
  }
@@ -160,6 +211,7 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
    item.base.material=item.rock.material=anime?item.pretty.stone:materials.codeStone;
    item.flora.material=item.bud.material=anime?item.pretty.leaf:materials.codePlant;
    item.landmark.material=anime?item.pretty.leaf:materials.codeLight;
+   for(const m of item.motifs)m.item.material=anime?item.pretty.leaf:m.codeMaterial;
   }
  }
  function setWireframe(enabled){
@@ -167,7 +219,7 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
   for(const item of chunks.values()){
    // Never mutate the shared global code shader material, which would
    // inadvertently change every surface in the constructed world.
-   for(const node of [item.base,item.rock,item.flora,item.bud,item.landmark])
+   for(const node of [item.base,item.rock,item.flora,item.bud,item.landmark,...item.motifs.map(m=>m.item)])
     if(node.material!==materials.codeStone&&node.material!==materials.codeLight&&
        node.material!==materials.codePlant)node.material.wireframe=wireframe;
   }
