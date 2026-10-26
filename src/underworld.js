@@ -286,7 +286,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
    const first=!discovered.has(selected.id);
    discovered.add(selected.id);
    const event={type:'enter',id:selected.id,title:selected.name,first,
-    x:selected.x,y:DEEP_EYE,z:selected.z+DEEP_ROOMS.exit.z};
+    x:selected.x,y:DEEP_EYE,z:selected.z+11.2};
    if(first)onEvent({type:'SUBTERRANEAN DISCOVERY',title:selected.name,
     description:selected.story,id:selected.id});
    return event;
