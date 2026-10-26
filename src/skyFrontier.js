@@ -132,7 +132,9 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
  function unload(id){
   const entry=chunks.get(id);if(!entry)return;
   root.remove(entry.group);
-  // All geometries and materials are shared; no per-chunk GPU disposal is necessary.
+  // Geometries/materials are pooled, but InstancedMesh owns unique GPU attributes.
+  // Release those attributes as chunks unload so long flights do not accumulate VRAM.
+  if(typeof entry.flora.dispose==='function')entry.flora.dispose();
   chunks.delete(id);
  }
  function stream(x,z){
