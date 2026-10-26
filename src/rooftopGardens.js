@@ -27,7 +27,7 @@ export function createRooftopGardens(scene,{onDiscover=()=>{},onCare=()=>{}}={})
  const seedGeo=new THREE.IcosahedronGeometry(.23,0);
  const railingGeo=new THREE.TorusGeometry(1,.04,5,48);
  const dummy=new THREE.Object3D(), gardens=[];
- let anime=false;
+ let anime=false,compactQuality=false;
  const discovered=new Set(),care=new Map();
  for(const p of ROOFTOP_GARDENS){
   const group=new THREE.Group();group.name=p.name;group.position.set(p.x,p.y,p.z);root.add(group);
@@ -61,6 +61,7 @@ export function createRooftopGardens(scene,{onDiscover=()=>{},onCare=()=>{}}={})
  }
  function setQuality(value=1){
   const compact=value<=.7;
+  compactQuality=compact;
   for(const item of gardens){
    item.pots.forEach(({pot,leaf},i)=>{pot.visible=leaf.visible=!compact||i%2===0;});
    item.lamps.forEach(({lamp,aura},i)=>{lamp.visible=aura.visible=!compact||i===0;});
@@ -126,8 +127,8 @@ export function createRooftopGardens(scene,{onDiscover=()=>{},onCare=()=>{}}={})
    const amount=care.get(p.id)?.total||0;
    const growth=.64+Math.min(.58,amount*.08)+daylight*.10;
    for(const {leaf} of pots)leaf.scale.y=growth;
-   for(const {aura,lamp} of lamps){
-    aura.visible=daylight<.65;
+   for(const [index,{aura,lamp}] of lamps.entries()){
+    aura.visible=daylight<.65&&(!compactQuality||index===0);
     aura.material.opacity=.07+(1-daylight)*.12;
     if(!reduced&&!paused)lamp.rotation.y+=dt*.13;
    }
