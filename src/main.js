@@ -467,6 +467,8 @@ function interact(){
   const layerAction=underlayer.interact(camera.position,wireframe);
   if(layerAction){
    if(layerAction.type==='enter'||layerAction.type==='exit'){
+    // Underground movement runs on its own floor physics; never carry a flight state through a portal.
+    flight.land();
     camera.position.set(layerAction.x,layerAction.y,layerAction.z);
     vy=0;grounded=true;keys.clear();resetJoystick();
     announce(layerAction.type==='enter'?'UNDERLAYER -01 · FIND THE REWRITE NEXUS AND RETURN VIA THE GATE.':'BACK ABOVE THE SURFACE.',8);
