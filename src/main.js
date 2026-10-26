@@ -141,6 +141,7 @@ const skyRoutes=createSkyRoutes(scene,{
   atlas.registerLocation({id:'sky:'+location.id,name:location.name,x:location.x,z:location.z,
    type:'aerial',description:'A discovered sky sanctuary · elevation '+Math.round(location.y)});
   announce('SKY SANCTUARY DISCOVERED · '+location.name,6);
+  saveWorld();
  },
  onCollect(event){
   flight.addSkySeed();
@@ -258,7 +259,7 @@ let saveSupported=true;
 if(continuity.saved){
  ecosystem.restore(continuity.snapshot);
  flight.restore(continuity.snapshot.flightState||{});
- skyRoutes.restore(continuity.snapshot.skyState?.collected||[]);
+ skyRoutes.restore(continuity.snapshot.skyState||{});
  frontier.restore(continuity.snapshot.frontierState||{});
  underlayer.restore(continuity.snapshot.underlayerState||{});
  neighborhoods.restore(continuity.snapshot.placeState||{});
