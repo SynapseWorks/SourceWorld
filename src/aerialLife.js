@@ -5,7 +5,7 @@ import {SKY_SITES} from './skyRoutes.js';
 
 // A lightweight sky-ecology preview. Flocks follow stable city/biome anchors,
 // not the player's camera. They are designed to become flight encounters later.
-export function createAerialLife(scene,{count=22}={}){
+export function createAerialLife(scene,{count=26,onEvent=()=>{}}={}){
  const wingGeometry=new THREE.BufferGeometry();
  wingGeometry.setAttribute('position',new THREE.Float32BufferAttribute([
   0,0,0, -1.3,.07,-.52, -.68,.13,.71,
@@ -35,7 +35,8 @@ export function createAerialLife(scene,{count=22}={}){
  for(const mesh of [codeWings,codeBodies,animeWings,animeBodies]){
   if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
  }
- let animeMode=false,elapsed=0,activeCount=0,lastNode=null;
+ let animeMode=false,elapsed=0,activeCount=0,lastNode=null,behavior='FORAGING';
+ const remembered=new Set();
  function setAnime(enabled){
   animeMode=Boolean(enabled);
   codeWings.visible=codeBodies.visible=!animeMode;
@@ -44,7 +45,7 @@ export function createAerialLife(scene,{count=22}={}){
  setAnime(false);
  const poses=Array.from({length:count},(_,i)=>({angle:i*2.399963,phase:i*.67,
   radius:13+(i*7%12)*4.2,height:19+(i*17%28),speed:.052+(i%6)*.019}));
- function update(dt,player,{paused=false,reduced=false,weather='STABLE',underground=false,flight=false}={}){
+ function update(dt,player,{paused=false,reduced=false,weather='STABLE',underground=false,flight=false,phase=.5,day=1,skyIslands=[],rooftops=[]}={}){
   if(paused||underground){root.visible=!underground;return;}
   root.visible=true;
   elapsed+=Math.min(dt,.08);
@@ -54,36 +55,57 @@ export function createAerialLife(scene,{count=22}={}){
   const body=animeMode?animeBodies:codeBodies;
   let visible=0;
   const storm=weather==='CODE STORM';
+  const daylight=Math.max(0,Math.sin((phase-.25)*Math.PI*2));
+  behavior=storm?'SHELTERING':daylight<.22?'ROOSTING':daylight<.48?'MIGRATING':'FORAGING';
   const countNearby=Math.min(count,Math.floor(count*.65)+(storm?0:4));
   for(let i=0;i<count;i++){
    const bird=poses[i];
-   const nearCity=i<6,overSanctuary=i>=6&&i<20;
-   const sanctuary=overSanctuary?SKY_SITES[(i-6)%SKY_SITES.length]:null;
-   const centerX=nearCity?0:overSanctuary?sanctuary.x:anchor.x;
-   const centerZ=nearCity?-54:overSanctuary?sanctuary.z:anchor.z;
-   const angle=bird.angle+elapsed*bird.speed;
-   const radius=bird.radius*(storm?.74:1);
-   const x=centerX+Math.cos(angle)*radius;
-   const z=centerZ+Math.sin(angle)*radius;
-   let altitude=(sanctuary?sanctuary.y+12+(i%4)*2:bird.height)-(storm?6:0)+Math.sin(elapsed*.4+bird.phase)*1.2;
-   // A few birds investigate a flyer, but most keep their own routes.
-   if(flight&&i%3===0){
-    const distance=Math.hypot(x-player.x,z-player.z);
-    if(distance<27)altitude=THREE.MathUtils.lerp(altitude,player.y+4,Math.max(0,1-distance/27)*.68);
+   const cityBird=i<5,roofBird=i>=5&&i<10;
+   const handcrafted=i>=10&&i<17;
+   const sanctuary=handcrafted?SKY_SITES[(i-10)%SKY_SITES.length]:null;
+   const roof=roofBird&&rooftops.length?rooftops[(i-5)%rooftops.length]:null;
+   const island=!cityBird&&!roofBird&&!handcrafted&&skyIslands.length
+    ?skyIslands[(i-17)%skyIslands.length]:null;
+   const host=sanctuary||roof||island;
+   const centerX=cityBird?0:(host?.x??anchor.x);
+   const centerZ=cityBird?-54:(host?.z??anchor.z);
+   const radiusScale=behavior==='ROOSTING'?.24:behavior==='SHELTERING'?.30:
+    behavior==='MIGRATING'?.72:1;
+   const angle=bird.angle+elapsed*bird.speed*(behavior==='ROOSTING'?.2:1);
+   const radius=(host?9+bird.radius*.22:bird.radius)*radiusScale;
+   let x=centerX+Math.cos(angle)*radius;
+   let z=centerZ+Math.sin(angle)*radius;
+   const altitude=(host?host.y+8+(i%4)*2:bird.height)
+    +(behavior==='ROOSTING'?-5:behavior==='MIGRATING'?6:0)
+    +Math.sin(elapsed*.4+bird.phase)*1.2;
+   let y=altitude;
+   if(flight&&behavior==='FORAGING'&&i%4===0){
+    const proximity=Math.hypot(x-player.x,z-player.z, (y-player.y)*.6);
+    if(proximity<24)y=THREE.MathUtils.lerp(y,player.y+3.8,
+      Math.max(0,1-proximity/24)*.58);
    }
    const inRange=Math.hypot(x-player.x,z-player.z)<165;
    const scale=inRange&&i<countNearby?.9+(.15*(i%3)):0.00001;
-   dummy.position.set(x,altitude,z);
+   dummy.position.set(x,y,z);
    dummy.rotation.set(0,-angle-.35,0);dummy.scale.setScalar(scale);
    dummy.updateMatrix();body.setMatrixAt(i,dummy.matrix);
    for(let side=0;side<2;side++){
     const flap=reduced?0:Math.sin(elapsed*2.6+bird.phase+i*.2)*.25;
-    dummy.position.set(x+Math.cos(angle+Math.PI/2)*(side?-.19:.19),altitude,z);
+    dummy.position.set(x+Math.cos(angle+Math.PI/2)*(side?-.19:.19),y,z);
     dummy.rotation.set((side?1:-1)*flap,-angle-.35,(side?1:-1)*(.05+flap*.4));
     dummy.scale.set((side?-1:1)*scale,scale,scale);
     dummy.updateMatrix();wing.setMatrixAt(i*2+side,dummy.matrix);
    }
    if(inRange&&i<countNearby)visible++;
+   if(flight&&host&&i<countNearby&&Math.hypot(player.x-x,player.z-z,player.y-y)<10){
+    const key=day+':'+(host.id||host.name)+':'+behavior;
+    if(!remembered.has(key)){
+     remembered.add(key);
+     if(remembered.size>90)remembered.clear();
+     onEvent({type:'BIRD ENCOUNTER',title:behavior+' ABOVE '+(host.name||'THE SKY'),
+      description:'THE LOCAL FLOCK CONTINUES ITS OWN DAILY RHYTHM. YOUR PRESENCE HAS BEEN NOTICED.'});
+    }
+   }
   }
   wing.instanceMatrix.needsUpdate=true;
   body.instanceMatrix.needsUpdate=true;
@@ -93,5 +115,5 @@ export function createAerialLife(scene,{count=22}={}){
   scene.remove(root);
   wingGeometry.dispose();bodyGeometry.dispose();code.dispose();anime.dispose();
  }
- return {update,setAnime,dispose,getStats:()=>({nearby:activeCount,anchor:lastNode?.biome?.name||null})};
+ return {update,setAnime,dispose,getStats:()=>({nearby:activeCount,anchor:lastNode?.biome?.name||null,behavior})};
 }
