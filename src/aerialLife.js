@@ -74,14 +74,14 @@ export function createAerialLife(scene,{count=26,onEvent=()=>{}}={}){
    const angle=bird.angle+elapsed*bird.speed*(behavior==='ROOSTING'?.2:1);
    // Repeated tending concentrates roosting and foraging around cared-for habitats.
    const habitatAffinity=island?.birdInterest??0;
-   const cared=island?.care||0;
+   const cared=island?.care||roof?.care||0;
    const radius=(host?9+bird.radius*.22:bird.radius)*radiusScale
-    *(island?1-.18*habitatAffinity-.025*Math.min(5,cared):1);
+    *(island?1-.18*habitatAffinity-.025*Math.min(5,cared):roof?1-.035*Math.min(5,cared):1);
    let x=centerX+Math.cos(angle)*radius;
    let z=centerZ+Math.sin(angle)*radius;
    const altitude=(host?host.y+8+(i%4)*2:bird.height)
     +(behavior==='ROOSTING'?-5:behavior==='MIGRATING'?6:0)
-    -(island?Math.min(3,cared*.6):0)
+    -((island||roof)?Math.min(3,cared*.6):0)
     +Math.sin(elapsed*.4+bird.phase)*1.2;
    let y=altitude;
    if(flight&&behavior==='FORAGING'&&i%4===0){
