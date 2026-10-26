@@ -48,9 +48,10 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
  for(const trail of trails)create('polyline',{points:trail.map(([x,z])=>`${px(x)},${py(z)}`).join(' '),
   fill:'none',stroke:'#59ae83','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.7});
  function renderPin(location){
-  create('circle',{cx:px(location.x),cy:py(location.z),r:location.type==='region'?9:location.type==='frontier'?11:6,
-   fill:location.type==='objective'?'#d9ffab':location.type==='neighbourhood'?'#ffdea9':location.type==='frontier'?'#d5b9ff':'#a9ffd1',
+  create('circle',{cx:px(location.x),cy:py(location.z),r:location.type==='region'?9:location.type==='frontier'?11:location.type==='aerial'?8:6,
+   fill:location.type==='objective'?'#d9ffab':location.type==='neighbourhood'?'#ffdea9':location.type==='frontier'?'#d5b9ff':location.type==='aerial'?'#9fdfe7':'#a9ffd1',
    stroke:'#042015','stroke-width':2});
+  if(location.type==='aerial')create('circle',{cx:px(location.x),cy:py(location.z),r:13,fill:'none',stroke:'#aedce9','stroke-width':2,opacity:.56});
   if(location.type==='region'||location.type==='objective'||location.type==='frontier'){
    const label=create('text',{x:px(location.x)+13,y:py(location.z)-12,fill:'#c8f9df','font-size':17,'font-family':'monospace'});
    label.textContent=location.name.replace('THE ','');
@@ -71,7 +72,9 @@ export function createWorldMap({mount,regions,extraLocations=[],getPlayer,onNavi
   if(found)return false;
   locations.push(location);renderPin(location);
   const btn=document.createElement('button');btn.type='button';
-  btn.className='map-destination';btn.textContent=location.name;btn.dataset.name=location.name;
+  btn.className='map-destination';
+  btn.textContent=location.type==='aerial'?'✧ '+location.name+(Number.isFinite(location.y)?' · '+Math.round(location.y)+'M ABOVE GROUND':''):location.name;
+  btn.dataset.name=location.name;
   if(location.description)btn.title=location.description;
   btn.addEventListener('click',()=>{
    destination=location;viewTarget=location;onNavigate(location);
