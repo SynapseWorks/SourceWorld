@@ -823,6 +823,7 @@ function tick(){
  aerialLife.update(dt,camera.position,{paused:menuVisible()||!active,
   reduced,weather:atmosphere,underground:underlayer.inside});
  document.querySelector('#underlayer-readout').classList.toggle('hidden',!underlayer.inside);
+ const skyState=skyRoutes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  artDirection.update(t,dt,reduced);
@@ -863,12 +864,15 @@ function tick(){
  for(const item of sculptures){if(!reduced){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}}
  let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
  const nearLayerGate=underlayer.nearGate(camera.position,wireframe);
+ const nearSkywell=skyState.well&&!flight.unlocked;
+ const skySeed=skyState.nearby;
+ const nearSurface=camera.position.y<=6;
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
  const livingNearby=livingWorld.encounters.find(item=>Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<item.r);
  const frontierNearby=frontierState.node;
- interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- const canInteract=!!(nearLayerGate||nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby);
+ interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ const canInteract=!!(nearLayerGate||nearSkywell||skySeed||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
  interactionLabel.classList.toggle('visible',canInteract);
  interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
@@ -881,19 +885,45 @@ function tick(){
  if(active&&!paused&&!menuVisible()&&!awakening.isBlocking()&&(locked||mobile)){
   const forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-touchMoveY;
   const strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+touchMoveX;
-  const direction=new THREE.Vector2(strafe,forward);if(direction.length()>1)direction.normalize();
-  const speed=keys.has('ShiftLeft')||keys.has('ShiftRight')?10:5;
-  const sx=(Math.cos(yaw)*direction.x-Math.sin(yaw)*direction.y)*speed*dt;
-  const sz=(-Math.sin(yaw)*direction.x-Math.cos(yaw)*direction.y)*speed*dt;
-  const nextX=camera.position.x+sx,nextZ=camera.position.z+sz;
-  if(!collision(nextX,camera.position.z))camera.position.x=nextX;
-  if(!collision(camera.position.x,nextZ))camera.position.z=nextZ;
-  if(keys.has('Space')&&grounded){vy=5.1;grounded=false;}
-  vy-=13*dt;camera.position.y+=vy*dt;
-  const floorEye=underlayer.inside?UNDERLAYER_EYE:1.72;
-  if(camera.position.y<=floorEye){camera.position.y=floorEye;vy=0;grounded=true;}
+  const direction=new THREE.Vector2(strafe,forward);
+  if(direction.length()>1)direction.normalize();
+  if(flight.airborne){
+   const result=flight.step(dt,camera.position,{
+    strafe:direction.x,forward:direction.y,yaw,
+    up:keys.has('Space')||touchAscend,
+    down:keys.has('KeyC')||keys.has('ControlLeft')||keys.has('ControlRight')||touchDescend,
+    boost:keys.has('ShiftLeft')||keys.has('ShiftRight'),
+    wind:atmosphere==='CODE STORM'?1:0,
+    floorEye:skyRoutes.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
+    updraft:skyRoutes.updraftAt(camera.position),
+    collision:(x,z,y)=>collision(x,z,y)
+   });
+   if(result.landed){
+    vy=0;grounded=true;
+    announce('SAFE LANDING · WINGS RECHARGING.',4);
+   }else grounded=false;
+  }else{
+   const speed=keys.has('ShiftLeft')||keys.has('ShiftRight')?10:5;
+   const sx=(Math.cos(yaw)*direction.x-Math.sin(yaw)*direction.y)*speed*dt;
+   const sz=(-Math.sin(yaw)*direction.x-Math.cos(yaw)*direction.y)*speed*dt;
+   const nextX=camera.position.x+sx,nextZ=camera.position.z+sz;
+   if(!collision(nextX,camera.position.z))camera.position.x=nextX;
+   if(!collision(camera.position.x,nextZ))camera.position.z=nextZ;
+   if(keys.has('Space')&&grounded){vy=5.1;grounded=false;}
+   vy-=13*dt;camera.position.y+=vy*dt;
+   const platformEye=skyRoutes.floorEyeAt(camera.position.x,camera.position.z,camera.position.y);
+   const floorEye=underlayer.inside?UNDERLAYER_EYE:platformEye;
+   if(flight.unlocked&&!underlayer.inside&&platformEye===FLIGHT_EYE_HEIGHT&&
+      camera.position.y>8&&grounded){
+    // Walking off a floating sanctuary triggers a controlled glide.
+    if(flight.beginGlide()){grounded=false;vy=0;announce('THE WIND CATCHES YOU · GLIDING TO SAFETY.',5);}
+   }
+   if(!flight.airborne&&camera.position.y<=floorEye){camera.position.y=floorEye;vy=0;grounded=true;}
+   if(!flight.airborne)flight.step(dt,camera.position);
+  }
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
+ updateFlightUI();
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
  const nextTarget=chosenDestination?{...chosenDestination,label:chosenDestination.name}:interactables.find(item=>!item.done)||(!sourceActivated?{x:0,z:-85,label:'SOURCE NODE'}:!forest.interact.completed?{x:0,z:-217,label:'HEART OF THE GROVE'}:null);
  const wayfinder=document.querySelector('#objective-direction');
@@ -908,8 +938,8 @@ function tick(){
  }else{wayfinder.textContent='◇ SYSTEM AT REST';metric.textContent='COMPLETE';}
  if(mapOpen)atlas.refresh();
  const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
- document.querySelector('#location').textContent=underlayer.inside?'THE SYNTAX VAULT':localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
- document.querySelector('#place-tagline').textContent=placeState.district?.subtitle||'';
+ document.querySelector('#location').textContent=underlayer.inside?'THE SYNTAX VAULT':camera.position.y>14&&skyState.site?.name||localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
+ document.querySelector('#place-tagline').textContent=(camera.position.y>14&&skyState.site?.story)||placeState.district?.subtitle||'';
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
 }
