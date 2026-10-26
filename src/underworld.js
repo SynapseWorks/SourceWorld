@@ -295,8 +295,14 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
    return leave(true);
   }
   if(action==='listen'){
-   return {type:'listen',title:'THE STONE IS LISTENING',
-    description:active.story+' The cave remembers each choice you make in it.'};
+   const data=state(active.id);
+   const first=data.lastListenDay!==day;
+   if(first)data.lastListenDay=day;
+   const description=active.story+' The aquifer is '+STRATA_STAGES[data.flow].label.toLowerCase()+
+    ', and the fungal nursery has been tended '+data.care+' times. The world below remembers.';
+   if(first)onEvent({type:'UNDERGROUND OBSERVATION',title:active.name+' · LISTENING CHAMBER',
+    description});
+   return {type:'listen',title:'THE STONE IS LISTENING',description,first};
   }
   const data=state(active.id);
   if(action==='rewrite'){
