@@ -88,7 +88,8 @@ export function validCaveState(raw={}){
   flow:Number.isFinite(raw.flow)?Math.max(0,Math.min(3,Math.floor(raw.flow))):0,
   care:Number.isFinite(raw.care)?Math.max(0,Math.min(30,Math.floor(raw.care))):0,
   lastCareDay:Number.isFinite(raw.lastCareDay)?Math.max(0,Math.floor(raw.lastCareDay)):0,
-  lastEffectDay:Number.isFinite(raw.lastEffectDay)?Math.max(0,Math.floor(raw.lastEffectDay)):0
+  lastEffectDay:Number.isFinite(raw.lastEffectDay)?Math.max(0,Math.floor(raw.lastEffectDay)):0,
+  lastListenDay:Number.isFinite(raw.lastListenDay)?Math.max(0,Math.floor(raw.lastListenDay)):0
  };
 }
 export function cavePalette(type){return STRATA_PALETTES[type]||STRATA_PALETTES.hollow;}
