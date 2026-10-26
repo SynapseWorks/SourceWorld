@@ -218,13 +218,12 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
  }
  function setWireframe(enabled){
   wireframe=Boolean(enabled);
-  for(const item of chunks.values()){
-   // Never mutate the shared global code shader material, which would
-   // inadvertently change every surface in the constructed world.
-   for(const node of [item.base,item.rock,item.flora,item.bud,item.landmark,...item.motifs.map(m=>m.item)])
-    if(node.material!==materials.codeStone&&node.material!==materials.codeLight&&
-       node.material!==materials.codePlant)node.material.wireframe=wireframe;
-  }
+  // These code materials are private to this module. Update them once so
+  // chunks created *after* switching to Wireframe inherit the correct mode.
+  for(const mat of [materials.codeStone,materials.codePlant,materials.codeLight])
+   mat.wireframe=wireframe;
+  for(const theme of animeByBiome.values())for(const mat of Object.values(theme))
+   mat.wireframe=wireframe;
  }
  function setQuality(value){quality=Number.isFinite(value)?value:1;
   for(const entry of chunks.values())
