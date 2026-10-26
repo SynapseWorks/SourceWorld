@@ -191,7 +191,7 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
   let floor=eyeHeight;
   for(const item of chunks.values()){
    const d=item.data;
-   if(Math.hypot(x-d.x,z-d.z)<d.r*.72&&y>=d.y+eyeHeight-.35)
+   if(Math.hypot(x-d.x,z-d.z)<d.r*.72&&y>=d.y+eyeHeight-1.1)
     floor=Math.max(floor,d.y+eyeHeight);
   }
   return floor;
