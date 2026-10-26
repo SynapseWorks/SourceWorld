@@ -135,3 +135,17 @@ test('mobile has accessible ascend, descend and flight controls',async({page,isM
  await page.locator('#mobile-flight-toggle').click();
  await expect(page.locator('#flight-status')).toHaveText('GENTLE GLIDE');
 });
+
+test('wireframe gate ignores flyers high over the Syntax Vault',async({page})=>{
+ await page.goto('/');
+ const result=await page.evaluate(async()=>{
+  const {createUnderlayer,UNDERLAYER_SURFACE}=await import('/src/underlayer.js');
+  const scene={add(){}},layer=createUnderlayer(scene);
+  const above=layer.interact({...UNDERLAYER_SURFACE,y:45},true);
+  const low=layer.interact({...UNDERLAYER_SURFACE,y:1.72},true);
+  return {above,low:low?.type,eye:low?.y};
+ });
+ expect(result.above).toBeNull();
+ expect(result.low).toBe('enter');
+ expect(result.eye).toBeLessThan(0);
+});
