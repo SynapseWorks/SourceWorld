@@ -90,8 +90,8 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
   if(localFungi)localFungi.scale.setScalar(scale);
   if(animeFungi)animeFungi.scale.setScalar(scale);
   if(caveWater){
-   caveWater.code.visible=data.flow>0;
-   caveWater.anime.visible=data.flow>0;
+   caveWater.code.visible=!renderAnime&&data.flow>0;
+   caveWater.anime.visible=renderAnime&&data.flow>0;
    caveWater.source.visible=true;
    caveWater.code.material.opacity=.12+data.flow*.12;
    caveWater.anime.material.opacity=.10+data.flow*.12;
@@ -100,6 +100,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
   if(node)node.scale.setScalar(.92+data.flow*.14);
  }
  function clearCave(){
+  if(caveWater){caveWater.material.dispose();caveWater.animeMaterial.dispose();}
   caveRoot.clear();cave=null;localFungi=null;animeFungi=null;caveWater=null;
   for(const g of disposables)g.dispose();disposables.length=0;
  }
@@ -307,7 +308,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
    refreshGrowth();
    const event={type:'rewrite',title:stage.label,description:stage.description,
     id:active.id,x:active.x,z:active.z,flow:data.flow,previous,
-    strength:eligible?.026+data.flow*.007:0,day};
+    strength:eligible ? (.026+data.flow*.007) : 0,day};
    onEvent({type:'SUBTERRANEAN REWRITE',title:active.name+' · '+stage.label,
     description:stage.description});
    if(eligible)onEffect(event);
@@ -366,7 +367,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
  }
  return {nearGate,interact,restore,snapshot,update,dispose,leave,setWireframe,setAnime,
   bounds,cavernsNear,getDiscovered:()=>[...discovered],
-  getState:(id)=>({...saved.get(id)||validCaveState()}),
+  getState:(id)=>({... (saved.get(id)||validCaveState())}),
   get inside(){return inside;},get active(){return active;},
   get floorEye(){return DEEP_EYE;}};
 }
