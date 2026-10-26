@@ -1,4 +1,4 @@
-# SourceWorld v2.0 — Sky Ecology
+# SourceWorld v2.1 — The Living Underworld
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -19,6 +19,26 @@ npm test
 ```
 
 GitHub Actions verifies JavaScript syntax, creates a production build, and runs Chromium desktop/mobile smoke tests. Traces are preserved for failures.
+
+## The Living Underworld — v2.1
+
+SourceWorld now has a second playable subterranean layer **beneath the same biome-node world**. It expands the original authored Syntax Vault rather than replacing or resetting it.
+
+- **Wireframe-only fissures:** press **V** while walking on the surface. Look for luminous seam markers at five known biome sites and near generated frontier nodes. At ground level, approach one and press **E** to descend. You cannot enter from the sky; flight safely disables on entry. The entrance returns you to the same surface position, and switching Wireframe off also exits safely.
+- **Five authored entry sites:** Whispering Rootwell (X 43, Z -163), Reedwater Cavern (79, -244), Amber Hollow (-79, -248), Glassroot Grotto (143, -107), and Hush Chamber (-40, -112). Distant frontier nodes generate equivalent deterministic portals using the existing node lattice and biome seed.
+- **Walkable rooms:** each cave opens into a large connected stone chamber at **Layer -02** with a return gate, a fungal nursery, an aquifer-rewrite nexus and a Listening Chamber. Surface/underground movement uses the same WASD, mouse and interaction controls, with a separate safe height and circular cavern bounds.
+- **Underground nature:** the caves have biome-specific colour and geometry—hanging roots, tall glass, reeds, amber formations and ribbed stone—plus slow bioluminescent spores, fungal gardens, pools, and branching water channels. Generated cave meshes are unloaded when you return to the surface.
+- **Rearrange the aquifer:** at the nexus, **E** cycles Dormant → Spring → Stream → Living Aquifer → Dormant. Water becomes visible and more developed through the stages. Restored aquifers appear as persistent springs above ground, even in Code and Anime Reality. Groundwater affects actual local surface biome humidity, plant nectar and growth. Ecological boosts are capped and awarded at most once per cave per day when advancing an aquifer stage.
+- **Tend the mycelium:** at the fungal nursery, **E** tends the underground ecosystem once per simulated day. Its plants respond to care, and the connected surface biome receives a small nutrient/water benefit.
+- **Listen to stone:** a fourth landmark reveals the cave's story, current aquifer state and care history. It can be revisited, but the Field Notes entry is recorded only once per cave per simulated day.
+- **Persisted world:** only discovered cave IDs and validated water/tending history are saved under `underworldState` in local continuity; generated meshes are disposable. An old save with no cave data still works. Visited caves appear as discovered destinations on the Source Atlas.
+- **Bounded rendering:** only one cave is resident at a time; at most 15 portal markers and 15 spring-marker groups are reused as you move. The underground biome grammar shares surface-node coordinates instead of creating a competing procedural world. Reduced-motion preferences stop decorative spore and water animation, not cave care or ecological logic.
+
+**Current limits:** caves are connected, authored-style chamber layouts with deterministic local decoration—not yet true dynamically carved 3D tunnels, mineable voxel walls or a fully editable building system. Water channels currently change ecology and visual appearance, not player swimming. Frontier biomes beyond the original ecosystem model visibly retain spring changes; wider regional simulation effects are future work.
+
+### Test plan
+
+The new `tests/underworld.spec.js` covers deterministic portal selection, no midair entry, cave actions, save/restore, bounded portal pools, actual surface-ecology effects, and compatibility with the original Syntax Vault. GitHub Actions builds and tests on Chromium desktop/mobile; verify final WebGL visuals and collision clearance in a real GPU browser.
 
 ## Sky Ecology — v2.0
 
@@ -90,6 +110,7 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 - **Space** — jump while grounded; **ascend** in flight
 - **X** — launch, glide, or resume flight once awakened at the Skywell
 - **E near a bird nest** — observe its current life stage and record a new stage once in Field Notes. Ground, rooftop, and sky-garden care actions remain separate.
+- **V near a glowing fissure** — reveal a subterranean biome entrance. Press **E** to descend; within, interact with the return gate, aquifer, fungal nursery or listening chamber.
 - **C** or **Ctrl** — descend in flight; **Shift** increases flight speed while consuming more energy
 - **Skywell** — near the city entrance at X 0, Z −9. Interact with **E** to permanently unlock flight.
 - **Sky Seeds** — five airborne discoveries increase your maximum flight energy when gathered with **E**. Land on sanctuaries to recharge. Updraft streams replenish energy while airborne.
