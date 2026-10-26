@@ -371,3 +371,32 @@
  #touch-controls .touch-hint{bottom:295px;font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){#flight-meter-fill{transition:none}}
+
+/* v2.1 Living Underworld: a subtle, legible identity while below the surface. */
+#app.subterranean #vignette{
+ background:radial-gradient(ellipse at 51% 39%,rgba(5,46,37,.06) 0%,
+ rgba(4,17,29,.16) 53%,rgba(2,11,17,.64) 100%);opacity:1;
+}
+#app.subterranean .topmeta .dot{
+ background:#a1ffd2;box-shadow:0 0 10px #7ceec4;
+}
+#app.subterranean .underlayer-readout{
+ border-right-color:#9dffd1;
+ background:linear-gradient(90deg,rgba(5,25,24,.92),rgba(24,47,40,.78));
+ box-shadow:0 8px 30px rgba(1,12,14,.28);
+ max-width:285px;
+}
+#app.subterranean .underlayer-readout strong{color:#c1f6d0}
+#app.subterranean .underlayer-readout span{color:#97ead7}
+#app.subterranean .location{text-shadow:0 0 17px rgba(60,192,155,.15)}
+#app.subterranean .ecosystem-readout{opacity:.8}
+#app.subterranean .flight-hud{display:none!important}
+@media(pointer:coarse){
+ #app.subterranean .underlayer-readout{
+  bottom:330px;right:12px;max-width:min(185px,54vw);padding:9px 10px;
+ }
+ #app.subterranean .underlayer-readout small{font-size:8px;line-height:1.5}
+}
+@media(prefers-reduced-motion:reduce){
+ #app.subterranean #vignette{transition:none}
+}
