@@ -279,6 +279,32 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
    }
   }
  }
+ function receiveSkySeeds({x,z,strength=.01}={}){
+  // Birds fertilize the nearest habitat whether or not the explorer witnesses it.
+  // This is intentionally much gentler than the player-unlocked Resonance ability.
+  if(!Number.isFinite(x)||!Number.isFinite(z))return null;
+  const biome=state.reduce((best,next)=>{
+   const distance=Math.hypot(next.x-x,next.z-z);
+   return distance<best.distance?{item:next,distance}:best;
+  },{item:null,distance:Infinity});
+  if(!biome.item||biome.distance>190)return null;
+  const amount=THREE.MathUtils.clamp(strength,0,.045);
+  const target=biome.item;
+  const before=target.growth;
+  target.growth=Math.min(1,target.growth+amount);
+  target.humidity=Math.min(1,target.humidity+amount*.55);
+  let nourished=0;
+  for(const plant of regionPlants.get(target.id)||[]){
+   if(Math.hypot(plant.group.position.x-x,plant.group.position.z-z)<125){
+    plant.nectar=Math.min(1,plant.nectar+amount*1.65);
+    plant.age=Math.min(1,plant.age+amount*.42);
+    nourished++;
+   }
+  }
+  // Ground traces show that the sky and ground are part of the same ecosystem.
+  if(amount>.008)createTrace(x,z,simTime);
+  return {region:target.name,growth:target.growth-before,nourished};
+ }
  function influence(position){
   const nearest=state.filter(s=>s.kind!=='city').sort((a,b)=>Math.hypot(position.x-a.x,position.z-a.z)-Math.hypot(position.x-b.x,position.z-b.z))[0];
   if(!nearest)return false;
@@ -447,5 +473,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   for(const citizen of residents)citizen.avatar.setEnabled(enabled);
   for(const caretaker of neighborhoodVisitors)caretaker.avatar.setEnabled(enabled);
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites,setAnimeMode,careAt};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites,setAnimeMode,careAt,receiveSkySeeds};
 }
