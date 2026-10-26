@@ -59,6 +59,13 @@ export function createRooftopGardens(scene,{onDiscover=()=>{},onCare=()=>{}}={})
   }
   gardens.push({p,group,platform,fence,garden,pots,lamps});
  }
+ function setQuality(value=1){
+  const compact=value<=.7;
+  for(const item of gardens){
+   item.pots.forEach(({pot,leaf},i)=>{pot.visible=leaf.visible=!compact||i%2===0;});
+   item.lamps.forEach(({lamp,aura},i)=>{lamp.visible=aura.visible=!compact||i===0;});
+  }
+ }
  function setAnime(enabled){
   anime=Boolean(enabled);
   for(const item of gardens){
