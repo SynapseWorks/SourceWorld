@@ -481,6 +481,19 @@ function interact(){
   }
   if(underlayer.inside)return;
  }
+ // The Skywell grants safe, optional flight early in the exploration.
+ if(skyRoutes.getNearbyWell(camera.position)&&!flight.unlocked){
+  flight.unlock();
+  recordJournal({type:'ABILITY',title:'THE SKY ANSWERS',
+   description:'You awakened flight at the Skywell. Press X to lift off; Space rises and C descends.'});
+  triggerCodePulse(camera.position,clock.elapsedTime);
+  announce('FLIGHT AWAKENED · X TO FLY · SPACE UP · C DOWN.',10);
+  updateFlightUI();saveWorld();return;
+ }
+ const seed=skyRoutes.interact(camera.position);
+ if(seed)return;
+ // Do not accidentally activate ground-level objectives from high overhead.
+ if(camera.position.y>6)return;
 
  const tender=tendingWorld.getNearby(camera.position);
  if(tender&&echoes.getCount()>=REWRITE_UNLOCK){useWorldRewrite();return;}
@@ -613,6 +626,50 @@ settings.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();
 let yaw=0,pitch=0,vy=0,grounded=true;const keys=new Set();
 const clock=new THREE.Clock();
 
+function toggleFlight(){
+ if(!active||menuVisible()||awakening.isBlocking())return false;
+ if(!flight.unlocked){
+  announce('DISCOVER THE SKYWELL NEAR THE CITY ENTRANCE TO AWAKEN FLIGHT.',5);
+  return false;
+ }
+ const was=flight.mode;
+ const changed=flight.toggle({underground:underlayer.inside});
+ if(!changed){
+  if(underlayer.inside)announce('THE UNDERLAYER HAS NO OPEN SKY.',4);
+  else if(flight.energy<12)announce('YOUR WINGS NEED REST · GLIDE DOWN AND RECHARGE.',5);
+  return false;
+ }
+ vy=0;grounded=false;
+ updateFlightUI();
+ announce(changed==='flight'?'FLIGHT ACTIVE · SPACE ASCEND · C DESCEND · SHIFT BOOST.':'GLIDING · DESCEND SAFELY TO RECHARGE.',6);
+ if(was==='ground')saveWorld();
+ return true;
+}
+function updateFlightUI(){
+ const visible=active&&(flight.unlocked||skyRoutes.getNearbyWell(camera.position));
+ const hud=document.querySelector('#flight-hud');
+ hud.classList.toggle('hidden',!visible);
+ const status=document.querySelector('#flight-status');
+ status.textContent=flight.unlocked?(flight.mode==='flight'?'FLIGHT ACTIVE':flight.mode==='glide'?'GENTLE GLIDE':'WINGS READY'):'THE SKYWELL';
+ const alt=Math.max(0,Math.round(camera.position.y-FLIGHT_EYE_HEIGHT));
+ document.querySelector('#flight-eyebrow').textContent=flight.unlocked
+  ?'SKYWAYS · '+alt+' M ALTITUDE · '+skyRoutes.getCount()+' / 5 SEEDS'
+  :'AWAKEN YOUR FIRST FLIGHT';
+ document.querySelector('#flight-meter-fill').style.width=(flight.unlocked?Math.round(flight.energy/flight.maxEnergy*100):0)+'%';
+ document.querySelector('#flight-instruction').textContent=!flight.unlocked?'INTERACT WITH THE SKYWELL · E':
+   flight.mode==='flight'?'SPACE ↑  ·  C / CTRL ↓  ·  SHIFT BOOST':
+   flight.mode==='glide'?'GLIDE TO SAFETY · X TO RESUME IF CHARGED':
+   'PRESS X TO FLY · FOLLOW THE BIRDS';
+ const button=document.querySelector('#flight-toggle');
+ button.disabled=!flight.unlocked;
+ button.textContent=!flight.unlocked?'✧ FLIGHT LOCKED [ X ]':
+  flight.mode==='flight'?'◇ GLIDE [ X ]':flight.mode==='glide'?'✦ RESUME FLIGHT [ X ]':'✧ TAKE FLIGHT [ X ]';
+ button.setAttribute('aria-pressed',String(flight.mode==='flight'));
+ document.querySelector('#mobile-flight').classList.toggle('hidden',!flight.unlocked||!mobile);
+ document.querySelector('#mobile-flight-toggle').textContent=flight.mode==='flight'?'◇ GLIDE':'✧ FLY';
+}
+document.querySelector('#flight-toggle').addEventListener('click',toggleFlight);
+document.querySelector('#mobile-flight-toggle').addEventListener('click',e=>{e.preventDefault();toggleFlight();});
 function capture(){
  everEntered=true;paused=false;
  pauseScreen.classList.add('hidden');
@@ -671,6 +728,7 @@ window.addEventListener('keydown',e=>{
  if(e.code==='KeyQ'&&!e.repeat)useResonance();
  if(e.code==='KeyF'&&!e.repeat)useSignalCall();
  if(e.code==='KeyG'&&!e.repeat)useWorldRewrite();
+ if(e.code==='KeyX'&&!e.repeat)toggleFlight();
  if(e.code==='KeyR'&&!e.repeat)setReality(!animeReality);
  if(e.code==='KeyV'&&!e.repeat)setVision(!wireframe);
 });
@@ -701,6 +759,7 @@ document.querySelector('#reduced').addEventListener('change',e=>{setCodeMotion(e
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){document.querySelector('#reduced').checked=true;setCodeMotion(0);}
 // Touch input: left virtual joystick, right swipe camera control.
 const joystick=document.querySelector('#joystick'),knob=document.querySelector('#joystick-knob');
+let touchAscend=false,touchDescend=false;
 let touchMoveX=0,touchMoveY=0,joystickId=null,lookId=null,lastLook={x:0,y:0};
 if(mobile){document.querySelector('#touch-controls').classList.add('visible');}
 renderer.domElement.addEventListener('pointerdown',e=>{
@@ -716,21 +775,31 @@ function updateJoystick(e){
 joystick.addEventListener('pointerdown',e=>{if(!active||menuVisible())return;e.preventDefault();joystickId=e.pointerId;joystick.setPointerCapture(e.pointerId);updateJoystick(e);});
 joystick.addEventListener('pointermove',e=>{if(e.pointerId===joystickId)updateJoystick(e);});
 joystick.addEventListener('pointerup',resetJoystick);joystick.addEventListener('pointercancel',resetJoystick);
-function resetJoystick(){joystickId=null;touchMoveX=touchMoveY=0;knob.style.transform='translate(0,0)';}
+function resetJoystick(){joystickId=null;touchMoveX=touchMoveY=0;touchAscend=false;touchDescend=false;knob.style.transform='translate(0,0)';}
 renderer.domElement.addEventListener('pointermove',e=>{if(!mobile||e.pointerId!==lookId)return;yaw-=(e.clientX-lastLook.x)*.005;pitch=Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-lastLook.y)*.005));lastLook={x:e.clientX,y:e.clientY};});
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null;});
 renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null;});
 interactionLabel.addEventListener('click',interact);
-document.querySelector('#jump').addEventListener('pointerdown',e=>{e.preventDefault();if(!menuVisible()&&grounded){vy=5.1;grounded=false;}});
-function collision(x,z){
+const jumpButton=document.querySelector('#jump');
+jumpButton.addEventListener('pointerdown',e=>{
+ e.preventDefault();
+ if(menuVisible())return;
+ if(flight.airborne){touchAscend=true;return;}
+ if(grounded){vy=5.1;grounded=false;}
+});
+for(const event of ['pointerup','pointercancel','pointerleave'])jumpButton.addEventListener(event,()=>{touchAscend=false;});
+const descendButton=document.querySelector('#mobile-descend');
+descendButton.addEventListener('pointerdown',e=>{e.preventDefault();if(!menuVisible())touchDescend=true;});
+for(const event of ['pointerup','pointercancel','pointerleave'])descendButton.addEventListener(event,()=>{touchDescend=false;});
+function collision(x,z,y=camera.position.y){
  if(underlayer.inside)return !underlayer.bounds(x,z);
  // Check each obstacle independently; an unrelated box must never end the test.
  for(const b of solidity){
-  if(camera.position.y>b.y+b.h/2+.6||camera.position.y<b.y-b.h/2-1)continue;
+  if(y>b.y+b.h/2+.6||y<b.y-b.h/2-1)continue;
   if(Math.abs(x-b.x)<b.w/2+.34&&Math.abs(z-b.z)<b.d/2+.34)return true;
  }
  for(const tree of forest.obstacles){
-  if(Math.hypot(x-tree.x,z-tree.z)<tree.r+.3)return true;
+  if(y<15&&Math.hypot(x-tree.x,z-tree.z)<tree.r+.3)return true;
  }
  return false;
 }
