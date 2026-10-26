@@ -95,8 +95,9 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
    caveWater.source.visible=true;
    caveWater.pool.visible=!renderAnime;
    caveWater.animePool.visible=renderAnime;
-   caveWater.code.material.opacity=.12+data.flow*.12;
-   caveWater.anime.material.opacity=.10+data.flow*.12;
+   // Water channel containers are Groups; opacity belongs to their materials.
+   caveWater.material.opacity=.12+data.flow*.12;
+   caveWater.animeMaterial.opacity=.10+data.flow*.12;
   }
   const node=cave.nexus;
   if(node)node.scale.setScalar(.92+data.flow*.14);
