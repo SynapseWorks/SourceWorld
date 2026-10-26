@@ -20,6 +20,7 @@ export function createSkyEcology(scene,{onEvent=()=>{},onPollination=()=>{}}={})
   eggs:new THREE.MeshToonMaterial({color:'#e6e2cd'}),
   chick:new THREE.MeshToonMaterial({color:'#b9a179'}),
   codeChick:new THREE.MeshBasicMaterial({color:'#a6f9ce'}),
+  beak:new THREE.MeshBasicMaterial({color:'#d5b879'}),
   accent:new THREE.MeshBasicMaterial({color:'#b5edcb',transparent:true,opacity:.53,side:THREE.DoubleSide,depthWrite:false})
  };
  const glimmerGeo=new THREE.BufferGeometry(),count=24;
@@ -34,7 +35,7 @@ export function createSkyEcology(scene,{onEvent=()=>{},onPollination=()=>{}}={})
   ROOFTOP_GARDENS.map(s=>({...s,care:0}))
  );
  let weather='STABLE',phase=.5,anime=false,mostRecentTick=-1,latestEvent=null;
- let lastTime=0;
+ let lastTime=0,lastHabitatUpdate=-Infinity;
  function makeNest(source){
   const group=new THREE.Group();group.name='Bird nest · '+source.name;
   group.position.set(source.x+Math.min(source.r*.38,2.6),source.y+.43,source.z-Math.min(source.r*.30,1.9));
@@ -54,7 +55,7 @@ export function createSkyEcology(scene,{onEvent=()=>{},onPollination=()=>{}}={})
    const bird=new THREE.Group();chicks.add(bird);
    const body=new THREE.Mesh(geometry.chick,anime?materials.chick:materials.codeChick);
    body.position.y=.15;bird.add(body);
-   const beak=new THREE.Mesh(geometry.wing,new THREE.MeshBasicMaterial({color:'#d5b879'}));
+   const beak=new THREE.Mesh(geometry.wing,materials.beak);
    beak.position.set(0,.17,.25);beak.rotation.x=Math.PI/2;beak.scale.set(.6,.48,.6);bird.add(beak);
    bird.position.set((i?1:-1)*.38,.1,0);
   }
@@ -131,7 +132,10 @@ export function createSkyEcology(scene,{onEvent=()=>{},onPollination=()=>{}}={})
   lastTime=Math.max(0,simTime);weather=weatherState;phase=dayPhase;
   // Renderer objects are reconciled on the *simulation* update, not each
   // individual animation tick. Existing entries are reused between calls.
-  setHabitats(generated,rooftops);
+  if(lastTime-lastHabitatUpdate>.65||entries.size===0){
+   setHabitats(generated,rooftops);
+   lastHabitatUpdate=lastTime;
+  }
   for(const entry of entries.values()){
    const {source,group}=entry;
    const dist=Math.hypot(player.x-source.x,player.z-source.z);
@@ -150,7 +154,9 @@ export function createSkyEcology(scene,{onEvent=()=>{},onPollination=()=>{}}={})
   // explorer observing the island, and cannot replay on every visit.
   const tick=Math.floor(lastTime/SEEDFALL_INTERVAL);
   if(active&&!paused&&tick>mostRecentTick){
-   if(mostRecentTick>=0){
+   const hadClock=mostRecentTick>=0;
+   mostRecentTick=tick; // Persist the completed tick before callbacks request a save.
+   if(hadClock){
     const sourceList=authored; // independent of which generated meshes are loaded
     const event=seedfallForTick(tick,sourceList);
     if(event){
@@ -160,7 +166,6 @@ export function createSkyEcology(scene,{onEvent=()=>{},onPollination=()=>{}}={})
       description:event.description,location:event.name});
     }
    }
-   mostRecentTick=tick;
   }
   // The visible seeds are an echo of the latest world event. Their lifetime is
   // short, their GPU buffer is reused, and unseen events still affect the world.
