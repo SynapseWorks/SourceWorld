@@ -45,7 +45,7 @@ export function createAerialLife(scene,{count=26,onEvent=()=>{}}={}){
  setAnime(false);
  const poses=Array.from({length:count},(_,i)=>({angle:i*2.399963,phase:i*.67,
   radius:13+(i*7%12)*4.2,height:19+(i*17%28),speed:.052+(i%6)*.019}));
- function update(dt,player,{paused=false,reduced=false,weather='STABLE',underground=false,flight=false,phase=.5,day=1,skyIslands=[],rooftops=[]}={}){
+ function update(dt,player,{paused=false,reduced=false,weather='STABLE',underground=false,flight=false,phase=.5,day=1,skyIslands=[],rooftops=[],nests=[]}={}){
   // Flocks keep moving while the explorer visits lower strata.
   if(!paused)elapsed+=Math.min(dt,.08);
   if(paused||underground){root.visible=!underground;return;}
@@ -67,21 +67,25 @@ export function createAerialLife(scene,{count=26,onEvent=()=>{}}={}){
    const roof=roofBird&&rooftops.length?rooftops[(i-5)%rooftops.length]:null;
    const island=!cityBird&&!roofBird&&!handcrafted&&skyIslands.length
     ?skyIslands[(i-17)%skyIslands.length]:null;
-   const host=sanctuary||roof||island;
-   const centerX=cityBird?0:(host?.x??anchor.x);
-   const centerZ=cityBird?-54:(host?.z??anchor.z);
+   // When the world enters its quiet hours, birds return to real nests.
+   // The nests exist independently of whether the explorer is nearby.
+   const returning=(behavior==='ROOSTING'||behavior==='SHELTERING');
+   const nest=returning&&nests.length?nests[i%nests.length]:null;
+   const host=nest||sanctuary||roof||island;
+   const centerX=cityBird&&!nest?0:(host?.x??anchor.x);
+   const centerZ=cityBird&&!nest?-54:(host?.z??anchor.z);
    const radiusScale=behavior==='ROOSTING'?.24:behavior==='SHELTERING'?.30:
     behavior==='MIGRATING'?.72:1;
    const angle=bird.angle+elapsed*bird.speed*(behavior==='ROOSTING'?.2:1);
    // Repeated tending concentrates roosting and foraging around cared-for habitats.
    const habitatAffinity=island?.birdInterest??0;
    const cared=island?.care||roof?.care||0;
-   const radius=(host?9+bird.radius*.22:bird.radius)*radiusScale
-    *(island?1-.18*habitatAffinity-.025*Math.min(5,cared):roof?1-.035*Math.min(5,cared):1);
+   const radius=(nest?2.4+(i%3)*.8:host?9+bird.radius*.22:bird.radius)*radiusScale
+    *(nest?Math.max(.35,1-.05*Math.min(5,nest.care||0)):island?1-.18*habitatAffinity-.025*Math.min(5,cared):roof?1-.035*Math.min(5,cared):1);
    let x=centerX+Math.cos(angle)*radius;
    let z=centerZ+Math.sin(angle)*radius;
-   const altitude=(host?host.y+8+(i%4)*2:bird.height)
-    +(behavior==='ROOSTING'?-5:behavior==='MIGRATING'?6:0)
+   const altitude=(nest?nest.y+2.3+(i%3)*.65:host?host.y+8+(i%4)*2:bird.height)
+    +(nest?0:behavior==='ROOSTING'?-5:behavior==='MIGRATING'?6:0)
     -((island||roof)?Math.min(3,cared*.6):0)
     +Math.sin(elapsed*.4+bird.phase)*1.2;
    let y=altitude;
