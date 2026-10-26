@@ -20,7 +20,9 @@ export function createFlightController(){
   unlocked=data.unlocked===true;
   bonuses=Number.isFinite(data.bonuses)?clamp(Math.floor(data.bonuses),0,5):0;
   maxEnergy=FLIGHT_BASE_ENERGY+Math.min(FLIGHT_MAX_BONUS,bonuses*15);
-  energy=Number.isFinite(data.energy)?clamp(data.energy,0,maxEnergy):maxEnergy;
+  // Reloads always begin at the safe ground spawn. Resting between sessions
+  // fully recharges the wings; only permanent reserve upgrades need persistence.
+  energy=maxEnergy;
   // The world begins on the ground after a reload, never suspended midair.
   mode='ground';vx=vz=vy=0;
  }
