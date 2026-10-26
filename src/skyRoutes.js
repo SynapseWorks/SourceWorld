@@ -92,11 +92,25 @@ export function createSkyRoutes(scene,{onDiscover=()=>{},onCollect=()=>{}}={}){
   const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.55,0),codeLight);seed.add(gem);
   const halo=new THREE.Mesh(new THREE.TorusGeometry(.94,.038,6,42),gold);
   halo.rotation.x=.5;seed.add(halo);
+  // Visible updraft streams reward observation rather than invisible stat bonuses.
+  const currents=[];
+  for(let j=0;j<3;j++){
+   const current=new THREE.Mesh(
+    new THREE.TorusGeometry(8+j*1.45,.065,5,56,Math.PI*1.52),
+    new THREE.MeshBasicMaterial({color:j%2?'#c9e9ff':'#a8ffd3',
+      transparent:true,opacity:.12+(j%2)*.055,depthWrite:false,side:THREE.DoubleSide})
+   );
+   current.rotation.x=Math.PI/2;
+   current.rotation.z=j*2.09;
+   current.position.y=7+j*4.7;
+   group.add(current);
+   currents.push(current);
+  }
   const landingRing=new THREE.Mesh(new THREE.RingGeometry(4,4.16,40),new THREE.MeshBasicMaterial({
    color:'#c4ffd3',transparent:true,opacity:.31,side:THREE.DoubleSide,depthWrite:false
   }));
   landingRing.rotation.x=-Math.PI/2;landingRing.position.y=.035;group.add(landingRing);
-  sites.push({...s,group,stoneGroup,paintGroup,seed,gem,halo,landingRing});
+  sites.push({...s,group,stoneGroup,paintGroup,seed,gem,halo,landingRing,currents});
  }
  function restore(ids=[]){
   for(const id of ids)if(SKY_SITES.some(s=>s.id===id)){collected.add(id);discovered.add(id);}
@@ -156,6 +170,10 @@ export function createSkyRoutes(scene,{onDiscover=()=>{},onCollect=()=>{}}={}){
    if(!paused&&!reduced){
     site.gem.rotation.y+=dt*.43;site.halo.rotation.z+=dt*.25;
     site.seed.position.y=2.75+Math.sin(t*.78+site.x)*.16;
+    for(const [j,current] of site.currents.entries()){
+     current.rotation.z+=dt*(j%2?-.06:.075);
+     current.material.opacity=.10+.035*Math.sin(t*.75+j*1.7+site.x);
+    }
    }
    if(d<20&&Math.abs(position.y-site.y)<19){
     if(!discovered.has(site.id)){
