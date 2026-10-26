@@ -60,7 +60,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
  const saved=new Map(),discovered=new Set();
  let active=null,inside=false,renderAnime=false,clock=0;
  let lastRefreshX=Infinity,lastRefreshZ=Infinity,oldWireframe=false;
- let cave=null,localFungi=null,animeFungi=null,caveWater=null;
+ let cave=null,localFungi=null,animeFungi=null,caveWater=null,spores=null;
  const disposables=[];
  const safe=(n,d=0)=>Number.isFinite(n)?n:d;
  const state=(id)=>{
@@ -101,7 +101,8 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
  }
  function clearCave(){
   if(caveWater){caveWater.material.dispose();caveWater.animeMaterial.dispose();}
-  caveRoot.clear();cave=null;localFungi=null;animeFungi=null;caveWater=null;
+  if(spores)spores.material.dispose();
+  caveRoot.clear();cave=null;localFungi=null;animeFungi=null;caveWater=null;spores=null;
   for(const g of disposables)g.dispose();disposables.length=0;
  }
  function spawnCave(node){
@@ -215,6 +216,58 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
     3+random()*2,DEEP_ROOMS.listening.z+Math.sin(a)*rr);
    monolith.scale.set(.6,2.4,.6);
   }
+  // Every biome has a different structure to read in silhouette, not simply
+  // a different hue. All pieces stay clear of the three walkable activity rooms.
+  const grammar=new THREE.Group();grammar.name=node.type+' cave formation';group.add(grammar);
+  const signature=[
+   {x:-28,z:17},{x:-24,z:22},{x:27,z:18},{x:30,z:12},
+   {x:-7,z:-30},{x:4,z:-33}
+  ];
+  for(const [i,pos] of signature.entries()){
+   if(node.type==='mosslight'){
+    const stem=mesh(grammar,sharedCone,rootCode,pos.x,9.5,pos.z);
+    stem.rotation.z=.16*(i%2?1:-1);stem.scale.set(.48,6.5+(i%3),.52);
+    const leaf=mesh(grammar,sharedCrystal,fungiCode,pos.x,2.7,pos.z);
+    leaf.scale.set(.9,.7,.9);
+   }else if(node.type==='glassfall'){
+    const glass=mesh(grammar,sharedCrystal,crystalCode,pos.x,4.2,pos.z);
+    glass.scale.set(.9+(i%3)*.3,3.2+(i%4),.8);glass.rotation.z=i*.13;
+   }else if(node.type==='siltreed'){
+    for(let j=0;j<4;j++){
+     const reed=mesh(grammar,sharedCone,j%2?rootCode:fungiCode,
+       pos.x+(j-1.5)*.6,2.2+(j%2)*.4,pos.z+(j%3)*.35);
+     reed.scale.set(.17,4.4+(j%3)*.7,.17);
+    }
+   }else if(node.type==='amber'){
+    for(let j=0;j<3;j++){
+     const amber=mesh(grammar,sharedCrystal,crystalCode,
+       pos.x+(j-1)*.9,2+(j%2),pos.z);
+     amber.scale.set(.54,1.8+(j%3)*.5,.62);
+    }
+   }else{
+    const rib=mesh(grammar,sharedCrystal,rockCode,pos.x,5.8,pos.z);
+    rib.scale.set(.62,4.3,.72);rib.rotation.z=i%2?.22:-.22;
+   }
+  }
+  // Bioluminescent spores drift in a tiny bounded pool and are reduced-motion safe.
+  const sporeGeometry=new THREE.IcosahedronGeometry(.12,0);
+  const sporeMaterial=new THREE.MeshBasicMaterial({
+   color:pal.fungus,transparent:true,opacity:.68,depthWrite:false
+  });
+  const sporeMesh=new THREE.InstancedMesh(sporeGeometry,sporeMaterial,24);
+  const sporeSeeds=Array.from({length:24},(_,i)=>({
+   x:(random()-.5)*52,z:(random()-.5)*52,
+   y:2+random()*9,phase:random()*6.283
+  }));
+  const dummySpore=new THREE.Object3D();
+  for(const [i,item] of sporeSeeds.entries()){
+   dummySpore.position.set(item.x,item.y,item.z);
+   dummySpore.scale.setScalar(.5+(i%3)*.25);dummySpore.updateMatrix();
+   sporeMesh.setMatrixAt(i,dummySpore.matrix);
+  }
+  sporeMesh.instanceMatrix.needsUpdate=true;sporeMesh.frustumCulled=false;
+  group.add(sporeMesh);disposables.push(sporeGeometry);
+  spores={mesh:sporeMesh,seeds:sporeSeeds,dummy:dummySpore,material:sporeMaterial};
   cave={group,nexus,waterMat,animeWaterMat,stone:spikes,animeStone:animeSpikes,
    normalFloor:floor,paintedFloor:animeFloor};
   setAnime(renderAnime);refreshGrowth();
@@ -352,6 +405,17 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
   }
   if(!paused&&inside&&cave&&!reduced){
    cave.nexus.rotation.y+=dt*.14;
+   if(spores){
+    const d=spores.dummy;
+    for(const [i,item] of spores.seeds.entries()){
+     d.position.set(item.x+Math.sin(t*.25+item.phase)*.7,
+      item.y+Math.sin(t*.62+item.phase)*.8,
+      item.z+Math.cos(t*.18+item.phase)*.55);
+     d.scale.setScalar(.50+(i%3)*.25);d.updateMatrix();
+     spores.mesh.setMatrixAt(i,d.matrix);
+    }
+    spores.mesh.instanceMatrix.needsUpdate=true;
+   }
    // Water flows only when the lower pathways have been restored.
    if(caveWater&&state(active.id).flow>0){
     caveWater.material.opacity=.10+state(active.id).flow*.12+
