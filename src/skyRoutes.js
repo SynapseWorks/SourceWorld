@@ -146,7 +146,7 @@ export function createSkyRoutes(scene,{onDiscover=()=>{},onCollect=()=>{}}={}){
    const distance=Math.hypot(x-s.x,z-s.z);
    // Only land on top when approaching the platform from above;
    // never snap a player upward through a floating island.
-   if(distance<s.r*.78&&currentY>=s.y+eyeHeight-.35)
+   if(distance<s.r*.78&&currentY>=s.y+eyeHeight-1.1)
     floorEye=Math.max(floorEye,s.y+eyeHeight);
   }
   return floorEye;
