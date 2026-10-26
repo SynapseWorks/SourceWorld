@@ -1,4 +1,4 @@
-# SourceWorld v1.9 — The Living Sky
+# SourceWorld v2.0 — Sky Ecology
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -19,6 +19,22 @@ npm test
 ```
 
 GitHub Actions verifies JavaScript syntax, creates a production build, and runs Chromium desktop/mobile smoke tests. Traces are preserved for failures.
+
+## Sky Ecology — v2.0
+
+The sky has become a continuous ecological layer rather than a set of airborne rewards. **Birds nest, raise young, migrate and carry seeds into the environment below whether or not the player is nearby.**
+
+- **Nest sites** exist on the five authored sanctuaries, the six named city rooftop gardens, and up to 16 streamed biome sky islands. Every habitat receives an illustrated or Code Reality nest with its own deterministic identity.
+- **Lifecycle:** nests progress through weaving, eggs, chicks, and fledglings across successive 12-minute world days. Care can gently advance the apparent progress. Discoveries are observational: approach a nest and press **E** to record its stage in Field Notes. Re-observing the same stage doesn't flood the journal.
+- **Independent wildlife routines:** birds return to nests during simulated nighttime and shelter near them during storms; their existing migration, foraging and flight interactions remain active.
+- **Autonomous seedfall:** every 210 seconds of simulation time, a seeded world event chooses a real location from a stable roster of authored sky and roof habitats. The event runs whether or not it is being observed. When a seedfall reaches a managed ground biome, `ecosystem.receiveSkySeeds()` gently increases local plant nectar, growth and humidity and leaves a visible surface trace. Seedfall appears briefly as falling light when the player is nearby.
+- **Persistence:** observed nest stages and the last completed world-event tick are saved under `skyEcologyState` in browser continuity, preventing duplicate observations or events after reload. Reloads and older saves remain safe. Existing biome progression and offline ecological changes are preserved.
+- **Performance & accessibility:** reusable procedural geometries and materials, at most 27 nests in memory, streamed generated-nest instances, a 24-point seedfall particle buffer and low-frequency habitat reconciliation. Decorative motion and particles stop under reduced-motion preferences; lifecycle state and ecological effects continue.
+- **Startup repair:** `createRooftopGardens` now exports `setQuality`, which `main.js` requires during startup. Previously the absent export could stop the game before the awakening overlay initialized.
+
+### Follow-up development
+
+The next meaningful passes are more distinct bird species and family behaviors, gentle observatory interactions, weather-aware nests, bird migration routes between generated node clusters, and procedural underground cave ecology. These are future work, not claimed as implemented.
 
 ## The Living Sky — v1.9
 
@@ -56,7 +72,7 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 
 **The underground prototype** is the Syntax Vault at approximately X 0, Z -116. In Wireframe Vision, approach the gate and press **E** to enter; the same movement controls work at layer -01. At the underground nexus, **E** cycles three spatial arrangements. These edits now also leave *persistent, visible surface consequences* near the entrance, even when returning to Code or Anime Reality. Return via the exit gate.
 
-**An aerial ecology preview** adds migratory signal-birds that group around city and generated biome nodes, respond to storm conditions, and shift their flight paths independently of movement input. These birds are observable from the ground: user-controlled flight is **not implemented yet**.
+**At the time of v1.7**, an aerial ecology preview added migratory signal-birds but not user-controlled flight. Flight arrived in v1.8 and expanded with generated sky habitats in v1.9 and living nests in v2.0.
 
 ### Next development phases
 
@@ -73,6 +89,7 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 - **Shift** — sprint
 - **Space** — jump while grounded; **ascend** in flight
 - **X** — launch, glide, or resume flight once awakened at the Skywell
+- **E near a bird nest** — observe its current life stage and record a new stage once in Field Notes. Ground, rooftop, and sky-garden care actions remain separate.
 - **C** or **Ctrl** — descend in flight; **Shift** increases flight speed while consuming more energy
 - **Skywell** — near the city entrance at X 0, Z −9. Interact with **E** to permanently unlock flight.
 - **Sky Seeds** — five airborne discoveries increase your maximum flight energy when gathered with **E**. Land on sanctuaries to recharge. Updraft streams replenish energy while airborne.
