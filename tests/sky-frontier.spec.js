@@ -128,3 +128,28 @@ test('bird behavior changes across day, night, and storms without pursuing the p
  expect(result.night).toBe('ROOSTING');
  expect(result.storm).toBe('SHELTERING');
 });
+
+test('sky islands generated after switching to Wireframe inherit the active view',async({page})=>{
+ await page.goto('/');
+ const result=await page.evaluate(async()=>{
+  const {createSkyFrontier}=await import('/src/skyFrontier.js');
+  const scene={children:[],add(o){this.children.push(o)}};
+  const world=createSkyFrontier(scene);
+  world.setWireframe(true);
+  world.stream(1150,-1140);
+  const root=scene.children.find(c=>c.name==='Generated biome sky archipelago');
+  const code=[];
+  root.traverse(o=>{
+   if(o.isMesh&&o.material?.type==='ShaderMaterial')code.push(o.material.wireframe);
+  });
+  world.setWireframe(false);
+  const after=[];
+  root.traverse(o=>{
+   if(o.isMesh&&o.material?.type==='ShaderMaterial')after.push(o.material.wireframe);
+  });
+  return {count:code.length,on:code.every(Boolean),off:after.every(v=>!v)};
+ });
+ expect(result.count).toBeGreaterThan(0);
+ expect(result.on).toBe(true);
+ expect(result.off).toBe(true);
+});
