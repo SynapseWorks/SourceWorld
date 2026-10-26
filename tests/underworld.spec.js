@@ -16,7 +16,7 @@ test('cave portals are seeded, named by biome, and never replace the authored wo
    below:cavernAtSurface({...node,y:-17},true),
    examples:[isValidStrataId(place.id),isValidStrataId(a.id),isValidStrataId('bad:somewhere')],
    eye:DEEP_EYE,within:[withinCaveBounds(0,0),withinCaveBounds(40,0),withinCaveBounds(48,0)],
-   nearby:cavernsNear(4*384,-3*384,225).length};
+   nearby:cavernsNear(a.x,a.z,225).length};
  });
  expect(result).toMatchObject({same:true,different:true,biome:true,starterCount:5,
   entry:result.starter,locked:null,airborne:null,below:null,
