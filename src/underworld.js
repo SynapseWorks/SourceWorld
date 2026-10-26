@@ -93,6 +93,8 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
    caveWater.code.visible=!renderAnime&&data.flow>0;
    caveWater.anime.visible=renderAnime&&data.flow>0;
    caveWater.source.visible=true;
+   caveWater.pool.visible=!renderAnime;
+   caveWater.animePool.visible=renderAnime;
    caveWater.code.material.opacity=.12+data.flow*.12;
    caveWater.anime.material.opacity=.10+data.flow*.12;
   }
@@ -196,7 +198,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
   const animePool=mesh(waterRoot,circle,animeWaterMat,DEEP_ROOMS.aquifer.x,.17,DEEP_ROOMS.aquifer.z);
   animePool.rotation.x=-Math.PI/2;animePool.scale.set(6.5,4.4,1);
   caveWater={code:streamGroup,anime:paintedStream,source:waterRoot,
-    material:waterMat,animeMaterial:animeWaterMat};
+    pool,animePool,material:waterMat,animeMaterial:animeWaterMat};
   // Three gently recognizable activities: exit, irrigation nexus, fungal nursery.
   const exit=mesh(group,sharedCrystal,crystalCode,DEEP_ROOMS.exit.x,1.3,DEEP_ROOMS.exit.z);
   exit.scale.set(.48,.65,.48);
@@ -280,6 +282,8 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
   localFungi.visible=!renderAnime;animeFungi.visible=renderAnime;
   caveWater.code.visible=!renderAnime&&state(active.id).flow>0;
   caveWater.anime.visible=renderAnime&&state(active.id).flow>0;
+  caveWater.pool.visible=!renderAnime;
+  caveWater.animePool.visible=renderAnime;
  }
  function setWireframe(value){
   if(!value&&inside)leave(false);
@@ -429,7 +433,7 @@ export function createUnderworld(scene,{onEvent=()=>{},onEffect=()=>{}}={}){
  function dispose(){
   clearCave();scene.remove(caveRoot,portalsRoot);
   for(const slot of portalPool){
-   slot.lake.material.dispose();slot.halo.material.dispose();
+   slot.lake.material.dispose();slot.halo.material.dispose();slot.halo.geometry.dispose();
   }
   for(const mat of paletteMaterials.values())mat.dispose();
   for(const mat of [rockCode,rootCode,fungiCode,crystalCode,waterCode,waterAnime,glow])mat.dispose();
