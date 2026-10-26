@@ -24,7 +24,7 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
   halo:new THREE.RingGeometry(.71,.75,40)
  };
  const dummy=new THREE.Object3D();
- let anime=false,wireframe=false,quality=1,elapsed=0,lastCell='',lastCheck=0,lastClimate=-1;
+ let anime=false,wireframe=false,quality=1,elapsed=0,lastCell='',lastCheck=0,latestPhase=.5,latestWeather='STABLE';
  function isSafeId(id){
   if(!isSkyFrontierId(id))return false;
   const [,nx,nz,slot]=/^skyfrontier:(-?\d+):(-?\d+):([01])$/.exec(id);
@@ -65,13 +65,15 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
    dummy.rotation.set(0,a,0);dummy.scale.set(.66,1+(i%4)*.32,.7);
    dummy.updateMatrix();flora.setMatrixAt(i,dummy.matrix);
   }
-  flora.instanceMatrix.needsUpdate=true;flora.frustumCulled=false;group.add(flora);
+  flora.instanceMatrix.needsUpdate=true;flora.frustumCulled=false;
+  if(quality<=.7)flora.count=Math.ceil(data.flora*.46);
+  group.add(flora);
   const wind=mesh(shared.ring,materials.wind,0,9.4,0,8,8,8);
   wind.rotation.x=Math.PI/2;wind.userData.noWireframe=true;
   const halo=mesh(shared.halo,materials.landing,0,.044,0,data.r*.8,1,data.r*.8);
   halo.rotation.x=-Math.PI/2;halo.userData.noWireframe=true;
   const bud=mesh(shared.gem,anime?pretty.leaf:materials.codeLight,2.1,1.3,0,.8,1.2,.8);
-  if(wireframe)for(const item of [base,rock,landmark,flora,bud])item.material.wireframe=true;
+  if(wireframe&&anime)for(const item of [base,rock,landmark,flora,bud])item.material.wireframe=true;
   const entry={data,group,base,rock,landmark,flora,wind,halo,bud,pretty};
   chunks.set(data.id,entry);
   return entry;
@@ -177,6 +179,7 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
  function update(dt,player,{time=0,phase=.5,weather='STABLE',day=1,
   paused=false,reduced=false,active=false}={}){
   elapsed+=Math.min(dt,.06);
+  latestPhase=phase;latestWeather=weather;
   const cell=Math.floor(player.x/SKY_NODE_SPACING)+':'+Math.floor(player.z/SKY_NODE_SPACING);
   if(active&&(!lastCell||cell!==lastCell||elapsed-lastCheck>.9)){
    stream(player.x,player.z);lastCheck=elapsed;
@@ -218,5 +221,9 @@ export function createSkyFrontier(scene,{onDiscover=()=>{},onCare=()=>{}}={}){
  return {update,restore,snapshot,getDiscovered,stream,interact,getNearby,
   floorEyeAt,updraftAt,setAnime,setWireframe,setQuality,getStats:()=>({
    active:chunks.size,discovered:discovered.size,caredFor:care.size,max:MAX_STREAMED_SKY_ISLANDS
-  }),getActiveIslands:()=>[...chunks.values()].map(c=>c.data),dispose};
+  }),getActiveIslands:()=>[...chunks.values()].map(c=>{
+   const amount=care.get(c.data.id)?.total||0;
+   return {...c.data,care:amount,
+    birdInterest:skyIslandClimate(c.data,latestPhase,latestWeather,amount).birdInterest};
+  }),dispose};
 }
