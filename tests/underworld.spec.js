@@ -29,10 +29,10 @@ test('cave portals are seeded, named by biome, and never replace the authored wo
 test('wireframe portal leads to a walkable, editable biome cave and a safe exit',async({page})=>{
  await page.goto('/');
  const result=await page.evaluate(async()=>{
-  const THREE=await import('three');
   const {createUnderworld}=await import('/src/underworld.js');
   const {STARTER_CAVERNS,DEEP_EYE,DEEP_ROOMS}=await import('/src/underworldData.js');
-  const scene=new THREE.Scene(),events=[],effects=[];
+  const scene={children:[],add(...objects){this.children.push(...objects);},remove(...objects){this.children=this.children.filter(c=>!objects.includes(c));}};
+  const events=[],effects=[];
   const deep=createUnderworld(scene,{onEvent:e=>events.push(e.type),onEffect:e=>effects.push(e)});
   const portal=STARTER_CAVERNS[0],surface={x:portal.x,y:1.72,z:portal.z};
   const locked=deep.interact(surface,false);
@@ -63,10 +63,10 @@ test('wireframe portal leads to a walkable, editable biome cave and a safe exit'
 test('generated caverns retain rewrite history after geometry is unloaded and recreated',async({page})=>{
  await page.goto('/');
  const result=await page.evaluate(async()=>{
-  const THREE=await import('three');
   const {createUnderworld}=await import('/src/underworld.js');
   const {cavernFromNode,DEEP_EYE}=await import('/src/underworldData.js');
-  const scene=new THREE.Scene(),world=createUnderworld(scene);
+  const scene={children:[],add(...objects){this.children.push(...objects);},remove(...objects){this.children=this.children.filter(c=>!objects.includes(c));}};
+  const world=createUnderworld(scene);
   const node=cavernFromNode(4,-5);
   const pos={x:node.x,y:1.72,z:node.z};
   const start=world.interact(pos,true,1);
@@ -74,7 +74,7 @@ test('generated caverns retain rewrite history after geometry is unloaded and re
   world.interact({x:node.x-18,z:node.z-15,y:DEEP_EYE},true,2);
   const saved=world.snapshot(),state=world.getState(node.id);
   world.leave();world.dispose();
-  const second=createUnderworld(new THREE.Scene());
+  const second=createUnderworld({add(){},remove(){}});
   second.restore(saved);
   const restored=second.getState(node.id);
   const entered=second.interact(pos,true,3);
@@ -93,9 +93,9 @@ test('generated caverns retain rewrite history after geometry is unloaded and re
 test('underground gateway rendering is capped and remote portal resources remain bounded',async({page})=>{
  await page.goto('/');
  const result=await page.evaluate(async()=>{
-  const THREE=await import('three');
   const {createUnderworld}=await import('/src/underworld.js');
-  const scene=new THREE.Scene(),world=createUnderworld(scene);
+  const scene={children:[],add(...objects){this.children.push(...objects);},remove(...objects){this.children=this.children.filter(c=>!objects.includes(c));}};
+  const world=createUnderworld(scene);
   const group=scene.children.find(o=>o.name==='Wireframe gateways and surface springs');
   const original=group.children.length;
   for(let i=0;i<24;i++)
@@ -115,9 +115,8 @@ test('underground gateway rendering is capped and remote portal resources remain
 test('water editing has measurable ecological effects on the actual world above',async({page})=>{
  await page.goto('/');
  const result=await page.evaluate(async()=>{
-  const THREE=await import('three');
   const {createEcosystem}=await import('/src/ecosystem.js');
-  const scene=new THREE.Scene(),eco=createEcosystem(scene);
+  const eco=createEcosystem({add(){}});
   const before=eco.getState();
   const impact=eco.receiveSubsurfaceWater({x:43,z:-163,flow:2,care:3,strength:.035});
   const after=eco.getState();
@@ -135,11 +134,11 @@ test('water editing has measurable ecological effects on the actual world above'
 test('an underground visit does not alter the independent original Syntax Vault',async({page})=>{
  await page.goto('/');
  const result=await page.evaluate(async()=>{
-  const THREE=await import('three');
   const {createUnderlayer,UNDERLAYER_SURFACE}=await import('/src/underlayer.js');
   const {createUnderworld}=await import('/src/underworld.js');
   const {STARTER_CAVERNS}=await import('/src/underworldData.js');
-  const scene=new THREE.Scene(),vault=createUnderlayer(scene),caves=createUnderworld(scene);
+  const scene={children:[],add(...objects){this.children.push(...objects);},remove(...objects){this.children=this.children.filter(c=>!objects.includes(c));}};
+  const vault=createUnderlayer(scene),caves=createUnderworld(scene);
   const vaultBefore=vault.interact(UNDERLAYER_SURFACE,true);
   const caveGate=STARTER_CAVERNS[1];
   const caveAction=caves.interact({x:caveGate.x,y:1.72,z:caveGate.z},true,1);
