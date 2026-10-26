@@ -135,5 +135,7 @@ export function createRooftopGardens(scene,{onDiscover=()=>{},onCare=()=>{}}={})
   return {nearby:getNearby(player,day),site:nearest,discovered:discovered.size};
  }
  return {setAnime,restore,snapshot,getDiscovered,getNearby,interact,floorEyeAt,
-  update,sites:ROOFTOP_GARDENS,getStats:()=>({total:gardens.length,visited:discovered.size,caredFor:care.size})};
+  update,sites:ROOFTOP_GARDENS,
+  getHabitats:()=>ROOFTOP_GARDENS.map(p=>({...p,care:care.get(p.id)?.total||0})),
+  getStats:()=>({total:gardens.length,visited:discovered.size,caredFor:care.size})};
 }
