@@ -110,7 +110,7 @@ export function createRooftopGardens(scene,{onDiscover=()=>{},onCare=()=>{}}={})
  function floorEyeAt(x,z,y,eyeHeight=1.72){
   let floor=eyeHeight;
   for(const p of ROOFTOP_GARDENS){
-   if(Math.hypot(x-p.x,z-p.z)<p.r*.87&&y>=p.y+eyeHeight-.35)
+   if(Math.hypot(x-p.x,z-p.z)<p.r*.87&&y>=p.y+eyeHeight-1.1)
     floor=Math.max(floor,p.y+eyeHeight);
   }
   return floor;
