@@ -1,4 +1,4 @@
-# SourceWorld v1.7 — The Unwritten Frontier
+# SourceWorld v1.8 — The Open Sky
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -20,6 +20,20 @@ npm test
 
 GitHub Actions verifies JavaScript syntax, creates a production build, and runs Chromium desktop/mobile smoke tests. Traces are preserved for failures.
 
+## Flight and the living sky — v1.8
+
+Flight is a first-class movement state, not a camera teleport. Interact with the **Skywell** near the first avenue (X 0, Z −9) to awaken it, then press **X** to take off. Hold **Space** to climb, **C / Ctrl** to descend, and move with the existing directional controls. Use **Shift** to boost at higher energy cost. Press **X** again to enter a controlled glide.
+
+- **Safe physics:** horizontal movement eases in and out with velocity damping; the flight controller clamps altitude at 112 world units, obeys nearby building collision at low altitude, and never permits flight inside the underground Syntax Vault. Energy drains during flight and regenerates on the ground. When depleted, flight automatically converts to a gentle, non-damaging glide. Islands support landing and walking on their raised platforms; stepping off them gently catches the player in a glide.
+- **Sky Seed progression:** five authored floating sanctuaries, each with a hidden Sky Seed, a landing surface and a readable wind-current updraft. Gathering a Seed increases maximum flight energy by 15 points (up to +75), and that upgrade persists in the browser continuity save. Collected seeds cannot be picked up twice.
+- **Aerial destinations:** the Swallow Perch above the city, Cloud Orchard above the forest, Reed Crown over the marsh, Glass Aerie over the plateau, and Wanderer's Rest above the wilds. They are never compulsory for the original narrative. As you approach them in the air, their discovery is recorded in Field Notes and the Source Atlas.
+- **Visible sky life:** flocks circle both the city and the sanctuaries, shift their height in storm conditions, and occasionally investigate nearby airborne players. Soft airflow bands around islands make the lift areas recognizable.
+- **Rendering:** floating platforms, nests, decorative flora, collectible gems and lift currents have Code and Anime appearances. Their meshes are static and reused; the underlying flight/collision rules remain identical across rendering modes.
+- **Accessibility:** desktop shortcut **X** and mobile FLY/ascend/descend touch controls; a compact flight HUD shows elevation, energy, flight state, and recovered Sky Seeds. Reduced-motion settings suppress unnecessary flourish rather than gameplay functionality.
+- **Persistence:** saves include flight unlock, energy capacity, collected Sky Seeds and discovered aerial locations. A reload starts safely at the existing ground spawn instead of leaving the player midair. No backend or database is required.
+
+**Limitations:** five initial sanctuaries are intentionally authored rather than infinitely generated. The first flight pass uses controller-based horizontal flight and vertical ascent rather than aerodynamically accurate gliding; dynamic rooftop walking and detailed bird interactions are next steps. Flight areas should be checked visually on desktop and mobile, particularly the clearance between structures and landing surfaces.
+
 ## The world beyond the first map — v1.7
 
 The seeded frontier streams **128-unit terrain tiles**, retaining no more than 25 active generated tiles around the explorer. Biome nodes roughly 384 units apart determine one of five nearby environments, with smooth artistic transitions in Anime Reality. Generated tiles unload outside the active radius and reappear consistently when revisited. New region discoveries and node attunements are saved in browser continuity, not the raw meshes.
@@ -30,7 +44,7 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 
 ### Next development phases
 
-1. **Flight unlock and aerial navigation:** design a flight ability with lift, descent, stamina/cooldown and accessible mobile controls. Add altitude-aware collision, safe landing and fall recovery. Create skyways, rooftop observation points, migratory flocks and hidden aerial Echoes.
+1. **Flight expansion:** extend the implemented Skywell, flight controls, bird flocks and five sanctuaries into procedural aerial archipelagos, wind quests, richer migration ecology, roof gardens and unlockable aerial interactions.
 2. **Multi-depth geology:** extend the authored Syntax Vault into a reusable procedural underground chunk system with naturally generated tunnels, ceilings, chambers, cave flora, and safe portal entrances. Keep upper and lower layer data synchronized via per-node state.
 3. **World editing:** provide a diegetic Wireframe construction interface with selection, snapping, movement bounds, undo and a clear preview. Persist only edits rather than whole meshes. Surface consequences should affect citizens and ecology.
 4. **World-streaming polish:** profile chunk regeneration, reduce generation spikes, implement biome-transition sound/lighting, add landmarks unique to each node and a discovery-based atlas that expands rather than exposing the infinite frontier.
@@ -41,7 +55,11 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 - **WASD / arrow keys** — move
 - **Mouse** — look around
 - **Shift** — sprint
-- **Space** — jump
+- **Space** — jump while grounded; **ascend** in flight
+- **X** — launch, glide, or resume flight once awakened at the Skywell
+- **C** or **Ctrl** — descend in flight; **Shift** increases flight speed while consuming more energy
+- **Skywell** — near the city entrance at X 0, Z −9. Interact with **E** to permanently unlock flight.
+- **Sky Seeds** — five airborne discoveries increase your maximum flight energy when gathered with **E**. Land on sanctuaries to recharge. Updraft streams replenish energy while airborne.
 - **P** — open/close simulation pause menu and settings
 - **J** — open/close Field Notes, showing encounters from the current session
 - **M** — open/close the Source Atlas, choose a navigation target
@@ -51,7 +69,7 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 - **R** — toggle Anime Reality 2.0, with painterly sky, semantic materials, wetland reflections, anime-dressed inhabitants and cinematic day/night lighting
 - **Escape** — release pointer and open pause menu (or close settings)
 - **V** — toggle wireframe/code vision; on mobile, use the CODE VISION button
-- **Mobile** — left touch pad to move; drag right side to look
+- **Mobile** — left touch pad to move; drag right side to look; after flight unlock, tap **FLY**, hold the jump arrow to ascend, or hold **DOWN** to descend.
 - **Settings** — adjust code density, visual quality and motion. Replay the awakening while keeping progress, or **Reset World & Reawaken** to delete this browser's saved ecosystem/Echoes/restorations and start over.
 
 ## Architecture
@@ -67,6 +85,8 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 - `src/weather.js` — shader-animated code drizzle, storms, and fault lines
 - `src/artDirection.js` — transition arches, levitating shards, and landmark crowns
 - `src/sky.js` — dynamic camera-centered digital sky dome
+- `src/flight.js` — pure flight physics, stamina, gliding and safe landing state
+- `src/skyRoutes.js` — authored aerial sanctuary geometry, updrafts and Sky Seed persistence
 - `src/matrixMaterial.js` — UV-independent code volumes and shared anime surface-family shader
 - `src/animeEnvironment.js` — illustrated biome scatter, puddle shaders, lighting and weather visuals
 - `src/animeArchitecture.js` — illustrated city windows, doorways and awnings
