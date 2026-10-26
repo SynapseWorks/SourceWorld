@@ -188,6 +188,7 @@ const rooftopGardens=createRooftopGardens(scene,{
  }
 });
 skyFrontier.setQuality(qualityScale);
+rooftopGardens.setQuality(qualityScale);
 const frontier=createFrontier(scene,{
  onEvent(event){
   recordJournal(event);
@@ -808,6 +809,7 @@ qualityInput.addEventListener('change',e=>{
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);
  animeEnvironment.setQuality(qualityScale);
  skyFrontier.setQuality(qualityScale);
+ rooftopGardens.setQuality(qualityScale);
  ecosystem.setAnimeMode(animeReality,qualityScale);
 });
 document.querySelector('#reduced').addEventListener('change',e=>{setCodeMotion(e.target.checked?0:Number(document.querySelector('#motion').value)/100);});
