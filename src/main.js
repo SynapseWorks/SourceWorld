@@ -11,6 +11,8 @@ import {createUnderlayer,UNDERLAYER_EYE} from './underlayer.js';
 import {createAerialLife} from './aerialLife.js';
 import {createFlightController,FLIGHT_EYE_HEIGHT} from './flight.js';
 import {createSkyRoutes} from './skyRoutes.js';
+import {createSkyFrontier} from './skyFrontier.js';
+import {createRooftopGardens} from './rooftopGardens.js';
 import {createSimulationWeather} from './weather.js';
 import {createArtDirection} from './artDirection.js';
 import {createLivingWorld} from './livingWorld.js';
@@ -43,11 +45,12 @@ app.innerHTML=`
  <strong id="flight-status">FIND THE SKYWELL</strong>
  <div class="flight-meter"><span id="flight-meter-fill"></span></div>
  <small id="flight-instruction">The city gate holds the first sky signal</small>
+ <small id="sky-activity" aria-live="off">THE SKY HAS ITS OWN RHYTHM</small>
  </div>
- <div id="frontier-readout" class="frontier-readout hidden" aria-live="off"><span>UNWRITTEN FRONTIER</span><strong id="frontier-name">WORLD NODE</strong><small id="frontier-stats">GENERATING AS YOU GO</small></div><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE OPEN SKY · V1.8</div><div class="location" id="location">THE AWAKENING</div><div class="place-tagline" id="place-tagline" aria-live="off"></div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+ <div id="frontier-readout" class="frontier-readout hidden" aria-live="off"><span>UNWRITTEN FRONTIER</span><strong id="frontier-name">WORLD NODE</strong><small id="frontier-stats">GENERATING AS YOU GO</small></div><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE LIVING SKY · V1.9</div><div class="location" id="location">THE AWAKENING</div><div class="place-tagline" id="place-tagline" aria-live="off"></div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="pause-screen hidden" id="pause-screen" role="dialog" aria-label="Simulation paused" aria-modal="true"><div class="pause-panel"><div class="pause-eyebrow">TRANSMISSION INTERRUPTED</div><h2>SIMULATION <em>PAUSED.</em></h2><p>The world remains. Return whenever you are ready.</p><div class="pause-actions"><button id="resume-btn" type="button" class="pause-primary">RESUME EXPLORING <span>↗</span></button><button id="pause-settings-btn" type="button" class="pause-secondary">WORLD PARAMETERS ⚙</button></div><div class="pause-tip">P — PAUSE / RESUME · ESC — RELEASE CURSOR</div></div></div><div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="continuity-settings"><span>WORLD MEMORY · SAVED IN THIS BROWSER</span><span id="continuity-status">Checking local storage…</span><button type="button" id="reset-memory">RESET WORLD &amp; REAWAKEN</button><button type="button" id="replay-awakening">REPLAY AWAKENING (KEEP PROGRESS)</button></div><div class="panel-small">Press P at any time to return to this menu. ESC releases the mouse cursor.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">The world grows outward and upward. Awaken flight at the Skywell, follow migrating birds, and land in quiet sanctuaries above the forest and city.</p><div class="return-report hidden" id="return-report"><div class="return-eyebrow">WHILE YOU WERE AWAY</div><strong id="return-time"></strong><ul id="return-events"></ul></div><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — WIREFRAME <span>•</span> R — ANIME REALITY <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 1.8.0<br/>EVERYTHING IS CODE.</div></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">The sky is not empty. Find new islands above changing biomes, visit the city’s rooftop gardens, and watch the birds follow their own lives.</p><div class="return-report hidden" id="return-report"><div class="return-eyebrow">WHILE YOU WERE AWAY</div><strong id="return-time"></strong><ul id="return-events"></ul></div><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — WIREFRAME <span>•</span> R — ANIME REALITY <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 1.9.0<br/>EVERYTHING IS CODE.</div></div>
 <div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump or ascend">↑</button>
  <div id="mobile-flight" class="mobile-flight hidden" aria-label="Mobile flight controls">
   <button type="button" id="mobile-flight-toggle" aria-label="Launch or glide with flight">✧ FLY</button>
@@ -133,7 +136,9 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
  if(event.type==='REGION')announce(event.title,4);
 }});
 const underlayer=createUnderlayer(scene);
-const aerialLife=createAerialLife(scene);
+const aerialLife=createAerialLife(scene,{onEvent(event){
+ recordJournal(event);announce(event.title,4);
+}});
 const flight=createFlightController();
 const skyRoutes=createSkyRoutes(scene,{
  onDiscover(location){
@@ -152,6 +157,37 @@ const skyRoutes=createSkyRoutes(scene,{
   saveWorld();
  }
 });
+const skyFrontier=createSkyFrontier(scene,{
+ onDiscover(location){
+  recordJournal({type:'SKY DISCOVERY',title:location.name,description:location.story});
+  atlas.registerLocation({id:location.id,name:location.name,x:location.x,z:location.z,
+   type:'aerial',description:location.story});
+  announce('A NEW SKY ISLAND · '+location.name,6);
+  saveWorld();
+ },
+ onCare(event){
+  recordJournal(event);
+  triggerCodePulse(new THREE.Vector3(event.x,event.y,event.z),clock.elapsedTime);
+  announce('THE FLOATING GARDEN REMEMBERS YOUR CARE · RETURN TOMORROW.',6);
+  saveWorld();
+ }
+});
+const rooftopGardens=createRooftopGardens(scene,{
+ onDiscover(location){
+  recordJournal({type:'ROOFTOP',title:location.name,description:location.story});
+  atlas.registerLocation({id:location.id,name:location.name,x:location.x,z:location.z,
+   type:'aerial',description:location.story});
+  announce('ROOFTOP GARDEN DISCOVERED · '+location.building,5);
+  saveWorld();
+ },
+ onCare(event){
+  recordJournal(event);
+  triggerCodePulse(new THREE.Vector3(event.x,event.y,event.z),clock.elapsedTime);
+  announce('ROOFTOP TENDED · YOUR SMALL ACT OF CARE TAKES ROOT.',6);
+  saveWorld();
+ }
+});
+skyFrontier.setQuality(qualityScale);
 const frontier=createFrontier(scene,{
  onEvent(event){
   recordJournal(event);
@@ -260,6 +296,8 @@ if(continuity.saved){
  ecosystem.restore(continuity.snapshot);
  flight.restore(continuity.snapshot.flightState||{});
  skyRoutes.restore(continuity.snapshot.skyState||{});
+ skyFrontier.restore(continuity.snapshot.generatedSkyState||{});
+ rooftopGardens.restore(continuity.snapshot.rooftopState||{});
  frontier.restore(continuity.snapshot.frontierState||{});
  underlayer.restore(continuity.snapshot.underlayerState||{});
  neighborhoods.restore(continuity.snapshot.placeState||{});
@@ -289,6 +327,8 @@ function saveWorld(){
  snapshot.underlayerState=underlayer.snapshot();
  snapshot.flightState=flight.snapshot();
  snapshot.skyState=skyRoutes.snapshot();
+ snapshot.generatedSkyState=skyFrontier.snapshot();
+ snapshot.rooftopState=rooftopGardens.snapshot();
  saveSupported=writeContinuity(snapshot,unifiedJournal);
  document.querySelector('#continuity-status').textContent=saveSupported?'Memory saved locally':'Browser storage unavailable — session only';
  return saveSupported;
@@ -314,6 +354,12 @@ const atlas=createWorldMap({
  mount:app,regions:ecosystem.regions,extraLocations:neighborhoods.places,getPlayer:()=>camera.position,
  onNavigate(location){chosenDestination=location;document.querySelector('#objective-label').textContent='ATLAS DESTINATION';},
  onClose(){toggleMap(false);}
+});
+for(const place of skyFrontier.getDiscovered())atlas.registerLocation({
+ id:place.id,name:place.name,x:place.x,z:place.z,type:'aerial',description:place.story
+});
+for(const place of rooftopGardens.getDiscovered())atlas.registerLocation({
+ id:place.id,name:place.name,x:place.x,z:place.z,type:'aerial',description:place.story
 });
 skyRoutes.snapshot().discovered.forEach(id=>{
  const site=skyRoutes.sites.find(s=>s.id===id);
@@ -495,6 +541,8 @@ function interact(){
  }
  const seed=skyRoutes.interact(camera.position);
  if(seed)return;
+ if(rooftopGardens.interact(camera.position,ecosystem.getDay()))return;
+ if(skyFrontier.interact(camera.position,ecosystem.getDay()))return;
  // Do not accidentally activate ground-level objectives from high overhead.
  if(camera.position.y>6)return;
 
@@ -551,6 +599,7 @@ function setVision(enabled){
   announce('EXITED UNDERLAYER · REALITY RESTORED.',5);
  }
  underlayer.setVisible(enabled);
+ skyFrontier.setWireframe(enabled);
  wireframe=enabled;visionButton.setAttribute('aria-pressed',String(enabled));
  visionButton.classList.toggle('selected',enabled);
  visionButton.querySelector('span').textContent=enabled?'RESTORE CODE [ V ]':'CODE VISION [ V ]';
@@ -572,6 +621,8 @@ function setReality(enabled){
  frontier.setAnime(enabled);
  aerialLife.setAnime(enabled);
  skyRoutes.setAnime(enabled);
+ skyFrontier.setAnime(enabled);
+ rooftopGardens.setAnime(enabled);
  animeArchitecture.setEnabled(enabled);
  neighborhoods.setAnime(enabled);
  ecosystem.setAnimeMode(enabled,qualityScale);
@@ -756,6 +807,7 @@ qualityInput.addEventListener('change',e=>{
  qualityScale=Number(e.target.value);
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);
  animeEnvironment.setQuality(qualityScale);
+ skyFrontier.setQuality(qualityScale);
  ecosystem.setAnimeMode(animeReality,qualityScale);
 });
 document.querySelector('#reduced').addEventListener('change',e=>{setCodeMotion(e.target.checked?0:Number(document.querySelector('#motion').value)/100);});
@@ -823,10 +875,22 @@ function tick(){
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
  underlayer.update(t,dt,{wireframe,reduced});
- aerialLife.update(dt,camera.position,{paused:menuVisible()||!active,
-  reduced,weather:atmosphere,underground:underlayer.inside,flight:flight.airborne});
  document.querySelector('#underlayer-readout').classList.toggle('hidden',!underlayer.inside);
  const skyState=skyRoutes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
+ const skyGrowing=skyFrontier.update(dt,camera.position,{
+  time:t,phase:ecosystem.getPhase(),weather:atmosphere,day:ecosystem.getDay(),
+  reduced,paused:menuVisible()||!active||underlayer.inside,active:active&&!underlayer.inside
+ });
+ const rooftopState=rooftopGardens.update(dt,camera.position,{
+  time:t,phase:ecosystem.getPhase(),day:ecosystem.getDay(),
+  reduced,paused:menuVisible()||!active||underlayer.inside,active:active&&!underlayer.inside
+ });
+ aerialLife.update(dt,camera.position,{
+  paused:menuVisible()||!active,reduced,weather:atmosphere,
+  underground:underlayer.inside,flight:flight.airborne,
+  phase:ecosystem.getPhase(),day:ecosystem.getDay(),
+  skyIslands:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.sites
+ });
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  artDirection.update(t,dt,reduced);
@@ -869,13 +933,15 @@ function tick(){
  const nearLayerGate=underlayer.nearGate(camera.position,wireframe);
  const nearSkywell=skyState.well&&!flight.unlocked;
  const skySeed=skyState.nearby;
+ const skyCare=skyGrowing.nearby;
+ const rooftopCare=rooftopState.nearby;
  const nearSurface=camera.position.y<=6;
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
  const livingNearby=livingWorld.encounters.find(item=>Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<item.r);
  const frontierNearby=frontierState.node;
- interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- const canInteract=!!(nearLayerGate||nearSkywell||skySeed||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
+ interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':rooftopCare?'[ E ] WATER ROOFTOP GARDEN':skyCare?'[ E ] TEND THE SKY GARDEN':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ const canInteract=!!(nearLayerGate||nearSkywell||skySeed||skyCare||rooftopCare||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
  interactionLabel.classList.toggle('visible',canInteract);
  interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
@@ -897,8 +963,12 @@ function tick(){
     down:keys.has('KeyC')||keys.has('ControlLeft')||keys.has('ControlRight')||touchDescend,
     boost:keys.has('ShiftLeft')||keys.has('ShiftRight'),
     wind:atmosphere==='CODE STORM'?1:0,
-    floorEye:skyRoutes.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
-    updraft:skyRoutes.updraftAt(camera.position),
+    floorEye:Math.max(
+      skyRoutes.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
+      skyFrontier.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
+      rooftopGardens.floorEyeAt(camera.position.x,camera.position.z,camera.position.y)
+    ),
+    updraft:Math.max(skyRoutes.updraftAt(camera.position),skyFrontier.updraftAt(camera.position)),
     collision:(x,z,y)=>collision(x,z,y)
    });
    if(result.landed){
@@ -914,7 +984,11 @@ function tick(){
    if(!collision(camera.position.x,nextZ))camera.position.z=nextZ;
    if(keys.has('Space')&&grounded){vy=5.1;grounded=false;}
    vy-=13*dt;camera.position.y+=vy*dt;
-   const platformEye=skyRoutes.floorEyeAt(camera.position.x,camera.position.z,camera.position.y);
+   const platformEye=Math.max(
+    skyRoutes.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
+    skyFrontier.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
+    rooftopGardens.floorEyeAt(camera.position.x,camera.position.z,camera.position.y)
+   );
    const floorEye=underlayer.inside?UNDERLAYER_EYE:platformEye;
    if(flight.unlocked&&!underlayer.inside&&platformEye===FLIGHT_EYE_HEIGHT&&
       camera.position.y>8&&grounded){
@@ -927,6 +1001,11 @@ function tick(){
   camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
  }
  updateFlightUI();
+ if(flight.unlocked){
+  const birds=aerialLife.getStats();
+  document.querySelector('#sky-activity').textContent=
+   birds.behavior+' BIRDS · '+skyGrowing.charted+' SKY ISLANDS CHARTED · '+rooftopState.discovered+' ROOF GARDENS';
+ }
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
  const nextTarget=chosenDestination?{...chosenDestination,label:chosenDestination.name}:interactables.find(item=>!item.done)||(!sourceActivated?{x:0,z:-85,label:'SOURCE NODE'}:!forest.interact.completed?{x:0,z:-217,label:'HEART OF THE GROVE'}:null);
  const wayfinder=document.querySelector('#objective-direction');
@@ -941,8 +1020,8 @@ function tick(){
  }else{wayfinder.textContent='◇ SYSTEM AT REST';metric.textContent='COMPLETE';}
  if(mapOpen)atlas.refresh();
  const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
- document.querySelector('#location').textContent=underlayer.inside?'THE SYNTAX VAULT':camera.position.y>14&&skyState.site?.name||localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
- document.querySelector('#place-tagline').textContent=(camera.position.y>14&&skyState.site?.story)||placeState.district?.subtitle||'';
+ document.querySelector('#location').textContent=underlayer.inside?'THE SYNTAX VAULT':camera.position.y>14&&(skyGrowing.site?.name||rooftopState.site?.name||skyState.site?.name)||localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
+ document.querySelector('#place-tagline').textContent=(camera.position.y>14&&(skyGrowing.site?.story||rooftopState.site?.story||skyState.site?.story))||placeState.district?.subtitle||'';
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
 }
