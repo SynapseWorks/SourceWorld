@@ -1,4 +1,4 @@
-# SourceWorld v1.8 — The Open Sky
+# SourceWorld v1.9 — The Living Sky
 
 An atmospheric, first-person 3D world constructed from animated digital rain. Built with Three.js and Vite, deployable as a static site with Netlify. No database needed.
 
@@ -20,6 +20,22 @@ npm test
 
 GitHub Actions verifies JavaScript syntax, creates a production build, and runs Chromium desktop/mobile smoke tests. Traces are preserved for failures.
 
+## The Living Sky — v1.9
+
+**The map now grows upward as well as outward.** The first five Sky Seed sanctuaries remain handcrafted landmarks. Beyond the original world, a seeded archipelago streams from the same 384-unit biome-node lattice as the surface frontier.
+
+- **Procedural aerial habitats:** `src/skyFrontierData.js` defines stable island coordinates, names, biome appearance and altitude per node. `src/skyFrontier.js` streams at most **16 active island clusters** near the player and unloads distant geometry. Returning to the same place regenerates the same islands. We save identities and care, not meshes.
+- **Distinct regional silhouettes:** Mosslight nodes grow hanging tree crowns; Glassfall forms upright crystal spires; Amber islands bloom with wildflowers; Siltreed creates aerial reed thickets; Hollow Ridges forms cracked-looking stone arches. Each uses Code Reality materials or Anime Reality colors, while remaining the same physical space.
+- **Landing and wind:** each generated island offers a physical floating top and a soft updraft. These feed into the existing flight controller alongside the five handcrafted sanctuaries. The new islands are intended for discovering and tending, **not unlimited new Sky Seeds**; the five original reserve upgrades remain finite and verifiable.
+- **Six city rooftop gardens:** land above Lantern & Leaf, Moth & Moss, Windowsill House, Moonmilk Table, the Seed Exchange, or the Green Balcony. Water the habitat once per simulated day with **E**. Leaves respond to accumulated care and lanterns brighten at night. Gardens have independently persisted discovery and care states.
+- **Nature acts without you:** birds now switch between **foraging, migration, roosting and sheltering** based on the simulated day and storms. They orbit authored sanctuaries, frontier habitats and rooftops. Tended habitats become stronger roost destinations. Brief observations are added to Field Notes when players witness local wildlife, without turning every flock into a quest.
+- **Discovery and navigation:** previously visited generated islands and city roof gardens appear on the Source Atlas with distinct cyan aerial markers and elevation labels. Hidden Echo and Sky Seed locations are not revealed automatically.
+- **Mobile/accessibility:** graphic quality reduces procedural vegetation; material/detail geometry is reused and bounded. All tending works with existing accessible interact buttons, and reduced-motion settings stop purely decorative motion, not wildlife routines or ecological cycles.
+- **Persistence:** `generatedSkyState` and `rooftopState` are stored in the existing local-only continuity object, and the reset control clears them. Old saves remain valid.
+- **QA:** browser tests check deterministic generation, bounds and regeneration, once-daily care, persistent discoveries, reversible view modes, rooftop landing elevations and bird routines.
+
+**Scope:** this is deterministic local world generation, not a fully simulated planetary atmosphere or an online shared world. Procedural garden plants are lightweight 3D stand-ins; individual NPC conversations, complex flock pathfinding, detailed interiors and user-built airborne settlements are future work.
+
 ## Flight and the living sky — v1.8
 
 Flight is a first-class movement state, not a camera teleport. Interact with the **Skywell** near the first avenue (X 0, Z −9) to awaken it, then press **X** to take off. Hold **Space** to climb, **C / Ctrl** to descend, and move with the existing directional controls. Use **Shift** to boost at higher energy cost. Press **X** again to enter a controlled glide.
@@ -32,7 +48,7 @@ Flight is a first-class movement state, not a camera teleport. Interact with the
 - **Accessibility:** desktop shortcut **X** and mobile FLY/ascend/descend touch controls; a compact flight HUD shows elevation, energy, flight state, and recovered Sky Seeds. Reduced-motion settings suppress unnecessary flourish rather than gameplay functionality.
 - **Persistence:** saves include flight unlock, energy capacity, collected Sky Seeds and discovered aerial locations. A reload starts safely at the existing ground spawn instead of leaving the player midair. No backend or database is required.
 
-**Limitations:** five initial sanctuaries are intentionally authored rather than infinitely generated. The first flight pass uses controller-based horizontal flight and vertical ascent rather than aerodynamically accurate gliding; dynamic rooftop walking and detailed bird interactions are next steps. Flight areas should be checked visually on desktop and mobile, particularly the clearance between structures and landing surfaces.
+**Historical note:** the initial five sanctuaries were handcrafted; v1.9 adds separate streamed sky habitats beyond the original map. The first flight pass uses controller-based horizontal flight and vertical ascent rather than aerodynamically accurate gliding; dynamic rooftop walking and detailed bird interactions are next steps. Flight areas should be checked visually on desktop and mobile, particularly the clearance between structures and landing surfaces.
 
 ## The world beyond the first map — v1.7
 
@@ -44,7 +60,7 @@ The seeded frontier streams **128-unit terrain tiles**, retaining no more than 2
 
 ### Next development phases
 
-1. **Flight expansion:** extend the implemented Skywell, flight controls, bird flocks and five sanctuaries into procedural aerial archipelagos, wind quests, richer migration ecology, roof gardens and unlockable aerial interactions.
+1. **Aerial community:** deepen the procedural archipelago with flock-led routes, nesting cycles, tiny airborne villages, wind puzzles, and rare discoveries that require following the ecology rather than only flying to a waypoint.
 2. **Multi-depth geology:** extend the authored Syntax Vault into a reusable procedural underground chunk system with naturally generated tunnels, ceilings, chambers, cave flora, and safe portal entrances. Keep upper and lower layer data synchronized via per-node state.
 3. **World editing:** provide a diegetic Wireframe construction interface with selection, snapping, movement bounds, undo and a clear preview. Persist only edits rather than whole meshes. Surface consequences should affect citizens and ecology.
 4. **World-streaming polish:** profile chunk regeneration, reduce generation spikes, implement biome-transition sound/lighting, add landmarks unique to each node and a discovery-based atlas that expands rather than exposing the infinite frontier.
