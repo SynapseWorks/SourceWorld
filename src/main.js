@@ -9,6 +9,8 @@ import {createGeneratedSectors} from './worldgen.js';
 import {createFrontier} from './frontier.js';
 import {createUnderlayer,UNDERLAYER_EYE} from './underlayer.js';
 import {createAerialLife} from './aerialLife.js';
+import {createFlightController,FLIGHT_EYE_HEIGHT} from './flight.js';
+import {createSkyRoutes} from './skyRoutes.js';
 import {createSimulationWeather} from './weather.js';
 import {createArtDirection} from './artDirection.js';
 import {createLivingWorld} from './livingWorld.js';
@@ -28,7 +30,7 @@ app.innerHTML=`
 <div id="viewport" aria-label="3D digital world"></div>
 <div id="vignette" aria-hidden="true"></div>
 <div class="topbar"><a class="brand" href="/" aria-label="SourceWorld home"><span class="brandmark">◈</span><span> SOURCE<span class="brand-accent">WORLD</span></span></a><div class="topmeta"><span class="dot"></span><span>SIMULATION ACTIVE</span><span class="separator">/</span><span id="coordinates">X 0.0 · Z 0.0</span><span class="system-weather" id="weather-state" aria-live="off">ATMOSPHERE / STABLE</span></div><button class="icon-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false">⚙</button></div>
-<button id="reality-btn" type="button" class="reality-btn" aria-pressed="false" title="Toggle Anime Reality 2.0 (R)">✦ ANIME REALITY 2.0 [ R ]</button><button id="pause-btn" class="pause-btn" type="button" aria-label="Pause and open settings" title="Pause / Settings (P)">Ⅱ <span>MENU [ P ]</span></button><button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
+<button id="flight-toggle" type="button" class="flight-toggle" disabled aria-label="Toggle flight (X)" aria-pressed="false">✧ AWAKEN FLIGHT [ X ]</button><button id="reality-btn" type="button" class="reality-btn" aria-pressed="false" title="Toggle Anime Reality 2.0 (R)">✦ ANIME REALITY 2.0 [ R ]</button><button id="pause-btn" class="pause-btn" type="button" aria-label="Pause and open settings" title="Pause / Settings (P)">Ⅱ <span>MENU [ P ]</span></button><button id="vision" class="vision-btn" aria-pressed="false" title="Toggle wireframe view">◈ <span>CODE VISION [ V ]</span></button><div class="wayfinder" aria-label="Navigation guide"><div class="wayfinder-heading">NEXT SIGNAL <span id="objective-distance">—</span></div><div id="objective-direction">◈ FORWARD / DISCOVER THE WORLD</div></div><div class="crosshair" aria-hidden="true"><span></span></div>
 <div class="district-banner hidden" id="district-banner" aria-live="polite">
   <span class="district-kicker">YOU HAVE FOUND A PLACE</span>
   <strong id="district-banner-name">A NEW NEIGHBOURHOOD</strong>
@@ -36,11 +38,21 @@ app.innerHTML=`
  </div><div class="tend-compass" id="tend-compass" aria-live="off">✧ EXPLORE · TEND · OBSERVE <span id="tend-nearby">THE WORLD IS UNFOLDING</span></div><div id="echo-hud" class="echo-hud" aria-live="polite"><span>HIDDEN ECHOES</span><strong id="echo-count">0 / 9</strong><small id="ability-status">RESONANCE LOCKED · FIND 4</small></div><div class="tend-actions"><button id="call-btn" type="button" disabled aria-label="Signal Call: gather wildlife">◇ SIGNAL CALL [ F ]</button><button id="rewrite-btn" type="button" disabled aria-label="World Rewrite: restore a nearby site">⌁ WORLD REWRITE [ G ]</button></div><button id="resonance-btn" class="resonance-btn" type="button" disabled aria-label="Use resonance bloom ability">✧ RESONANCE [ Q ]</button><button id="atlas-toggle" class="atlas-toggle" type="button" aria-expanded="false" aria-controls="world-map">⌁ ATLAS [ M ]</button><button id="journal-toggle" class="journal-toggle" type="button" aria-expanded="false" aria-controls="journal-panel">◈ FIELD NOTES <span id="journal-count">0</span></button><aside id="journal-panel" class="journal-panel hidden" aria-label="Field notes"><div class="journal-heading"><span>FIELD NOTES / OBSERVATIONS</span><button type="button" id="journal-close" aria-label="Close field notes">×</button></div><p class="journal-intro">A record of the world, the things you changed, and the things that happened anyway.</p><ol id="journal-list" aria-live="polite"><li class="journal-empty">Nothing recorded yet. The world is waiting.</li></ol></aside><div id="continuity-readout" class="continuity-readout" aria-live="off"><span id="world-day">DAY 1</span><span id="world-phase">DORMANT</span></div><div id="underlayer-readout" class="underlayer-readout hidden">
  <span>LAYER -01 · SYNTAX VAULT</span><strong>THE WORLD HAS DEPTH</strong>
  <small>REARRANGE THE INNER STRUCTURE WITH E · RETURN VIA THE GATE</small>
- </div><div id="frontier-readout" class="frontier-readout hidden" aria-live="off"><span>UNWRITTEN FRONTIER</span><strong id="frontier-name">WORLD NODE</strong><small id="frontier-stats">GENERATING AS YOU GO</small></div><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE GROWING WORLD · V1.7</div><div class="location" id="location">THE AWAKENING</div><div class="place-tagline" id="place-tagline" aria-live="off"></div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
+ </div><div id="flight-hud" class="flight-hud hidden" aria-live="off">
+ <span id="flight-eyebrow">SKYWAYS / AWAITING AWAKENING</span>
+ <strong id="flight-status">FIND THE SKYWELL</strong>
+ <div class="flight-meter"><span id="flight-meter-fill"></span></div>
+ <small id="flight-instruction">The city gate holds the first sky signal</small>
+ </div>
+ <div id="frontier-readout" class="frontier-readout hidden" aria-live="off"><span>UNWRITTEN FRONTIER</span><strong id="frontier-name">WORLD NODE</strong><small id="frontier-stats">GENERATING AS YOU GO</small></div><div id="ecosystem-readout" class="ecosystem-readout" aria-live="off"><span class="eco-kicker">LOCAL ECOSYSTEM</span><strong id="eco-region">SIMULATION STABLE</strong><span id="eco-conditions">SYSTEMS INITIALIZING</span></div><div class="bottomleft"><div class="eyebrow">SIMULATION 001 / THE OPEN SKY · V1.8</div><div class="location" id="location">THE AWAKENING</div><div class="place-tagline" id="place-tagline" aria-live="off"></div><div class="hint" id="hint">W A S D TO MOVE <span>·</span> MOUSE TO LOOK <span>·</span> SHIFT TO RUN</div></div>
 <button id="interaction" type="button" class="interaction" aria-label="Interact with nearby signal" disabled></button><div id="message" class="message" role="status" aria-live="polite"></div><div class="objectives" id="objectives"><span class="objectives-label" id="objective-label">SIGNAL RECOVERY</span><span id="progress">0 / 3 FRAGMENTS</span><div class="progress-track"><div id="progress-bar"></div></div></div><div class="bottomright"><div class="signal">◉ <span>WORLD ONLINE</span></div><div id="fps">— FPS</div></div>
 <div class="pause-screen hidden" id="pause-screen" role="dialog" aria-label="Simulation paused" aria-modal="true"><div class="pause-panel"><div class="pause-eyebrow">TRANSMISSION INTERRUPTED</div><h2>SIMULATION <em>PAUSED.</em></h2><p>The world remains. Return whenever you are ready.</p><div class="pause-actions"><button id="resume-btn" type="button" class="pause-primary">RESUME EXPLORING <span>↗</span></button><button id="pause-settings-btn" type="button" class="pause-secondary">WORLD PARAMETERS ⚙</button></div><div class="pause-tip">P — PAUSE / RESUME · ESC — RELEASE CURSOR</div></div></div><div class="settings hidden" id="settings" role="dialog" aria-label="World settings"><div class="panel-title"><span>WORLD PARAMETERS</span><button id="settings-close" aria-label="Close settings">×</button></div><label for="density">Code density <output id="density-value">100%</output></label><input id="density" type="range" min="60" max="160" value="100"/><label for="outline">Object outlines <output id="outline-value">100%</output></label><input id="outline" type="range" min="0" max="180" value="100"/><label for="motion">Simulation speed <output id="motion-value">100%</output></label><input id="motion" type="range" min="0" max="200" value="100"/><label for="quality">Rendering quality</label><select id="quality"><option value="1">Balanced</option><option value=".65">Performance</option><option value="1.3">High fidelity</option></select><label class="checkbox"><input id="reduced" type="checkbox"/> Reduce motion</label><label class="checkbox"><input id="weather-toggle" type="checkbox" checked/> Simulation weather</label><div class="continuity-settings"><span>WORLD MEMORY · SAVED IN THIS BROWSER</span><span id="continuity-status">Checking local storage…</span><button type="button" id="reset-memory">RESET WORLD &amp; REAWAKEN</button><button type="button" id="replay-awakening">REPLAY AWAKENING (KEEP PROGRESS)</button></div><div class="panel-small">Press P at any time to return to this menu. ESC releases the mouse cursor.</div></div>
-<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">The world does not end at the edge of the map. Wander beyond the familiar streets to find living biomes, discover new world nodes, and help reality grow.</p><div class="return-report hidden" id="return-report"><div class="return-eyebrow">WHILE YOU WERE AWAY</div><strong id="return-time"></strong><ul id="return-events"></ul></div><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — WIREFRAME <span>•</span> R — ANIME REALITY <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 1.7.0<br/>EVERYTHING IS CODE.</div></div>
-<div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump">↑</button><span class="touch-hint">DRAG TO LOOK</span></div>
+<div class="overlay" id="intro"><div class="scanlines"></div><div class="intro-content"><div class="symbol">◈</div><p class="intro-index">TRANSMISSION 001 <span>—</span> SYSTEM INITIALIZED</p><h1>THE WORLD<br/><em>IS CODE.</em></h1><p class="intro-copy">The world grows outward and upward. Awaken flight at the Skywell, follow migrating birds, and land in quiet sanctuaries above the forest and city.</p><div class="return-report hidden" id="return-report"><div class="return-eyebrow">WHILE YOU WERE AWAY</div><strong id="return-time"></strong><ul id="return-events"></ul></div><div class="intro-divider"><span>01 — EXPLORE</span><span>02 — RECOVER</span><span>03 — AWAKEN</span></div><button id="enter" class="enter">ENTER THE SIMULATION <span>↗</span></button><p class="controls">W A S D — MOVE <span>•</span> MOUSE — LOOK <span>•</span> SPACE — JUMP <span>•</span> E — INTERACT <span>•</span> V — WIREFRAME <span>•</span> R — ANIME REALITY <span>•</span> P — MENU</p></div><div class="intro-aside">SOURCEWORLD / BUILD 1.8.0<br/>EVERYTHING IS CODE.</div></div>
+<div id="touch-controls"><div id="joystick" aria-label="Move joystick"><div id="joystick-knob"></div></div><button id="jump" aria-label="Jump or ascend">↑</button>
+ <div id="mobile-flight" class="mobile-flight hidden" aria-label="Mobile flight controls">
+  <button type="button" id="mobile-flight-toggle" aria-label="Launch or glide with flight">✧ FLY</button>
+  <button type="button" id="mobile-descend" aria-label="Hold to descend">↓ DOWN</button>
+ </div><span class="touch-hint">DRAG TO LOOK</span></div>
 `;
 
 // All optional tools live in one collapsible dock, leaving the scene in view.
@@ -54,7 +66,7 @@ toolToggle.setAttribute('aria-controls','tools-content');
 toolToggle.textContent='☷ EXPLORER TOOLS';
 const toolContent=document.createElement('div');
 toolContent.id='tools-content';toolContent.className='tools-content hidden';
-for(const id of ['pause-btn','vision','reality-btn','atlas-toggle','journal-toggle','resonance-btn']){
+for(const id of ['pause-btn','vision','reality-btn','flight-toggle','atlas-toggle','journal-toggle','resonance-btn']){
  const item=document.getElementById(id);
  if(item)toolContent.append(item);
 }
@@ -122,6 +134,23 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
 }});
 const underlayer=createUnderlayer(scene);
 const aerialLife=createAerialLife(scene);
+const flight=createFlightController();
+const skyRoutes=createSkyRoutes(scene,{
+ onDiscover(location){
+  recordJournal({type:'AERIAL LOCATION',title:location.name,description:location.description});
+  atlas.registerLocation({id:'sky:'+location.id,name:location.name,x:location.x,z:location.z,
+   type:'aerial',description:'A discovered sky sanctuary · elevation '+Math.round(location.y)});
+  announce('SKY SANCTUARY DISCOVERED · '+location.name,6);
+ },
+ onCollect(event){
+  flight.addSkySeed();
+  recordJournal({type:'SKY SEED',title:event.title,
+   description:event.description+' FLIGHT CAPACITY EXPANDED. '+event.count+' / 5 SKY SEEDS.'});
+  triggerCodePulse(new THREE.Vector3(event.x,event.y,event.z),clock.elapsedTime);
+  announce('SKY SEED RECOVERED · CAPACITY EXPANDED · '+event.count+' / 5',8);
+  saveWorld();
+ }
+});
 const frontier=createFrontier(scene,{
  onEvent(event){
   recordJournal(event);
@@ -228,6 +257,8 @@ let lastSavedAt=0;
 let saveSupported=true;
 if(continuity.saved){
  ecosystem.restore(continuity.snapshot);
+ flight.restore(continuity.snapshot.flightState||{});
+ skyRoutes.restore(continuity.snapshot.skyState?.collected||[]);
  frontier.restore(continuity.snapshot.frontierState||{});
  underlayer.restore(continuity.snapshot.underlayerState||{});
  neighborhoods.restore(continuity.snapshot.placeState||{});
@@ -255,6 +286,8 @@ function saveWorld(){
  snapshot.placeState=neighborhoods.snapshot();
  snapshot.frontierState=frontier.snapshot();
  snapshot.underlayerState=underlayer.snapshot();
+ snapshot.flightState=flight.snapshot();
+ snapshot.skyState=skyRoutes.snapshot();
  saveSupported=writeContinuity(snapshot,unifiedJournal);
  document.querySelector('#continuity-status').textContent=saveSupported?'Memory saved locally':'Browser storage unavailable — session only';
  return saveSupported;
@@ -280,6 +313,10 @@ const atlas=createWorldMap({
  mount:app,regions:ecosystem.regions,extraLocations:neighborhoods.places,getPlayer:()=>camera.position,
  onNavigate(location){chosenDestination=location;document.querySelector('#objective-label').textContent='ATLAS DESTINATION';},
  onClose(){toggleMap(false);}
+});
+skyRoutes.snapshot().discovered.forEach(id=>{
+ const site=skyRoutes.sites.find(s=>s.id===id);
+ if(site)atlas.registerLocation({id:'sky:'+site.id,name:site.name,x:site.x,z:site.z,type:'aerial',description:site.story});
 });
 frontier.getDiscoveredNodes().forEach(node=>atlas.registerLocation({
  id:node.id,name:node.biome.name,x:node.x,z:node.z,type:'frontier',
@@ -518,6 +555,7 @@ function setReality(enabled){
  animeEnvironment.setEnabled(enabled);
  frontier.setAnime(enabled);
  aerialLife.setAnime(enabled);
+ skyRoutes.setAnime(enabled);
  animeArchitecture.setEnabled(enabled);
  neighborhoods.setAnime(enabled);
  ecosystem.setAnimeMode(enabled,qualityScale);
