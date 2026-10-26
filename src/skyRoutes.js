@@ -112,8 +112,15 @@ export function createSkyRoutes(scene,{onDiscover=()=>{},onCollect=()=>{}}={}){
   landingRing.rotation.x=-Math.PI/2;landingRing.position.y=.035;group.add(landingRing);
   sites.push({...s,group,stoneGroup,paintGroup,seed,gem,halo,landingRing,currents});
  }
- function restore(ids=[]){
-  for(const id of ids)if(SKY_SITES.some(s=>s.id===id)){collected.add(id);discovered.add(id);}
+ function restore(data={}){
+  const taken=Array.isArray(data)?data:data?.collected;
+  const known=Array.isArray(data)?data:data?.discovered;
+  if(Array.isArray(taken))for(const id of taken){
+   if(SKY_SITES.some(s=>s.id===id)){collected.add(id);discovered.add(id);}
+  }
+  if(Array.isArray(known))for(const id of known){
+   if(SKY_SITES.some(s=>s.id===id))discovered.add(id);
+  }
   for(const site of sites)site.seed.visible=!collected.has(site.id);
  }
  function snapshot(){return {collected:[...collected],discovered:[...discovered]};}
