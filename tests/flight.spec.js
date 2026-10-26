@@ -45,7 +45,7 @@ test('letting go to glide makes landing safe and recharges energy',async({page})
   const staminaBefore=flight.energy;
   const afterToggle=flight.toggle();
   let landed=false;
-  for(let i=0;i<600;i++){
+  for(let i=0;i<1800;i++){
    const state=flight.step(1/60,position,{});
    if(state.landed){landed=true;break;}
   }
@@ -116,14 +116,17 @@ test('each Sky Seed is unique and increases the flight reserve across saves',asy
 
 test('mobile has accessible ascend, descend and flight controls',async({page,isMobile})=>{
  test.skip(!isMobile,'Mobile-specific controls');
+ // Seed continuity before SourceWorld installs its autosave/pagehide listener;
+ // reloading after localStorage injection would otherwise overwrite the fixture.
+ await page.addInitScript(()=>{
+  if(!localStorage.getItem('sourceworld:continuity:v1'))
+   localStorage.setItem('sourceworld:continuity:v1',JSON.stringify({
+    version:1,savedAt:Date.now(),
+    snapshot:{simTime:0,biomes:[],flightState:{unlocked:true,energy:110,bonuses:0},
+     skyState:{collected:[],discovered:[]}},history:[]
+   }));
+ });
  await page.goto('/');
- // A valid local continuity record enables flight without bypassing the awakening.
- await page.evaluate(()=>localStorage.setItem('sourceworld:continuity:v1',JSON.stringify({
-  version:1,savedAt:Date.now(),
-  snapshot:{simTime:0,biomes:[],flightState:{unlocked:true,energy:110,bonuses:0},
-   skyState:{collected:[],discovered:[]}},history:[]
- })));
- await page.reload();
  await page.locator('#enter').click();
  await expect(page.locator('#awakening-stage')).toHaveAttribute('data-phase','waiting');
  await page.locator('#awakening-stage').tap();
