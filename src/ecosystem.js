@@ -473,5 +473,5 @@ export function createEcosystem(scene,{seed=8912,onEvent=()=>{}}={}){
   for(const citizen of residents)citizen.avatar.setEnabled(enabled);
   for(const caretaker of neighborhoodVisitors)caretaker.avatar.setEnabled(enabled);
  }
- return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,influence,callWildlife,setRestoredSites,setAnimeMode,careAt,receiveSkySeeds};
+ return {update,getState:publicState,regions,snapshot,restore,fastForward,getDay:currentDay,getPhase:dayPhase,getTime:()=>simTime,influence,callWildlife,setRestoredSites,setAnimeMode,careAt,receiveSkySeeds};
 }
