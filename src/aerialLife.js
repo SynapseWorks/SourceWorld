@@ -46,9 +46,10 @@ export function createAerialLife(scene,{count=26,onEvent=()=>{}}={}){
  const poses=Array.from({length:count},(_,i)=>({angle:i*2.399963,phase:i*.67,
   radius:13+(i*7%12)*4.2,height:19+(i*17%28),speed:.052+(i%6)*.019}));
  function update(dt,player,{paused=false,reduced=false,weather='STABLE',underground=false,flight=false,phase=.5,day=1,skyIslands=[],rooftops=[]}={}){
+  // Flocks keep moving while the explorer visits lower strata.
+  if(!paused)elapsed+=Math.min(dt,.08);
   if(paused||underground){root.visible=!underground;return;}
   root.visible=true;
-  elapsed+=Math.min(dt,.08);
   const anchor=frontierAt(player.x,player.z).node;
   lastNode=anchor;
   const wing=animeMode?animeWings:codeWings;
