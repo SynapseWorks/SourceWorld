@@ -115,7 +115,7 @@ export function createUnderlayer(scene){
  function nearGate(pos,wireframe){
   if(inside)return Math.hypot(pos.x-center.x,pos.z-center.z-1.3)<5.5?'exit'
     :Math.hypot(pos.x-center.x,pos.z-center.z+17)<5.5?'rearrange':null;
-  if(wireframe&&Math.hypot(pos.x-center.x,pos.z-center.z)<4.5)return 'enter';
+  if(wireframe&&pos.y<4.5&&pos.y>-1&&Math.hypot(pos.x-center.x,pos.z-center.z)<4.5)return 'enter';
   return null;
  }
  function interact(pos,wireframe){
