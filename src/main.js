@@ -276,7 +276,7 @@ const RESONANCE_COOLDOWN=90,CALL_COOLDOWN=60;
 const CALL_UNLOCK=6,REWRITE_UNLOCK=8;
 function useSignalCall(){
  if(!active||menuVisible()||echoes.getCount()<CALL_UNLOCK)return false;
- const now=ecosystem.snapshot().simTime;
+ const now=ecosystem.getTime();
  if(now-lastCallAt<CALL_COOLDOWN)return false;
  lastCallAt=now;
  const result=ecosystem.callWildlife(camera.position);
@@ -297,12 +297,12 @@ function updateAbilityHUD(){
  const count=echoes.getCount();
  document.querySelector('#echo-count').textContent=count+' / 9';
  const ready=count>=UNLOCK_COUNT;
- const remaining=Math.max(0,RESONANCE_COOLDOWN-(ecosystem.snapshot().simTime-lastResonanceAt));
+ const remaining=Math.max(0,RESONANCE_COOLDOWN-(ecosystem.getTime()-lastResonanceAt));
  const button=document.querySelector('#resonance-btn');
  button.disabled=!ready||remaining>0;
  button.classList.toggle('unlocked',ready);
  const callButton=document.querySelector('#call-btn');
- const callRemaining=Math.max(0,CALL_COOLDOWN-(ecosystem.snapshot().simTime-lastCallAt));
+ const callRemaining=Math.max(0,CALL_COOLDOWN-(ecosystem.getTime()-lastCallAt));
  callButton.disabled=count<CALL_UNLOCK||callRemaining>0;
  callButton.textContent=count<CALL_UNLOCK?'◇ CALL · '+CALL_UNLOCK+' ECHOES':callRemaining>0?'◇ CALL · '+Math.ceil(callRemaining)+'S':'◇ SIGNAL CALL [ F ]';
  const rewriteButton=document.querySelector('#rewrite-btn');
@@ -312,7 +312,7 @@ function updateAbilityHUD(){
 }
 function useResonance(){
  if(!active||menuVisible()||echoes.getCount()<UNLOCK_COUNT)return false;
- const now=ecosystem.snapshot().simTime;
+ const now=ecosystem.getTime();
  if(now-lastResonanceAt<RESONANCE_COOLDOWN)return false;
  const result=ecosystem.influence(camera.position);
  if(!result)return false;
@@ -945,6 +945,7 @@ function ecoGuideText(region){
  if(!region)return 'THE WORLD IS UNFOLDING';
  return region.includes('CONSTRUCT')?'WATCH THE CITY RHYTHMS':region.includes('MARSH')?'FOLLOW THE WETLAND LIGHTS':region.includes('WILDS')?'LISTEN FOR WILD SIGNALS':region.includes('ROOT')?'TEND THE UNDERSTORY':'EXPLORE BEYOND THE PATH';
 }
+let lastAbilityHudAt=-Infinity;
 function tick(){
  requestAnimationFrame(tick);
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
@@ -952,7 +953,7 @@ function tick(){
  // Begin costly 3D updates only when the Big Bang starts revealing it.
  if(app.classList.contains('world-locked'))return;
  if(active&&!suppressSave&&!awakening.isBlocking()&&t-lastSavedAt>22){lastSavedAt=t;saveWorld();}
- if(Math.floor(t)%2===0&&Math.floor(t*2)%4===0)updateAbilityHUD();
+ if(t-lastAbilityHudAt>.75){lastAbilityHudAt=t;updateAbilityHUD();}
  const reduced=document.querySelector('#reduced').checked;
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
