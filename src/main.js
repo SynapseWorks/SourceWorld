@@ -160,7 +160,7 @@ const skyRoutes=createSkyRoutes(scene,{
 const skyFrontier=createSkyFrontier(scene,{
  onDiscover(location){
   recordJournal({type:'SKY DISCOVERY',title:location.name,description:location.story});
-  atlas.registerLocation({id:location.id,name:location.name,x:location.x,z:location.z,
+  atlas.registerLocation({id:location.id,name:location.name,x:location.x,z:location.z,y:location.y,
    type:'aerial',description:location.story});
   announce('A NEW SKY ISLAND · '+location.name,6);
   saveWorld();
@@ -175,7 +175,7 @@ const skyFrontier=createSkyFrontier(scene,{
 const rooftopGardens=createRooftopGardens(scene,{
  onDiscover(location){
   recordJournal({type:'ROOFTOP',title:location.name,description:location.story});
-  atlas.registerLocation({id:location.id,name:location.name,x:location.x,z:location.z,
+  atlas.registerLocation({id:location.id,name:location.name,x:location.x,z:location.z,y:location.y,
    type:'aerial',description:location.story});
   announce('ROOFTOP GARDEN DISCOVERED · '+location.building,5);
   saveWorld();
@@ -356,14 +356,14 @@ const atlas=createWorldMap({
  onClose(){toggleMap(false);}
 });
 for(const place of skyFrontier.getDiscovered())atlas.registerLocation({
- id:place.id,name:place.name,x:place.x,z:place.z,type:'aerial',description:place.story
+ id:place.id,name:place.name,x:place.x,z:place.z,y:place.y,type:'aerial',description:place.story
 });
 for(const place of rooftopGardens.getDiscovered())atlas.registerLocation({
- id:place.id,name:place.name,x:place.x,z:place.z,type:'aerial',description:place.story
+ id:place.id,name:place.name,x:place.x,z:place.z,y:place.y,type:'aerial',description:place.story
 });
 skyRoutes.snapshot().discovered.forEach(id=>{
  const site=skyRoutes.sites.find(s=>s.id===id);
- if(site)atlas.registerLocation({id:'sky:'+site.id,name:site.name,x:site.x,z:site.z,type:'aerial',description:site.story});
+ if(site)atlas.registerLocation({id:'sky:'+site.id,name:site.name,x:site.x,z:site.z,y:site.y,type:'aerial',description:site.story});
 });
 frontier.getDiscoveredNodes().forEach(node=>atlas.registerLocation({
  id:node.id,name:node.biome.name,x:node.x,z:node.z,type:'frontier',
@@ -889,7 +889,7 @@ function tick(){
   paused:menuVisible()||!active,reduced,weather:atmosphere,
   underground:underlayer.inside,flight:flight.airborne,
   phase:ecosystem.getPhase(),day:ecosystem.getDay(),
-  skyIslands:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.sites
+  skyIslands:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.getHabitats()
  });
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
