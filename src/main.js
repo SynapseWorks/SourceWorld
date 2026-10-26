@@ -821,7 +821,7 @@ function tick(){
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
  underlayer.update(t,dt,{wireframe,reduced});
  aerialLife.update(dt,camera.position,{paused:menuVisible()||!active,
-  reduced,weather:atmosphere,underground:underlayer.inside});
+  reduced,weather:atmosphere,underground:underlayer.inside,flight:flight.airborne});
  document.querySelector('#underlayer-readout').classList.toggle('hidden',!underlayer.inside);
  const skyState=skyRoutes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
