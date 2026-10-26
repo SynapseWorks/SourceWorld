@@ -8,6 +8,8 @@ import {createReconstruction} from './reconstruction.js';
 import {createGeneratedSectors} from './worldgen.js';
 import {createFrontier} from './frontier.js';
 import {createUnderlayer,UNDERLAYER_EYE} from './underlayer.js';
+import {createUnderworld} from './underworld.js';
+import {STARTER_CAVERNS,cavernFromNode} from './underworldData.js';
 import {createAerialLife} from './aerialLife.js';
 import {createSkyEcology} from './skyEcology.js';
 import {createFlightController,FLIGHT_EYE_HEIGHT} from './flight.js';
@@ -137,6 +139,22 @@ const ecosystem=createEcosystem(scene,{onEvent(event){
  if(event.type==='REGION')announce(event.title,4);
 }});
 const underlayer=createUnderlayer(scene);
+const deepWorld=createUnderworld(scene,{
+ onEvent(event){
+  recordJournal(event);
+  if(event.type==='SUBTERRANEAN DISCOVERY'){
+   const cave=deepWorld.active;
+   if(cave)atlas.registerLocation({id:cave.id,name:cave.name,x:cave.x,z:cave.z,
+    type:'underworld',description:cave.story});
+   announce('A NEW UNDERGROUND WORLD · '+event.title,7);
+  }
+ },
+ onEffect(event){
+  const effect=ecosystem.receiveSubsurfaceWater(event);
+  if(effect)recordJournal({type:'ECOLOGY',title:'GROUNDWATER REACHES '+effect.name,
+   description:'The aquifer carried water and fungal nutrients beneath the surface, nourishing '+effect.roots+' plants.'});
+ }
+});
 const aerialLife=createAerialLife(scene,{onEvent(event){
  recordJournal(event);announce(event.title,4);
 }});
@@ -317,6 +335,7 @@ if(continuity.saved){
  skyEcology.restore(continuity.snapshot.skyEcologyState||{});
  frontier.restore(continuity.snapshot.frontierState||{});
  underlayer.restore(continuity.snapshot.underlayerState||{});
+ deepWorld.restore(continuity.snapshot.underworldState||{});
  neighborhoods.restore(continuity.snapshot.placeState||{});
  echoes.restore(continuity.snapshot.echoes||[]);
  tendingWorld.restore(continuity.snapshot.restoredSites||[]);
@@ -342,6 +361,7 @@ function saveWorld(){
  snapshot.placeState=neighborhoods.snapshot();
  snapshot.frontierState=frontier.snapshot();
  snapshot.underlayerState=underlayer.snapshot();
+ snapshot.underworldState=deepWorld.snapshot();
  snapshot.flightState=flight.snapshot();
  snapshot.skyState=skyRoutes.snapshot();
  snapshot.generatedSkyState=skyFrontier.snapshot();
@@ -382,6 +402,13 @@ for(const place of rooftopGardens.getDiscovered())atlas.registerLocation({
 skyRoutes.snapshot().discovered.forEach(id=>{
  const site=skyRoutes.sites.find(s=>s.id===id);
  if(site)atlas.registerLocation({id:'sky:'+site.id,name:site.name,x:site.x,z:site.z,y:site.y,type:'aerial',description:site.story});
+});
+deepWorld.getDiscovered().forEach(id=>{
+ const starter=STARTER_CAVERNS.find(s=>s.id===id);
+ const match=/^strata-node:(-?\d+):(-?\d+)$/.exec(id);
+ const cavern=starter||(match?cavernFromNode(Number(match[1]),Number(match[2])):null);
+ if(cavern)atlas.registerLocation({id:cavern.id,name:cavern.name,x:cavern.x,z:cavern.z,
+  type:'underworld',description:cavern.story});
 });
 frontier.getDiscoveredNodes().forEach(node=>atlas.registerLocation({
  id:node.id,name:node.biome.name,x:node.x,z:node.z,type:'frontier',
@@ -612,12 +639,20 @@ let wireframe=false,animeReality=false;
 const visionButton=document.querySelector('#vision');
 function setVision(enabled){
  if(enabled&&animeReality)setReality(false);
- if(!enabled&&underlayer.inside){
-  underlayer.exitLayer();camera.position.set(underlayer.position.x,1.72,underlayer.position.z);
-  vy=0;grounded=true;keys.clear();resetJoystick();
-  announce('EXITED UNDERLAYER · REALITY RESTORED.',5);
+ if(!enabled&&(underlayer.inside||deepWorld.inside)){
+  if(underlayer.inside){
+   underlayer.exitLayer();camera.position.set(underlayer.position.x,1.72,underlayer.position.z);
+  }
+  if(deepWorld.inside){
+   const surface=deepWorld.leave();
+   camera.position.set(surface.x,surface.y,surface.z);
+  }
+  flight.land();vy=0;grounded=true;keys.clear();resetJoystick();
+  announce('RETURNED FROM THE UNDERWORLD · REALITY RESTORED.',5);
+  saveWorld();
  }
  underlayer.setVisible(enabled);
+ deepWorld.setWireframe(enabled);
  skyFrontier.setWireframe(enabled);
  wireframe=enabled;visionButton.setAttribute('aria-pressed',String(enabled));
  visionButton.classList.toggle('selected',enabled);
@@ -641,6 +676,7 @@ function setReality(enabled){
  aerialLife.setAnime(enabled);
  skyRoutes.setAnime(enabled);
  skyEcology.setAnime(enabled);
+ deepWorld.setAnime(enabled);
  skyFrontier.setAnime(enabled);
  rooftopGardens.setAnime(enabled);
  animeArchitecture.setEnabled(enabled);
@@ -707,9 +743,9 @@ function toggleFlight(){
   return false;
  }
  const was=flight.mode;
- const changed=flight.toggle({underground:underlayer.inside});
+ const changed=flight.toggle({underground:underlayer.inside||deepWorld.inside});
  if(!changed){
-  if(underlayer.inside)announce('THE UNDERLAYER HAS NO OPEN SKY.',4);
+  if(underlayer.inside||deepWorld.inside)announce('THE UNDERWORLD HAS NO OPEN SKY.',4);
   else if(flight.energy<12)announce('YOUR WINGS NEED REST · GLIDE DOWN AND RECHARGE.',5);
   return false;
  }
@@ -868,6 +904,7 @@ const descendButton=document.querySelector('#mobile-descend');
 descendButton.addEventListener('pointerdown',e=>{e.preventDefault();if(!menuVisible())touchDescend=true;});
 for(const event of ['pointerup','pointercancel','pointerleave'])descendButton.addEventListener(event,()=>{touchDescend=false;});
 function collision(x,z,y=camera.position.y){
+ if(deepWorld.inside)return !deepWorld.bounds(x,z);
  if(underlayer.inside)return !underlayer.bounds(x,z);
  // Check each obstacle independently; an unrelated box must never end the test.
  for(const b of solidity){
