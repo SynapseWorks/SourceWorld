@@ -9,6 +9,7 @@ import {createGeneratedSectors} from './worldgen.js';
 import {createFrontier} from './frontier.js';
 import {createUnderlayer,UNDERLAYER_EYE} from './underlayer.js';
 import {createAerialLife} from './aerialLife.js';
+import {createSkyEcology} from './skyEcology.js';
 import {createFlightController,FLIGHT_EYE_HEIGHT} from './flight.js';
 import {createSkyRoutes} from './skyRoutes.js';
 import {createSkyFrontier} from './skyFrontier.js';
@@ -189,6 +190,20 @@ const rooftopGardens=createRooftopGardens(scene,{
 });
 skyFrontier.setQuality(qualityScale);
 rooftopGardens.setQuality(qualityScale);
+const skyEcology=createSkyEcology(scene,{
+ onEvent(event){
+  recordJournal(event);
+  if(event.type==='AUTONOMOUS SKY EVENT'){
+   document.querySelector('#sky-activity').textContent='SKY EVENT · SEEDFALL · LIFE CONTINUES';
+  }
+  saveWorld();
+ },
+ onPollination(event){
+  const result=ecosystem.receiveSkySeeds(event);
+  if(result)recordJournal({type:'ECOLOGY',title:'SEEDS REACH '+result.region,
+   description:'The migrating birds nourished '+result.nourished+' ground plants, quietly changing their habitat.'});
+ }
+});
 const frontier=createFrontier(scene,{
  onEvent(event){
   recordJournal(event);
@@ -299,6 +314,7 @@ if(continuity.saved){
  skyRoutes.restore(continuity.snapshot.skyState||{});
  skyFrontier.restore(continuity.snapshot.generatedSkyState||{});
  rooftopGardens.restore(continuity.snapshot.rooftopState||{});
+ skyEcology.restore(continuity.snapshot.skyEcologyState||{});
  frontier.restore(continuity.snapshot.frontierState||{});
  underlayer.restore(continuity.snapshot.underlayerState||{});
  neighborhoods.restore(continuity.snapshot.placeState||{});
@@ -330,6 +346,7 @@ function saveWorld(){
  snapshot.skyState=skyRoutes.snapshot();
  snapshot.generatedSkyState=skyFrontier.snapshot();
  snapshot.rooftopState=rooftopGardens.snapshot();
+ snapshot.skyEcologyState=skyEcology.snapshot();
  saveSupported=writeContinuity(snapshot,unifiedJournal);
  document.querySelector('#continuity-status').textContent=saveSupported?'Memory saved locally':'Browser storage unavailable — session only';
  return saveSupported;
@@ -544,6 +561,7 @@ function interact(){
  if(seed)return;
  if(rooftopGardens.interact(camera.position,ecosystem.getDay()))return;
  if(skyFrontier.interact(camera.position,ecosystem.getDay()))return;
+ if(skyEcology.interact(camera.position))return;
  // Do not accidentally activate ground-level objectives from high overhead.
  if(camera.position.y>6)return;
 
@@ -622,6 +640,7 @@ function setReality(enabled){
  frontier.setAnime(enabled);
  aerialLife.setAnime(enabled);
  skyRoutes.setAnime(enabled);
+ skyEcology.setAnime(enabled);
  skyFrontier.setAnime(enabled);
  rooftopGardens.setAnime(enabled);
  animeArchitecture.setEnabled(enabled);
@@ -887,11 +906,19 @@ function tick(){
   time:t,phase:ecosystem.getPhase(),day:ecosystem.getDay(),
   reduced,paused:menuVisible()||!active||underlayer.inside,active:active&&!underlayer.inside
  });
+ const skyNestState=skyEcology.update(dt,camera.position,{
+  simTime:ecosystem.getTime(),day:ecosystem.getDay(),dayPhase:ecosystem.getPhase(),
+  weatherState:atmosphere,reduced,
+  paused:menuVisible()||!active||underlayer.inside,
+  active:active&&!awakening.isBlocking()&&!underlayer.inside,
+  generated:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.getHabitats()
+ });
  aerialLife.update(dt,camera.position,{
   paused:menuVisible()||!active,reduced,weather:atmosphere,
   underground:underlayer.inside,flight:flight.airborne,
   phase:ecosystem.getPhase(),day:ecosystem.getDay(),
-  skyIslands:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.getHabitats()
+  skyIslands:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.getHabitats(),
+  nests:skyEcology.getNests()
  });
  const nearbyEcho=echoes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
@@ -937,13 +964,14 @@ function tick(){
  const skySeed=skyState.nearby;
  const skyCare=skyGrowing.nearby;
  const rooftopCare=rooftopState.nearby;
+ const skyNest=skyNestState.nearby;
  const nearSurface=camera.position.y<=6;
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
  const livingNearby=livingWorld.encounters.find(item=>Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<item.r);
  const frontierNearby=frontierState.node;
- interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':rooftopCare?'[ E ] WATER ROOFTOP GARDEN':skyCare?'[ E ] TEND THE SKY GARDEN':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- const canInteract=!!(nearLayerGate||nearSkywell||skySeed||skyCare||rooftopCare||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
+ interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':rooftopCare?'[ E ] WATER ROOFTOP GARDEN':skyCare?'[ E ] TEND THE SKY GARDEN':skyNest?'[ E ] OBSERVE '+skyNest.life.label+' NEST':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ const canInteract=!!(nearLayerGate||nearSkywell||skySeed||skyCare||rooftopCare||skyNest||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
  interactionLabel.classList.toggle('visible',canInteract);
  interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
