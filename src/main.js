@@ -553,7 +553,31 @@ function completeFragment(item){
 }
 function interact(){
  if(!active||menuVisible())return;
- // Wireframe Vision reveals a small playable lower layer and its rewrite nexus.
+ // Deterministic caverns beneath biome nodes; the original vault remains intact.
+ if(deepWorld.inside||wireframe){
+  const deepAction=deepWorld.interact(camera.position,wireframe,ecosystem.getDay());
+  if(deepAction){
+   if(deepAction.type==='enter'||deepAction.type==='exit'){
+    flight.land();camera.position.set(deepAction.x,deepAction.y,deepAction.z);
+    vy=0;grounded=true;keys.clear();resetJoystick();
+    announce(deepAction.type==='enter'
+     ?'LAYER -02 · EXPLORE THE FUNGAL NURSERY AND RESTORE THE AQUIFER.'
+     :'BACK ON THE SURFACE · THE GROUND REMEMBERS YOUR WORK.',8);
+   }else if(deepAction.type==='already-tended'){
+    announce('THE FUNGAL NURSERY WAS TENDED TODAY. RETURN ANOTHER DAY.',5);
+   }else if(deepAction.type==='rewrite'){
+    announce('AQUIFER · '+deepAction.title+' · '+deepAction.description,7);
+   }else if(deepAction.type==='tend'){
+    announce('MYCELIUM TENDED · ITS ROOT NETWORK CONTINUES TO GROW.',7);
+   }else if(deepAction.type==='listen'){
+    announce(deepAction.description,8);
+   }
+   triggerCodePulse(camera.position,clock.elapsedTime);
+   saveWorld();return;
+  }
+  if(deepWorld.inside)return;
+ }
+ // Wireframe Vision reveals the original authored Syntax Vault too.
  if(underlayer.inside||wireframe){
   const layerAction=underlayer.interact(camera.position,wireframe);
   if(layerAction){
@@ -933,26 +957,39 @@ function tick(){
  sky.update(camera,t,reduced?0:Number(document.querySelector('#motion').value)/100);
  const atmosphere=simulationWeather.update(camera,t,dt,!reduced);
  underlayer.update(t,dt,{wireframe,reduced});
- document.querySelector('#underlayer-readout').classList.toggle('hidden',!underlayer.inside);
+ const deepState=deepWorld.update(t,dt,camera.position,{
+  wireframe,reduced,paused:menuVisible()||!active
+ });
+ const underworldUI=document.querySelector('#underlayer-readout');
+ underworldUI.classList.toggle('hidden',!(underlayer.inside||deepWorld.inside));
+ if(deepWorld.inside){
+  underworldUI.querySelector('span').textContent='LAYER -02 · '+deepWorld.active.name;
+  underworldUI.querySelector('strong').textContent='THE WORLD HAS ROOTS';
+  underworldUI.querySelector('small').textContent='RESTORE THE AQUIFER · TEND THE MYCELIUM · RETURN VIA THE GATE';
+ }else if(underlayer.inside){
+  underworldUI.querySelector('span').textContent='LAYER -01 · SYNTAX VAULT';
+  underworldUI.querySelector('strong').textContent='THE WORLD HAS DEPTH';
+  underworldUI.querySelector('small').textContent='REARRANGE THE STRUCTURE WITH E · RETURN VIA THE GATE';
+ }
  const skyState=skyRoutes.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  const skyGrowing=skyFrontier.update(dt,camera.position,{
   time:t,phase:ecosystem.getPhase(),weather:atmosphere,day:ecosystem.getDay(),
-  reduced,paused:menuVisible()||!active||underlayer.inside,active:active&&!underlayer.inside
+  reduced,paused:menuVisible()||!active||underlayer.inside||deepWorld.inside,active:active&&!underlayer.inside&&!deepWorld.inside
  });
  const rooftopState=rooftopGardens.update(dt,camera.position,{
   time:t,phase:ecosystem.getPhase(),day:ecosystem.getDay(),
-  reduced,paused:menuVisible()||!active||underlayer.inside,active:active&&!underlayer.inside
+  reduced,paused:menuVisible()||!active||underlayer.inside||deepWorld.inside,active:active&&!underlayer.inside&&!deepWorld.inside
  });
  const skyNestState=skyEcology.update(dt,camera.position,{
   simTime:ecosystem.getTime(),day:ecosystem.getDay(),dayPhase:ecosystem.getPhase(),
   weatherState:atmosphere,reduced,
-  paused:menuVisible()||!active||underlayer.inside,
-  active:active&&!awakening.isBlocking()&&!underlayer.inside,
+  paused:menuVisible()||!active,
+  active:active&&!awakening.isBlocking(),
   generated:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.getHabitats()
  });
  aerialLife.update(dt,camera.position,{
   paused:menuVisible()||!active,reduced,weather:atmosphere,
-  underground:underlayer.inside,flight:flight.airborne,
+  underground:underlayer.inside||deepWorld.inside,flight:flight.airborne,
   phase:ecosystem.getPhase(),day:ecosystem.getDay(),
   skyIslands:skyFrontier.getActiveIslands(),rooftops:rooftopGardens.getHabitats(),
   nests:skyEcology.getNests()
@@ -961,8 +998,11 @@ function tick(){
  const tendingNearby=tendingWorld.update(t,dt,camera.position,{reduced,paused:menuVisible()||!active});
  artDirection.update(t,dt,reduced);
  const ecosystemState=ecosystem.update(t,dt,camera.position,{paused:menuVisible()||!active||awakening.isBlocking(),reduced,weather:atmosphere});
- const frontierState=frontier.update(dt,camera.position,{active:active&&!awakening.isBlocking(),
-  paused:menuVisible()||!active,reduced,motion:!reduced});
+ const frontierState=frontier.update(dt,camera.position,{
+  active:active&&!awakening.isBlocking()&&!underlayer.inside&&!deepWorld.inside,
+  paused:menuVisible()||!active||underlayer.inside||deepWorld.inside,
+  reduced,motion:!reduced
+ });
  const frontierUI=document.querySelector('#frontier-readout');
  frontierUI.classList.toggle('hidden',!frontierState.biome);
  if(frontierState.biome){
@@ -997,18 +1037,22 @@ function tick(){
  for(const item of sculptures){if(!reduced){item.obj.rotation.y+=dt*.18;item.obj.rotation.z+=dt*.07;item.obj.position.y=item.baseY+Math.sin(t*.8+item.phase)*.55;}}
  let nearby=interactables.find(i=>!i.done&&Math.hypot(camera.position.x-i.x,camera.position.z-i.z)<3.4);
  const nearLayerGate=underlayer.nearGate(camera.position,wireframe);
+ const nearDeepGate=deepState.action;
  const nearSkywell=skyState.well&&!flight.unlocked;
  const skySeed=skyState.nearby;
  const skyCare=skyGrowing.nearby;
  const rooftopCare=rooftopState.nearby;
  const skyNest=skyNestState.nearby;
- const nearSurface=camera.position.y<=6;
+ const nearSurface=camera.position.y>=.5&&camera.position.y<=6;
  const nearSource=recovered.size===3&&!sourceActivated&&Math.hypot(camera.position.x,camera.position.z+85)<13;
  const nearHeart=sourceActivated&&!forest.interact.completed&&Math.hypot(camera.position.x,camera.position.z+217)<4.5;
  const livingNearby=livingWorld.encounters.find(item=>Math.hypot(camera.position.x-item.x,camera.position.z-item.z)<item.r);
  const frontierNearby=frontierState.node;
- interactionLabel.textContent=nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':rooftopCare?'[ E ] WATER ROOFTOP GARDEN':skyCare?'[ E ] TEND THE SKY GARDEN':skyNest?'[ E ] OBSERVE '+skyNest.life.label+' NEST':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
- const canInteract=!!(nearLayerGate||nearSkywell||skySeed||skyCare||rooftopCare||skyNest||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
+ interactionLabel.textContent=nearDeepGate?(nearDeepGate==='enter'?'[ E ] DESCEND INTO DEEP STRATA':
+  nearDeepGate==='exit'?'[ E ] RETURN TO THE SURFACE':
+  nearDeepGate==='rewrite'?'[ E ] REARRANGE THE AQUIFER':
+  nearDeepGate==='tend'?'[ E ] TEND THE FUNGAL NURSERY':'[ E ] LISTEN TO THE STONE'):nearLayerGate?(nearLayerGate==='enter'?'[ E ] ENTER THE UNDERLAYER':nearLayerGate==='exit'?'[ E ] RETURN TO SURFACE':'[ E ] REARRANGE THE UNDERLAYER'):nearSkywell?'[ E ] AWAKEN FLIGHT':skySeed?'[ E ] GATHER SKY SEED':rooftopCare?'[ E ] WATER ROOFTOP GARDEN':skyCare?'[ E ] TEND THE SKY GARDEN':skyNest?'[ E ] OBSERVE '+skyNest.life.label+' NEST':!nearSurface?'':nearby?'[ E ] RECOVER '+nearby.label:nearSource?'[ E ] ACTIVATE SOURCE':nearHeart?'[ E ] LISTEN TO THE HEART':livingNearby?'[ E ] LISTEN TO '+livingNearby.title:nearbyEcho?'[ E ] RECOVER HIDDEN ECHO':tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK?'[ E ] RESTORE '+tendingNearby.name:placeState.nearby?'[ E ] '+placeState.nearby.action:frontierNearby?'[ E ] ATTUNE WORLD NODE':mobile?'EXPLORE · APPROACH THE GLOWING SIGNALS':'';
+ const canInteract=!!(nearDeepGate||nearLayerGate||nearSkywell||skySeed||skyCare||rooftopCare||skyNest||(nearSurface&&(nearby||nearSource||nearHeart||livingNearby||nearbyEcho||(tendingNearby&&echoes.getCount()>=REWRITE_UNLOCK)||placeState.nearby||frontierNearby)));
  interactionLabel.classList.toggle('visible',canInteract);
  interactionLabel.disabled=!canInteract||menuVisible();
  forest.animate(t,dt,reduced);
@@ -1056,8 +1100,8 @@ function tick(){
     skyFrontier.floorEyeAt(camera.position.x,camera.position.z,camera.position.y),
     rooftopGardens.floorEyeAt(camera.position.x,camera.position.z,camera.position.y)
    );
-   const floorEye=underlayer.inside?UNDERLAYER_EYE:platformEye;
-   if(flight.unlocked&&!underlayer.inside&&platformEye===FLIGHT_EYE_HEIGHT&&
+   const floorEye=deepWorld.inside?deepWorld.floorEye:underlayer.inside?UNDERLAYER_EYE:platformEye;
+   if(flight.unlocked&&!underlayer.inside&&!deepWorld.inside&&platformEye===FLIGHT_EYE_HEIGHT&&
       camera.position.y>8&&grounded){
     // Walking off a floating sanctuary triggers a controlled glide.
     if(flight.beginGlide()){grounded=false;vy=0;announce('THE WIND CATCHES YOU · GLIDING TO SAFETY.',5);}
@@ -1073,6 +1117,7 @@ function tick(){
   document.querySelector('#sky-activity').textContent=
    birds.behavior+' BIRDS · '+skyGrowing.charted+' SKY ISLANDS CHARTED · '+rooftopState.discovered+' ROOF GARDENS';
  }
+ scene.fog.density=deepWorld.inside?(animeReality?.025:.034):(animeReality?.0049:.012);
  document.querySelector('#coordinates').textContent=`X ${camera.position.x.toFixed(1)} · Z ${camera.position.z.toFixed(1)}`;
  const nextTarget=chosenDestination?{...chosenDestination,label:chosenDestination.name}:interactables.find(item=>!item.done)||(!sourceActivated?{x:0,z:-85,label:'SOURCE NODE'}:!forest.interact.completed?{x:0,z:-217,label:'HEART OF THE GROVE'}:null);
  const wayfinder=document.querySelector('#objective-direction');
@@ -1087,8 +1132,8 @@ function tick(){
  }else{wayfinder.textContent='◇ SYSTEM AT REST';metric.textContent='COMPLETE';}
  if(mapOpen)atlas.refresh();
  const localLandmark=openWorld.landmarks.find(p=>Math.hypot(camera.position.x-p.x,camera.position.z-p.z)<p.r);
- document.querySelector('#location').textContent=underlayer.inside?'THE SYNTAX VAULT':camera.position.y>14&&(skyGrowing.site?.name||rooftopState.site?.name||skyState.site?.name)||localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
- document.querySelector('#place-tagline').textContent=(camera.position.y>14&&(skyGrowing.site?.story||rooftopState.site?.story||skyState.site?.story))||placeState.district?.subtitle||'';
+ document.querySelector('#location').textContent=deepWorld.inside?deepWorld.active.name:underlayer.inside?'THE SYNTAX VAULT':camera.position.y>14&&(skyGrowing.site?.name||rooftopState.site?.name||skyState.site?.name)||localLandmark?.name||placeState.district?.name||frontierState.biome?.name||(camera.position.z < -205?'HEART OF THE GROVE':camera.position.z < -110?'THE SIMULATION FOREST':camera.position.z < -70?'THE SOURCE NODE':camera.position.z < -10?'THE CONSTRUCT CITY':'THE AWAKENING');
+ document.querySelector('#place-tagline').textContent=deepWorld.inside?deepWorld.active.story:(camera.position.y>14&&(skyGrowing.site?.story||rooftopState.site?.story||skyState.site?.story))||placeState.district?.subtitle||'';
  frameCount++;if(t-lastFps>1){document.querySelector('#fps').textContent=Math.round(frameCount/(t-lastFps))+' FPS';frameCount=0;lastFps=t;}
  renderer.render(scene,camera);
 }
