@@ -948,6 +948,8 @@ function ecoGuideText(region){
 let lastAbilityHudAt=-Infinity;
 function tick(){
  requestAnimationFrame(tick);
+ // A hidden embedded or background tab should not keep consuming WebGL rendering time.
+ if (document.hidden) { clock.getDelta(); return; }
  let dt=Math.min(clock.getDelta(),.045),t=clock.elapsedTime;
  // The universe is truly dormant while the entry menu, void and falling code own the screen.
  // Begin costly 3D updates only when the Big Bang starts revealing it.
