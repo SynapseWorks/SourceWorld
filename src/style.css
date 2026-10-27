@@ -400,20 +400,3 @@
 @media(prefers-reduced-motion:reduce){
  #app.subterranean #vignette{transition:none}
 }
-
-/* Optional Root & Render World Window: comfortable in a contained browser panel.
-   Fullscreen SourceWorld keeps its original composition. */
-html.studio-embed .topmeta{display:none}
-html.studio-embed .topbar{padding:clamp(10px,2vw,18px);gap:10px}
-html.studio-embed .overlay{padding:clamp(1.1rem,5vw,3.5rem)}
-html.studio-embed .intro-content{max-width:640px}
-html.studio-embed .intro-content h1{font-size:clamp(2.4rem,6.6vw,5.6rem);margin:12px 0 20px}
-html.studio-embed .intro-content .symbol{font-size:clamp(30px,4vw,50px);margin-bottom:15px}
-html.studio-embed .intro-copy{font-size:clamp(12px,1.5vw,16px);line-height:1.6}
-html.studio-embed .enter{margin-top:18px;padding:13px 18px}
-html.studio-embed .intro-aside{display:none}
-@media (max-height:650px){
-  html.studio-embed .intro-content h1{font-size:clamp(2rem,7vh,3.7rem)}
-  html.studio-embed .controls{margin-top:12px}
-  html.studio-embed .overlay{overflow-y:auto}
-}
