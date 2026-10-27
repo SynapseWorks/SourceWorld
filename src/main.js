@@ -29,6 +29,10 @@ import {createAnimeArchitecture} from './animeArchitecture.js';
 import {createNeighborhoods} from './neighborhoods.js';
 import {readContinuity,writeContinuity,clearContinuity,formatElapsed} from './continuity.js';
 
+// The studio showcase is optional and deliberately conservative about GPU usage.
+const studioEmbed = new URLSearchParams(window.location.search).get('embed') === 'studio' && window.parent !== window;
+if (studioEmbed) document.documentElement.classList.add('studio-embed');
+
 const app=document.querySelector('#app');
 app.classList.add('world-locked');
 app.innerHTML=`
@@ -87,8 +91,11 @@ toolToggle.addEventListener('click',()=>{
 });
 const scene=new THREE.Scene();scene.background=new THREE.Color('#010807');scene.fog=new THREE.FogExp2('#010807',.012);
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.08,210); camera.position.set(0,1.72,7.8);
-const renderer=new THREE.WebGLRenderer({antialias:!matchMedia('(pointer:coarse)').matches,powerPreference:'high-performance'});
-let qualityScale=matchMedia('(pointer:coarse)').matches?.65:1;
+const renderer=new THREE.WebGLRenderer({
+ antialias: !matchMedia('(pointer:coarse)').matches && !studioEmbed,
+ powerPreference: studioEmbed ? 'low-power' : 'high-performance'
+});
+let qualityScale=studioEmbed ? .72 : (matchMedia('(pointer:coarse)').matches ? .65 : 1);
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.25;
@@ -1142,4 +1149,15 @@ function tick(){
  renderer.render(scene,camera);
 }
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)*qualityScale);});
+
+// Communicate only with the verified studio origin. The main site never requests
+// game data or visitor progress from SourceWorld; the channel is lifecycle-only.
+if (studioEmbed) {
+ const studioOrigin = 'https://rootandrenderstudio.ca';
+ window.addEventListener('message',event=>{
+  if(event.source!==window.parent || event.origin!==studioOrigin)return;
+  if(event.data?.type==='rootrender:pause-world' && everEntered && !paused)pauseGame(true);
+ });
+ window.parent.postMessage({type:'rootrender:world-ready',version:1},studioOrigin);
+}
 tick();
