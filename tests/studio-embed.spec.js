@@ -13,7 +13,8 @@ test('optional studio window initializes with its own low-power presentation',as
   const child=page.frameLocator('#world');
   await expect(child.locator('html')).toHaveClass(/studio-embed/);
   await expect(child.locator('#intro')).toBeVisible();
-  await expect(child.locator('.topmeta')).toBeHidden();
+  // The embedded game must retain the same visible introduction as standalone.
+  await expect(child.locator('.intro-content h1')).toBeVisible();
   await expect(child.locator('#enter')).toBeVisible();
   // Embedding must not begin the expensive world simulation automatically.
   await expect(child.locator('#app')).toHaveClass(/world-locked/);
