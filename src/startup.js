@@ -18,9 +18,11 @@ import('./main.js').catch(error => {
   retry.addEventListener('click', () => window.location.reload());
   const back = document.createElement('a');
   back.href = 'https://rootandrenderstudio.ca/work/sourceworld/';
-  back.target = '_top';
   back.textContent = 'About SourceWorld';
-  panel.append(heading, message, retry, back);
+  panel.append(heading, message, retry);
+  // An embedded recovery page uses the studio dialog's navigation. Avoid a
+  // top-level link that the iframe sandbox would correctly refuse to open.
+  if (window.parent === window) panel.append(back);
   const app = document.querySelector('#app');
   app.classList.remove('world-locked');
   app.replaceChildren(panel);
