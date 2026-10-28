@@ -1,0 +1,6 @@
+.startup-error{position:fixed;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1.4rem;padding:clamp(2rem,8vw,8rem);background:#04140f;color:#dceee5;font-family:system-ui,sans-serif;overflow:auto}
+.startup-error h1{max-width:20ch;margin:0;font-size:clamp(2rem,5vw,4rem);line-height:1.1;letter-spacing:-.03em}
+.startup-error p{max-width:58ch;margin:0;line-height:1.7;color:#bad5c7}
+.startup-error button{background:#b3e6cb;border:1px solid #b3e6cb;border-radius:.3rem;color:#08271a;padding:.8rem 1.3rem;font:600 1rem system-ui;cursor:pointer}
+.startup-error a{color:#b3e6cb;text-underline-offset:.25em}
+.startup-error :focus-visible{outline:3px solid #f0d79d;outline-offset:5px}
