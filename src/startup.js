@@ -21,7 +21,9 @@ import('./main.js').catch(error => {
   back.target = '_top';
   back.textContent = 'About SourceWorld';
   panel.append(heading, message, retry, back);
-  document.querySelector('#app').replaceChildren(panel);
+  const app = document.querySelector('#app');
+  app.classList.remove('world-locked');
+  app.replaceChildren(panel);
   heading.tabIndex = -1;
   heading.focus();
   if (window.parent !== window && new URLSearchParams(location.search).get('embed') === 'studio') {
